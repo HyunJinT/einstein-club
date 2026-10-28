@@ -25,19 +25,24 @@ function make(tag,props,children){
  return el;
 }
 const container=make('section',{class:'poster-graph-table','aria-label':'표로 그래프 작성하기'});
-container.innerHTML='<div class="poster-graph-head"><strong>📊 표에 숫자를 넣으면 그래프가 자동으로 완성됩니다</strong><label>그래프 형태 <select id="posterGraphType"><option value="bar">막대그래프 (종류별 비교)</option><option value="line">꺾은선그래프 (순서·농도별 변화)</option></select></label></div><div class="poster-graph-help">표의 <b>왼쪽 칸</b>에는 실험 조건이나 농도처럼 비교할 기준을 쓰고, <b>오른쪽 칸</b>에는 실제 측정값을 <b>숫자만</b> 입력하세요. 측정값의 단위는 위쪽 <b>‘그래프 세로축 단위’</b>에 입력하세요.</div><label style="display:block;margin-top:8px;font-size:12px;font-weight:750">가로축 이름 <input id="posterXAxisLabel" type="text" maxlength="35" placeholder="예: 과산화수소 농도(%)" style="max-width:100%;padding:8px"></label><table><thead><tr><th scope="col" style="width:52%">실험 조건 (가로축)</th><th scope="col">측정값 (숫자)</th><th scope="col" style="width:46px">삭제</th></tr></thead><tbody id="posterGraphRows"></tbody></table><button type="button" class="add-graph-row" id="posterAddGraphRow">+ 조건 한 줄 추가</button><details style="margin-top:12px"><summary style="font-size:12px;font-weight:700;cursor:pointer">입력 예시 보기 (실제 실험값 아님)</summary><div class="mini-table-example">가로축: 과산화수소 농도(%) / 세로축: 효모 생존율(%)<br><b>실험 조건</b> 0% → <b>측정값</b> 95<br><b>실험 조건</b> 0.5% → <b>측정값</b> 72<br><b>실험 조건</b> 1.0% → <b>측정값</b> 38<br>위 숫자는 입력 형식을 보여주는 가상 예시이므로 실제 실험 결과로 사용하면 안 됩니다.</div></details><p class="poster-graph-help">주의: 실험 데이터를 그대로 입력하세요. 반복 측정값의 평균을 사용하는 경우 보고서에 반복 횟수와 데이터의 변동 정도도 기록하세요. 꺾은선그래프는 조건의 순서와 수치적 연속성이 의미 있을 때 선택하고, 수치 조건은 작은 값부터 큰 값 순서로 입력하세요.</p>';
+container.innerHTML="<div class=\"poster-graph-head\"><strong>📊 조작 변인(X축)과 종속 변인(Y축)을 표에 입력하세요</strong><label>그래프 종류 <select id=\"posterGraphType\"><option value=\"bar\">막대그래프 · 범주별 비교</option><option value=\"line\">꺾은선그래프 · 연속된 변화</option></select></label></div><div class=\"poster-graph-help\">① 위 입력칸에서 <b>조작 변인·종속 변인의 이름과 단위</b>를 각각 입력하세요.<br>② 왼쪽 칸에는 <b>조작 변인의 값(X)</b>, 오른쪽 칸에는 <b>종속 변인의 측정값(Y)</b>을 입력하세요. 단위는 각 축에 한 번만 입력하면 됩니다.</div><table><thead><tr><th scope=\"col\" style=\"width:48%\">조작 변인(X축) 값</th><th scope=\"col\">종속 변인(Y축) 측정값</th><th scope=\"col\" style=\"width:43px\">삭제</th></tr></thead><tbody id=\"posterGraphRows\"></tbody></table><button type=\"button\" class=\"add-graph-row\" id=\"posterAddGraphRow\">+ 실험 조건 추가</button><details style=\"margin-top:12px\"><summary style=\"font-size:12px;font-weight:700;cursor:pointer\">표 입력 예시 · 가상 데이터</summary><div class=\"mini-table-example\">X축: 과산화수소 농도 / 단위: %<br>Y축: 효모 생존율 / 단위: %<br><b>조작 변인 값</b> 0 → <b>종속 변인 값</b> 95<br><b>조작 변인 값</b> 0.5 → <b>종속 변인 값</b> 72<br><b>조작 변인 값</b> 1.0 → <b>종속 변인 값</b> 38<br>수치는 입력법을 보여주는 가상의 예시이며 실제 실험 결과가 아닙니다.</div></details><p class=\"poster-graph-help\">꺾은선그래프는 연속적으로 변하는 조작 변인에 사용하세요. 수치 조건은 작은 값부터 큰 값 순서로 입력하세요.</p>";
 const field=original.closest('.field');if(field){field.appendChild(container);field.style.position='relative';original.style.display='none';}
 $('posterGraphType').dataset.key='graphType';
-$('posterXAxisLabel').dataset.key='graphXAxis';
 $('posterGraphType').value=options.type==='line'?'line':'bar';
-$('posterXAxisLabel').value=options.xAxis;
+const axisInput=k=>document.querySelector('[data-key="'+k+'"]');
+const xName=axisInput('graphXLabel'),xUnit=axisInput('graphXUnit'),yName=axisInput('graphYLabel'),yUnit=axisInput('graphUnit');
+if(xName&&!xName.value&&options.xAxis&&options.xAxis!=='실험 조건'){xName.value=options.xAxis;xName.dispatchEvent(new Event('input',{bubbles:true}));}
+if(yName&&yUnit&&!yName.value){
+ const m=(yUnit.value||'').match(/^(.{2,30})\s*\((.{1,12})\)$/);
+ if(m){yName.value=m[1].trim();yUnit.value=m[2].trim();yName.dispatchEvent(new Event('input',{bubbles:true}));yUnit.dispatchEvent(new Event('input',{bubbles:true}));}
+}
 function rowsUI(){
  const body=$('posterGraphRows');body.replaceChildren();
  rows.forEach((entry,i)=>{
   const tr=make('tr',{'data-row':i});
   const left=make('td'),right=make('td'),controls=make('td');
-  const name=make('input',{type:'text','aria-label':(i+1)+'번째 실험 조건',placeholder:'예: 0.5%',maxlength:'30','data-col':'condition'});name.value=entry.condition;left.appendChild(name);
-  const val=make('input',{type:'number',step:'any','aria-label':(i+1)+'번째 실제 측정값',placeholder:'예: 72','data-col':'value'});val.value=entry.value;right.appendChild(val);
+  const name=make('input',{type:'text','aria-label':(i+1)+'번째 조작 변인 값',placeholder:'예: 0.5',maxlength:'30','data-col':'condition'});name.value=entry.condition;left.appendChild(name);
+  const val=make('input',{type:'number',step:'any','aria-label':(i+1)+'번째 종속 변인 값',placeholder:'예: 72','data-col':'value'});val.value=entry.value;right.appendChild(val);
   const del=make('button',{type:'button',class:'remove-graph-row','data-delete':i,title:(i+1)+'번째 행 삭제','aria-label':(i+1)+'번째 행 삭제',text:'×'});controls.appendChild(del);
   tr.append(left,right,controls);body.appendChild(tr);
  });
@@ -68,7 +73,7 @@ $('posterAddGraphRow').addEventListener('click',()=>{
 function onType(e){options.type=e.target.value==='line'?'line':'bar';saveOptions();draw();}
 $('posterGraphType').addEventListener('change',onType);
 $('posterGraphType').addEventListener('input',onType);
-$('posterXAxisLabel').addEventListener('input',e=>{options.xAxis=e.target.value.slice(0,35);saveOptions();draw();});
+for(const el of [xName,xUnit,yName,yUnit])if(el)el.addEventListener('input',()=>{if(el===xName){options.xAxis=xName.value.slice(0,28);saveOptions();}draw();});
 original.addEventListener('input',()=>{
  if(setting)return;
  const incoming=parseData(original.value);
@@ -84,10 +89,10 @@ function svgEl(tag,attrs,content){
 function draw(){
  const area=$('pChart');if(!area)return;
  const points=rows.filter(r=>r.condition.trim()&&r.value.trim()&&Number.isFinite(+r.value)).slice(0,MAX_ROWS);
- if(!points.length){area.textContent='표에 실험 조건과 측정값을 입력하면 그래프가 표시됩니다.';area.style.fontSize='11px';area.style.color='#8098a8';return;}
- const svg=svgEl('svg',{viewBox:'0 0 365 155',role:'img','aria-label':'학생 입력 수치로 만든 '+(options.type==='line'?'꺾은선그래프':'막대그래프')});
+ if(!points.length){area.textContent='표에 조작 변인 값과 종속 변인 측정값을 입력하면 그래프가 표시됩니다.';area.style.fontSize='11px';area.style.color='#8098a8';return;}
+ const svg=svgEl('svg',{viewBox:'0 0 365 172',role:'img','aria-label':'학생 입력 수치로 만든 '+(options.type==='line'?'꺾은선그래프':'막대그래프')});
  const values=points.map(r=>+r.value),minimum=Math.min(0,...values),maximum=Math.max(1,...values),limit=maximum===minimum?maximum+1:maximum*1.1,range=Math.max(.00001,limit-minimum);
- const L=44,T=10,W=298,H=113;
+ const L=49,T=24,W=285,H=105;
  const y=v=>T+H-(v-minimum)*H/range;
  const grid=svgEl('g');for(let k=0;k<5;k++){
   const tick=minimum+(limit-minimum)*k/4,yy=y(tick);
@@ -108,7 +113,7 @@ function draw(){
    svg.appendChild(svgEl('rect',{x:xx-w/2,y:Math.min(yy,y(0)),width:w,height:Math.max(1,Math.abs(yy-y(0))),rx:2,fill:i%2?'#60b5ad':'#27818b'}));
   }
   svg.appendChild(svgEl('text',{x:xx,y:Math.max(T+8,yy-5),'text-anchor':'middle','font-size':8,fill:'#215c6b'},+d.value));
-  svg.appendChild(svgEl('text',{x:xx,y:138,'text-anchor':'middle','font-size':8,fill:'#456879'},d.condition.slice(0,9)));
+  svg.appendChild(svgEl('text',{x:xx,y:145,'text-anchor':'middle','font-size':8,fill:'#456879'},d.condition.slice(0,9)));
  });
  if(options.type==='line'){
   const d=coords.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
@@ -116,10 +121,13 @@ function draw(){
   coords.forEach(([cx,cy])=>svg.appendChild(svgEl('circle',{cx,cy,r:3.3,fill:'#218d96',stroke:'#fff','stroke-width':1})));
  }
  area.replaceChildren(svg);
- const axis=svgEl('text',{x:195,y:151,'text-anchor':'middle','font-size':8,fill:'#557789'},options.xAxis.slice(0,35));svg.appendChild(axis);
+ const xLabel=(xName?.value.trim()||'조작 변인')+(xUnit?.value.trim()?' ('+xUnit.value.trim()+')':'');
+ const yLabel=(yName?.value.trim()||'종속 변인')+(yUnit?.value.trim()?' ('+yUnit.value.trim()+')':'');
+ svg.appendChild(svgEl('text',{x:185,y:166,'text-anchor':'middle','font-size':8,fill:'#557789'},xLabel.slice(0,43)));
+ svg.appendChild(svgEl('text',{x:185,y:13,'text-anchor':'middle','font-size':8,fill:'#557789'},yLabel.slice(0,43)));
  svg.setAttribute('data-einstein-graph-v4','1');
  const title=$('pGraphTitle');if(title&&!document.querySelector('[data-key="graphTitle"]')?.value.trim())title.textContent='연구 결과 그래프';
- const unit=$('pGraphUnit');if(unit&&document.querySelector('[data-key="graphUnit"]')?.value.trim())unit.textContent=document.querySelector('[data-key="graphUnit"]').value.trim();
+ const unit=$('pGraphUnit');if(unit)unit.textContent=yLabel;
 }
 const observedChart=$('pChart');
 if(observedChart){
@@ -130,8 +138,8 @@ if(observedChart){
 }
 const graphField=original.closest('.field');
 if(graphField){
- const label=graphField.querySelector('label');if(label)label.textContent='그래프 데이터 (아래 표에 입력)';
- const note=graphField.querySelector('.hint');if(note)note.textContent='표에 실제 실험 조건과 측정값을 입력하세요. 입력할 때마다 포스터 그래프가 자동으로 생성됩니다.';
+ const label=graphField.querySelector('label');if(label)label.textContent='조작 변인(X) · 종속 변인(Y) 데이터';
+ const note=graphField.querySelector('.hint');if(note)note.textContent='조작 변인(X축) 값과 종속 변인(Y축) 측정값을 표에 입력하세요.';
 }
 const introText=document.querySelector('.intro p');
 if(introText)introText.textContent='왼쪽에 연구 내용을 입력하면 오른쪽 A1 세로형 포스터가 자동으로 바뀝니다. 데이터는 표로 입력하여 그래프를 만들 수 있습니다. 완성 후 PDF 또는 PPTX로 저장하세요.';
