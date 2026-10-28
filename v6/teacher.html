@@ -14,16 +14,75 @@ code.secret{background:#f5f8fb;border:1px solid #dce7ef;padding:3px 5px;border-r
 .remember-session{display:flex;align-items:center;gap:8px;font-weight:400;font-size:13px;margin-top:10px;color:#37526a}
 .remember-session input{width:18px;height:18px;margin:0;flex-shrink:0}
 #logout{background:#697b87}
+
+/* 2026 Einstein Teacher Wide Desktop Layout */
+:root{color-scheme:light}
+html{scrollbar-gutter:stable}
+body{min-width:800px;font-size:15px}
+header{padding:24px max(28px,calc((100vw - 1510px)/2));}
+header h1{font-size:25px;letter-spacing:-.025em}
+.wrap{width:calc(100% - 48px);max-width:1510px;padding:0;margin:22px auto 60px;box-sizing:border-box}
+.card{padding:20px 22px;margin:12px 0;border-radius:13px}
+#privateArea>.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.9fr) minmax(0,.9fr);align-items:start;gap:14px}
+#privateArea>.grid>.card{min-width:0;margin:0}
+#privateArea>.grid>.card h2{font-size:19px;margin:2px 0 10px;letter-spacing:-.025em}
+#privateArea>.grid>.card textarea{min-height:72px;max-height:150px}
+#privateArea>.grid>.card #issued{min-height:78px;max-height:120px;font:12px/1.5 Consolas,'Malgun Gothic',monospace}
+#privateArea>.grid>.card p.hint{margin:7px 0 10px}
+#privateArea>.grid>.card button{font-size:13px;padding:9px 12px}
+.codes-overview{margin-top:18px;padding:22px 25px 25px}
+.codes-heading{display:flex;align-items:end;justify-content:space-between;gap:16px}
+.codes-overview h2{margin:0 0 5px;font-size:22px;letter-spacing:-.03em;color:#173e59}
+.codes-overview .hint{margin:3px 0 8px;font-size:12px}
+.codes-overview .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.codes-overview .toolbar button{margin:0;padding:10px 15px}
+.codes-overview #codeCount{font-size:13px;font-weight:700;color:#326e7c;margin:15px 0 8px}
+.codes-overview .table-scroller{height:auto!important;max-height:none!important;overflow:visible!important;margin-top:8px;border:1px solid #d7e5ec}
+#codesTable{min-width:0!important;width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px}
+#codesTable th,#codesTable td{box-sizing:border-box;overflow:visible;text-overflow:clip;white-space:nowrap;padding:9px 13px;text-align:left;border-bottom:1px solid #e5edf2}
+#codesTable th{background:#e8f1f6;color:#27495d;position:sticky;top:0;z-index:1;font-size:13px}
+#codesTable th:nth-child(1){width:14%}
+#codesTable th:nth-child(2){width:18%}
+#codesTable th:nth-child(3){width:13%}
+#codesTable th:nth-child(4){width:32%}
+#codesTable th:nth-child(5){width:23%}
+#codesTable tbody tr:nth-child(even){background:#f8fbfd}
+#codesTable tbody tr:hover{background:#ecf6f8}
+#codesTable code.secret{display:inline-block;max-width:100%;font-family:Consolas,'Cascadia Code','Malgun Gothic',monospace;font-size:14px;font-weight:700;letter-spacing:.055em;color:#193b57;background:#eef5f9;padding:5px 8px;box-sizing:border-box}
+#codesTable .status-warning{white-space:normal;overflow-wrap:anywhere}
+#list>.card{margin-top:18px}
+#list .table-scroller{max-height:600px}
+@media(max-width:1320px){
+ .wrap{width:calc(100% - 36px)}
+ #privateArea>.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #privateArea>.grid>.card:first-child{grid-column:1/-1}
+ #codesTable th,#codesTable td{padding:8px 10px}
+}
+@media(max-width:960px){
+ body{min-width:760px}
+ .wrap{width:calc(100% - 28px)}
+ #privateArea>.grid{grid-template-columns:minmax(0,1fr)}
+ #privateArea>.grid>.card:first-child{grid-column:auto}
+ #codesTable{font-size:13px}
+ #codesTable code.secret{font-size:12px;letter-spacing:.025em}
+ #codesTable th,#codesTable td{padding:8px 7px}
+}
+@media print{
+ header{padding:10px} .wrap{max-width:none;width:100%}
+ #privateArea>.grid,#list,.codes-overview .toolbar,#logout{display:none!important}
+ .codes-overview{border:0;box-shadow:none}
+ #codesTable th{position:static}
+}
 </style></head><body><header><small style="color:#92c9ce">2026 EINSTEIN SCIENCE CLUB</small><h1>교사용 · 동아리 특기사항 근거 확인</h1><div style="color:#d1e5eb">학생이 실제로 제출한 자료에서 주요 탐구 근거만 발췌합니다. 자동으로 생기부 문장을 생성하지 않습니다.</div></header>
 <main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">개인 PC를 등록한 뒤에는 숫자 PIN으로 빠르게 로그인할 수 있습니다. 새 기기를 처음 등록할 때만 64자리 접근코드가 필요합니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간, 개인 PC에서만)</label><p class="hint">공용 컴퓨터에서는 선택하지 마세요. 로그인 중인 탭을 닫거나 직접 로그아웃하면 다시 인증해야 합니다.</p><p id="alert"></p></section>
 <div id="privateArea" hidden><div style="text-align:right;margin-bottom:4px"><button id="logout" type="button">교사 로그아웃</button></div><div class="grid"><section class="card"><h2>학생별 제출코드 발급</h2><p class="hint">한 줄에 학생 1명씩 입력합니다. 형식: <code>20000,홍길동,조장</code> 또는 <code>20001,김영희</code><br>이미 발급된 학생을 다시 입력해도 같은 코드를 조회합니다. 기존 데이터에는 일회성 갱신이 필요할 수 있습니다.</p><textarea id="rosterInput" placeholder="20000,홍길동,조장&#10;20001,김영희"></textarea><button id="issue">제출코드 발급</button><p class="hint">코드는 교사용 서버에 보관됩니다. 발급 버튼을 다시 눌러도 기존 코드는 변경되지 않습니다.</p><textarea id="issued" readonly placeholder="조회 또는 발급한 학생별 코드" style="min-height:100px"></textarea><button id="copy">화면 목록 복사</button>
-<div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
-<div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th></tr></thead><tbody id="codeRows"></tbody></table></div>
+
 <details class="resetBlock"><summary>기존 코드 복원 불가 학생 · 1회 갱신 / 개별 코드 재발급</summary><p class="hint">과거 서버에서 해시값만 저장한 코드는 복원할 수 없습니다. 아래 버튼은 코드를 분실한 학생에게 <strong>새 코드</strong>를 발급합니다. 기존 코드는 무효화되며, 이미 업로드 중이거나 완료한 학생은 갱신되지 않습니다.</p>
 <div class="toolbar"><button id="resetLegacy">복원 불가 학생만 일괄 갱신</button></div>
 <label for="resetIds">특정 학생만 재발급할 때 학번 입력</label><textarea id="resetIds" placeholder="20000&#10;20001" style="min-height:70px"></textarea><button id="resetCodes">선택한 학생 코드 재발급</button></details></section>
 <section class="card"><h2>학생 비밀번호 초기화</h2><p class="hint">학생이 비밀번호를 잊은 경우에만 초기화하세요. <strong>기존 제출코드·작성 기록·첨부파일은 삭제되지 않습니다.</strong> 초기화 후 학생은 처음 이용 화면에서 기존 개별 제출코드로 새 비밀번호를 설정할 수 있습니다.</p><label for="studentPasswordResetId">초기화할 학생 학번</label><input id="studentPasswordResetId" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10000"><button type="button" id="studentPasswordResetBtn">해당 학생 비밀번호 초기화</button><div id="studentPasswordResetFeedback" class="hint" role="status"></div></section>
-<section class="card"><h2>제출 현황</h2><p class="hint">실제 접수 완료된 자료만 표시됩니다.</p><div id="counts">-</div><button id="refresh">제출현황 새로고침</button><input id="search" placeholder="학번·이름·주제 검색" style="margin-top:10px"></section></div><section id="list"></section></div>
+<section class="card"><h2>제출 현황</h2><p class="hint">실제 접수 완료된 자료만 표시됩니다.</p><div id="counts">-</div><button id="refresh">제출현황 새로고침</button><input id="search" placeholder="학번·이름·주제 검색" style="margin-top:10px"></section></div><section class="card codes-overview" aria-labelledby="allCodesTitle"><div class="codes-heading"><div><h2 id="allCodesTitle">학생별 학번 · 이름 · 개별 제출코드</h2><p class="hint">등록된 학생 전체를 노트북·데스크톱 너비에 맞춰 표시합니다. 코드 표는 별도 스크롤 없이 아래로 모두 펼쳐집니다.</p></div></div><div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
+<div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th></tr></thead><tbody id="codeRows"></tbody></table></div></section><section id="list"></section></div>
 </main>
 <script>
 (function(){'use strict';const $=x=>document.getElementById(x),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const connected=typeof google!=='undefined'&&!!google.script?.run;let code='',all=[],tokens=[];
