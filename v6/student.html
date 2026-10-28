@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content="2026학년도 아인슈타인 과학동아리 활동 기록 및 보고서 직접 제출" />
 <title>아인슈타인 | 2026 동아리 활동 기록 · 직접 제출</title>
-<link rel="stylesheet" href="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-responsive-auth-v15.css">
+<link rel="stylesheet" href="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-screen-mode-v16.css">
 </head>
 <body>
 <!-- student-ui-inline-v2-20261028: evidence selections expand in place -->
@@ -18,7 +18,7 @@
   <div class="sidebar-bottom"><strong>RECORD YOUR REAL WORK</strong>거창한 성과보다 실제 탐구 과정과 구체적인 근거가 중요합니다.<br><br>입력 중 내용은 서버에 자동저장되어 다른 기기에서 이어 작성할 수 있습니다. 다만 Google 서버 응답을 확인하기 전에는 브라우저를 닫지 마세요.</div>
  </aside>
  <main class="main">
-  <header class="topbar"><div class="eyebrow">EINSTEIN SCIENCE CLUB · 2026</div><div class="top-actions"><button type="button" class="btn" id="draftSaveBtn">↧ 지금 저장</button><button type="button" class="btn" id="draftLoadBtn">↥ 서버에서 불러오기</button><button type="button" class="btn" id="backupBtn" title="다른 기기에서도 불러올 수 있는 JSON 백업 파일">백업 파일</button><input type="file" id="jsonImport" accept=".json,application/json" hidden></div></header>
+  <header class="topbar"><div class="eyebrow">EINSTEIN SCIENCE CLUB · 2026</div><div class="screen-mode"><label for="studentScreenMode">화면 보기</label><select id="studentScreenMode" aria-label="화면 크기 선택"><option value="auto">자동 맞춤 (추천)</option><option value="phone">휴대폰 보기</option><option value="tablet">태블릿 보기</option><option value="desktop">데스크톱 보기</option></select></div><div class="top-actions"><button type="button" class="btn" id="draftSaveBtn">↧ 지금 저장</button><button type="button" class="btn" id="draftLoadBtn">↥ 서버에서 불러오기</button><button type="button" class="btn" id="backupBtn" title="다른 기기에서도 불러올 수 있는 JSON 백업 파일">백업 파일</button><input type="file" id="jsonImport" accept=".json,application/json" hidden></div></header>
   <section class="hero"><div class="hero-tag">ONE YEAR · ONE SCIENTIFIC JOURNEY</div><h1>나의 탐구가 남긴 흔적</h1><p>아인슈타인 동아리에서 시도하고, 관찰하고, 수정하고, 성장했던 경험을 사실에 근거하여 기록합니다.</p><svg class="hero-atom" viewBox="0 0 160 160" fill="none" aria-hidden="true"><circle cx="80" cy="80" r="8" fill="white"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3" transform="rotate(60 80 80)"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3" transform="rotate(120 80 80)"/></svg></section>
   <section id="studentLoginGate" class="student-login-card">
     <h2>아인슈타인 학생 로그인</h2>
@@ -70,5 +70,6 @@
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-password-auth-v14.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-diagnostics.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-main-v12.js?v=20261028r4" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
+<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-screen-mode-v16.js"></script>
 </body>
 </html>
