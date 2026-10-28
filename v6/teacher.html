@@ -15,7 +15,7 @@ code.secret{background:#f5f8fb;border:1px solid #dce7ef;padding:3px 5px;border-r
 .remember-session input{width:18px;height:18px;margin:0;flex-shrink:0}
 #logout{background:#697b87}
 </style></head><body><header><small style="color:#92c9ce">2026 EINSTEIN SCIENCE CLUB</small><h1>교사용 · 동아리 특기사항 근거 확인</h1><div style="color:#d1e5eb">학생이 실제로 제출한 자료에서 주요 탐구 근거만 발췌합니다. 자동으로 생기부 문장을 생성하지 않습니다.</div></header>
-<main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">Apps Script 초기화 때 제공된 비밀 접근코드를 입력하세요. 서버에서 확인하며 학생용 앱에 이 코드는 포함되지 않습니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간, 개인 PC에서만)</label><p class="hint">공용 컴퓨터에서는 선택하지 마세요. 로그인 중인 탭을 닫거나 직접 로그아웃하면 다시 인증해야 합니다.</p><p id="alert"></p></section>
+<main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">개인 PC를 등록한 뒤에는 숫자 PIN으로 빠르게 로그인할 수 있습니다. 새 기기를 처음 등록할 때만 64자리 접근코드가 필요합니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간, 개인 PC에서만)</label><p class="hint">공용 컴퓨터에서는 선택하지 마세요. 로그인 중인 탭을 닫거나 직접 로그아웃하면 다시 인증해야 합니다.</p><p id="alert"></p></section>
 <div id="privateArea" hidden><div style="text-align:right;margin-bottom:4px"><button id="logout" type="button">교사 로그아웃</button></div><div class="grid"><section class="card"><h2>학생별 제출코드 발급</h2><p class="hint">한 줄에 학생 1명씩 입력합니다. 형식: <code>20000,홍길동,조장</code> 또는 <code>20001,김영희</code><br>이미 발급된 학생을 다시 입력해도 같은 코드를 조회합니다. 기존 데이터에는 일회성 갱신이 필요할 수 있습니다.</p><textarea id="rosterInput" placeholder="20000,홍길동,조장&#10;20001,김영희"></textarea><button id="issue">제출코드 발급</button><p class="hint">코드는 교사용 서버에 보관됩니다. 발급 버튼을 다시 눌러도 기존 코드는 변경되지 않습니다.</p><textarea id="issued" readonly placeholder="조회 또는 발급한 학생별 코드" style="min-height:100px"></textarea><button id="copy">화면 목록 복사</button>
 <div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
 <div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th></tr></thead><tbody id="codeRows"></tbody></table></div>
@@ -266,4 +266,7 @@ $('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('issued').
 $('search').oninput=render;
 if(!connected)notice('미리보기 화면입니다. 실제 데이터 열람과 코드 발급은 Apps Script 배포 주소에서만 가능합니다.');
 })();
-</script></body></html>
+</script>
+<!-- v17: trusted teacher login rendered by external script; preserve server doGet injection skip marker: id="einsteinTrustedLogin" -->
+<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/teacher-pin-easy-v17.js?v=1"></script>
+</body></html>
