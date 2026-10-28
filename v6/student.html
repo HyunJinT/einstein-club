@@ -114,6 +114,7 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
  'use strict';
  var q=function(id){return document.getElementById(id);};
  var button=q('studentLoginBtn'),input=q('studentLoginCode'),output=q('studentLoginFeedback');
+ var loginAttempt=0, loginTimer=null, loginStart=0;
  if(!button||!input||!output)return;
  function feedback(t){output.textContent=String(t||'');}
  function unlock(profile,token){
@@ -129,11 +130,33 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
   var token=input.value.trim().toUpperCase();
   if(!/^E[0-9A-F]{13}$/.test(token)){feedback('학생 개별 제출코드를 정확히 입력해 주세요.');return;}
   if(typeof google==='undefined'||!google.script||!google.script.run){feedback('이 페이지는 화면 미리보기입니다. 담당 교사가 안내한 Apps Script 제출 주소를 이용해 주세요.');return;}
-  button.disabled=true;feedback('학생 정보를 확인하고 있습니다…');
-  google.script.run.withSuccessHandler(function(profile){
-   button.disabled=false;
-   try{unlock(profile,token);}catch(e){feedback(e.message);}
-  }).withFailureHandler(function(err){button.disabled=false;feedback('인증 실패: '+(err&&err.message?err.message:'코드 확인에 실패했습니다.'));}).lookupEinsteinStudentByCode(token);
+  if(button.disabled)return;
+  var attempt=++loginAttempt;
+  loginStart=Date.now();
+  button.disabled=true;button.textContent='인증 중…';
+  feedback('서버에서 학생 정보를 확인하고 있습니다. 잠시 기다려 주세요.');
+  clearTimeout(loginTimer);
+  // Google Apps Script 호출은 일부 네트워크/권한 문제에서 완료 응답이 오지 않을 수 있습니다.
+  loginTimer=setTimeout(function(){
+   if(attempt!==loginAttempt)return;
+   loginAttempt++;
+   button.disabled=false;button.textContent='다시 확인하기';
+   feedback('서버 응답이 지연되고 있습니다. 인터넷 연결과 Apps Script 최신 버전 배포 여부를 확인하고 다시 시도해 주세요. 여러 번 누르지 마세요.');
+  },25000);
+  function done(){
+   if(attempt!==loginAttempt)return false;
+   clearTimeout(loginTimer);button.disabled=false;button.textContent='코드 확인 · 시작';return true;
+  }
+  try{
+   google.script.run.withSuccessHandler(function(profile){
+    if(!done())return;
+    try{unlock(profile,token);}catch(e){feedback(e.message);}
+   }).withFailureHandler(function(err){
+    if(!done())return;
+    feedback('인증 실패: '+(err&&err.message?err.message:'코드 확인에 실패했습니다.')+' · 관리자에게 오류 화면을 알려주세요.');
+   }).lookupEinsteinStudentByCode(token);
+  }catch(e){done();feedback('로그인 요청 실패: '+(e.message||String(e)));}
+
  }
  button.addEventListener('click',login);
  input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();login();}});
@@ -363,7 +386,7 @@ async function submitApp(){
  }catch(e){console.error(e);setSubmitProgress('제출 실패: '+e.message+' · 실패했을 때는 바로 다시 제출하지 말고 담당 교사에게 접수 상태를 확인하세요.');}
  finally{submitBusy=false;const b=$('submitAppBtn');if(b)b.disabled=false;}
 }
-function render(){if(!state.projects.some(p=>p.id===activeProjectId))activeProjectId=state.projects[0].id;renderNav();$('stepContent').innerHTML=[step0,step1,step2,step3,step4][step]();}
+function render(){clearTimeout(navRefreshTimer);if(!state.projects.some(p=>p.id===activeProjectId))activeProjectId=state.projects[0].id;renderNav();$('stepContent').innerHTML=[step0,step1,step2,step3,step4][step]();}
 function go(n){
  n=Math.max(0,Math.min(4,Number(n)||0));
  if(n>step){
@@ -381,7 +404,14 @@ function go(n){
  render();
  window.scrollTo({top:0,behavior:'smooth'});
 }
-function dirty(resetConfirm=true){isSaved=false;if(resetConfirm){state.confirmed=false;checklist.pdf=false;}renderNav();}
+let navRefreshTimer=null;
+function dirty(resetConfirm=true){
+ isSaved=false;
+ if(resetConfirm){state.confirmed=false;checklist.pdf=false;}
+ // 긴 연구기록 작성 중 매 키 입력마다 전체 필수항목을 검사하지 않습니다.
+ clearTimeout(navRefreshTimer);
+ navRefreshTimer=setTimeout(function(){navRefreshTimer=null;renderNav();},180);
+}
 function getProject(id){return state.projects.find(x=>x.id===Number(id));}
 function handleInput(e){const t=e.target;if(t.dataset?.field==='studentId'||t.dataset?.field==='name')return;if(!t.dataset)return;if(t.dataset.project&&t.dataset.field){const p=getProject(t.dataset.project);if(p){p[t.dataset.field]=t.value;dirty();}return;}if(t.dataset.roleNote){const p=getProject(t.dataset.roleNote);if(p){p.roleNotes[t.dataset.role]=t.value;dirty();}return;}if(t.dataset.evidenceNote){state.evidenceNotes[t.dataset.evidenceNote]=t.value;dirty();return;}if(t.dataset.field&&Object.prototype.hasOwnProperty.call(state,t.dataset.field)){state[t.dataset.field]=t.value;dirty();}}
 function handleChange(e){const t=e.target;if(t.id==='reportFiles'||t.id==='posterFiles'){const kind=t.id==='reportFiles'?'report':'poster';uploadFiles[kind]=Array.from(t.files||[]);const holder=$(kind==='report'?'selectedReports':'selectedPosters');if(holder)holder.textContent=uploadFiles[kind].map(f=>f.name).join(' / ')||'선택한 파일이 없습니다.';return;}if(t.dataset?.projectRole){const p=getProject(t.dataset.projectRole),r=t.value;if(p){p.roles=t.checked?[...new Set([...p.roles,r])]:p.roles.filter(x=>x!==r);const choice=t.closest('.role-choice'),editor=choice?.querySelector('.role-inline-editor');if(choice)choice.classList.toggle('selected',t.checked);if(editor)editor.hidden=!t.checked;}dirty();return;}if(t.dataset?.evidence){const k=t.dataset.evidence;if(t.checked&&state.evidence.length>=3){t.checked=false;notify('실제 경험이 있는 항목을 최대 3개까지만 선택해 주세요.');return;}state.evidence=t.checked?[...state.evidence,k]:state.evidence.filter(x=>x!==k);render();dirty();return;}if(t.id==='confirmCheck'){state.confirmed=t.checked;dirty(false);}if(t.id==='pdfReady'){checklist.pdf=t.checked;}if(t.id==='originalReady'){checklist.original=t.checked;}if(t.dataset?.field==='position'){state.position=t.value;render();dirty();}}
