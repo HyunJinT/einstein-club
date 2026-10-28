@@ -71,13 +71,17 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
 .student-login-card h2{font-size:22px;color:#173652;margin:0 0 9px}
 .student-login-card .code-instructions{color:#506c7c;font-size:14px;margin:0 0 19px}
 .student-login-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.student-login-controls input{flex:1;min-width:210px;height:47px;padding:10px 13px;font:inherit;font-size:16px;border:1px solid #b6cbdc;border-radius:9px}
+.student-login-controls .student-login-code-wrap{position:relative;flex:1;min-width:210px}
+.student-login-controls input{width:100%;min-width:0;height:47px;padding:10px 90px 10px 13px;font:inherit;font-size:16px;border:1px solid #b6cbdc;border-radius:9px}
+.student-login-controls .toggle-code{position:absolute;right:7px;top:7px;height:33px;padding:0 11px;background:#edf5f7;color:#175367;border:1px solid #c8dee5;border-radius:7px;font-size:13px;min-width:67px}
+.student-login-controls .toggle-code:hover{background:#ddeef0}
+.student-login-controls .toggle-code:focus-visible{outline:3px solid #4eafb7;outline-offset:2px}
 .student-login-controls button{height:47px;border:0;border-radius:9px;background:#177e8d;color:white;font-weight:700;padding:0 20px;cursor:pointer}
 .student-login-controls button:disabled{opacity:.6}
 .student-login-feedback{min-height:24px;color:#af3434;font-size:13px;margin:11px 0 0}
 .student-identity{padding:13px 16px;background:#eaf8f5;color:#145d61;border:1px solid #a7dacf;border-radius:13px;margin:20px 0;font-weight:750}
 .student-login-note{color:#647888;font-size:12px;line-height:1.75;margin:14px 0 0}
-@media(max-width:600px){.student-login-card{padding:17px}.student-login-controls{display:grid;grid-template-columns:1fr}.student-login-controls input{min-width:0}}
+@media(max-width:600px){.student-login-card{padding:17px}.student-login-controls{display:grid;grid-template-columns:1fr}.student-login-code-wrap{min-width:0}}
 </style>
 </head>
 <body>
@@ -95,7 +99,7 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
     <h2>개별 제출코드로 시작하기</h2>
     <p class="code-instructions">선생님이 발급한 <strong>나만의 제출코드</strong>를 입력하세요. 올바른 코드라면 등록된 학번·이름이 자동으로 표시됩니다.</p>
     <label for="studentLoginCode" style="display:block;margin-bottom:8px;font-weight:750">학생 개별 제출코드</label>
-    <div class="student-login-controls"><input type="password" id="studentLoginCode" placeholder="개별 제출코드 입력" autocomplete="off" spellcheck="false"/><button type="button" id="studentLoginBtn">코드 확인 · 시작</button></div>
+    <div class="student-login-controls"><div class="student-login-code-wrap"><input type="password" id="studentLoginCode" placeholder="개별 제출코드 입력" autocomplete="off" spellcheck="false"/><button type="button" class="toggle-code" id="studentShowCode" aria-controls="studentLoginCode" aria-pressed="false" aria-label="제출코드 보기">👁 보기</button></div><button type="button" id="studentLoginBtn">코드 확인 · 시작</button></div>
     <p class="student-login-feedback" id="studentLoginFeedback" role="status" aria-live="polite"></p>
     <p class="student-login-note">학번과 이름은 서버의 등록 명단에서 확인합니다. 코드가 없거나 틀리면 담당 교사에게 문의하세요.<br>코드는 다른 컴퓨터에서도 사용할 수 있지만, <strong>작성 중인 글은 자동 동기화되지 않습니다.</strong> 다른 컴퓨터에서 이어 작성하려면 백업 파일을 이용하세요.</p>
   </section>
@@ -113,8 +117,9 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
 (function(){
  'use strict';
  var q=function(id){return document.getElementById(id);};
- var button=q('studentLoginBtn'),input=q('studentLoginCode'),output=q('studentLoginFeedback');
+ var button=q('studentLoginBtn'),input=q('studentLoginCode'),output=q('studentLoginFeedback'),showCode=q('studentShowCode');
  var loginAttempt=0, loginTimer=null, loginStart=0;
+ if(showCode){showCode.addEventListener('click',function(){var visible=input.type==='password';input.type=visible?'text':'password';showCode.textContent=visible?'🙈 숨기기':'👁 보기';showCode.setAttribute('aria-pressed',String(visible));showCode.setAttribute('aria-label',visible?'제출코드 숨기기':'제출코드 보기');input.focus();});}
  if(!button||!input||!output)return;
  function feedback(t){output.textContent=String(t||'');}
  function unlock(profile,token){
