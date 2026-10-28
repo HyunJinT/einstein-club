@@ -4,7 +4,43 @@ const $=id=>document.getElementById(id);
 const poster=$('posterCanvas'), pdf=$('savePdf'), pptx=$('savePptx');
 if(!poster||!pdf||!pptx)return;
 const K='einstein_poster_photos_v3',MAX=3;
-const limits={title:48,researchers:105,group:20,abstract:72,background:105,question:55,hypothesis:80,variables:55,materials:40,method:115,results:90,graphTitle:24,graphData:500,graphUnit:12,discussion:130,limitations:95,conclusion:105,followup:100,references:48,contributions:48};
+const limits={title:48,researchers:105,group:20,abstract:110,background:105,question:90,hypothesis:125,variables:95,materials:75,method:190,results:155,graphTitle:24,graphData:500,graphXLabel:28,graphXUnit:12,graphYLabel:28,graphUnit:12,discussion:215,limitations:95,conclusion:175,followup:100,references:48,contributions:48};
+
+const sharedGroups=[
+ {fields:['question','hypothesis'],budget:165},
+ {fields:['variables','materials','method'],budget:215},
+ {fields:['abstract','results'],budget:175},
+ {fields:['discussion','limitations'],budget:255},
+ {fields:['conclusion','followup'],budget:225}
+];
+function getFieldValue(k){return document.querySelector('[data-key="'+k+'"]')?.value||'';}
+function effectiveCap(k){
+ let max=limits[k]||0;
+ for(const g of sharedGroups){
+  if(g.fields.includes(k)){
+   const others=g.fields.filter(x=>x!==k).reduce((sum,x)=>sum+getFieldValue(x).length,0);
+   max=Math.min(max,Math.max(0,g.budget-others));
+  }
+ }
+ return max;
+}
+function sharedOverflow(){
+ return sharedGroups.filter(g=>g.fields.reduce((n,k)=>n+getFieldValue(k).length,0)>g.budget);
+}
+function recalculateCaps(){
+ for(const el of document.querySelectorAll('[data-key]')){
+  const k=el.dataset.key;if(!(k in limits))continue;
+  const max=effectiveCap(k);
+  el.maxLength=Math.max(max,el.value.length);
+  const count=el.nextElementSibling?.classList.contains('poster-character-status')?el.nextElementSibling:null;
+  if(count){
+   count.textContent=el.value.length+' / '+max+'자'+(sharedGroups.some(g=>g.fields.includes(k))?' · 다른 칸을 비우면 늘어남':'');
+   count.classList.toggle('near-limit',el.value.length>=max||el.value.length>=limits[k]*.90);
+  }
+ }
+}
+window.__einsteinPosterCapsV7={limits,sharedGroups,effectiveCap,sharedOverflow,recalculateCaps};
+
 const photos={method:[],result:[]};
 try{const z=JSON.parse(localStorage.getItem(K)||'{}');for(const k of ['method','result'])if(Array.isArray(z[k]))photos[k]=z[k].slice(0,MAX);}catch(e){}
 let busy=false,lastWarning='',paintQueued=false,sequence=0;
@@ -23,10 +59,10 @@ if(cards.length===3){[[112,165,180],[150,226],[]].forEach((a,i)=>a.forEach((v,j)
 const css=document.createElement('style');css.textContent='.poster-title{white-space:normal!important;max-height:64px;line-height:1.12;overflow:hidden}.poster-researchers{white-space:normal;max-height:38px;overflow:hidden}.poster-section .body{line-height:1.48;overflow:hidden}.poster-photo-grid{padding:3px}.poster-photo-item small{font-size:9px}.photo-box{overflow:hidden}.poster-fit-message strong{font-weight:850}';document.head.appendChild(css);
 for(const el of document.querySelectorAll('[data-key]')){
  const cap=limits[el.dataset.key];if(!cap)continue;
- el.maxLength=cap;
+ el.maxLength=Math.max(cap,el.value.length);
  const count=document.createElement('div');count.className='poster-character-status';
  el.after(count);
- const upd=()=>{const n=el.value.length;count.textContent=n+' / '+cap+'자 · 한도 내에서 작성';count.classList.toggle('near-limit',n>=cap*.88);schedule();};
+ const upd=()=>{recalculateCaps();schedule();};
  el.addEventListener('input',(ev)=>{
    if(ev.isComposing)return;
    // Prevent extra hard line breaks from consuming all poster height.
@@ -211,10 +247,11 @@ function reflow(){
  }finally{busy=false;}
 }
 function schedule(){if(paintQueued)return;paintQueued=true;requestAnimationFrame(()=>{paintQueued=false;reflow();});}
+recalculateCaps();
 const observer=new MutationObserver(schedule);observer.observe(poster,{subtree:true,childList:true,characterData:true});
 window.addEventListener('resize',schedule);
 for(const kind of ['method','result'])renderPhotoList(kind);
-function exportReady(){reflow();const capsExceeded=Object.entries(limits).filter(([key,cap])=>(document.querySelector('[data-key="'+key+'"]')?.value||'').length>cap).map(([key])=>key);if(capsExceeded.length){alert('이전에 저장한 글 중 현재 입력 제한을 초과한 항목이 있습니다: '+capsExceeded.join(', ')+'\n먼저 내용을 간추려 주세요. 기존 문장은 자동 삭제하지 않았습니다.');return false;}if(lastWarning){alert('A1 포스터에 모든 내용을 넣으려면 다음 항목을 줄이세요:\n'+lastWarning+'\n입력한 글은 삭제되지 않습니다.');return false;}return true;}
+function exportReady(){reflow();recalculateCaps();const capsExceeded=Object.entries(limits).filter(([key,cap])=>getFieldValue(key).length>cap).map(([key])=>key);const groupExceeded=sharedOverflow();if(groupExceeded.length){alert('항목 간 공유 분량을 초과했습니다: '+groupExceeded.map(g=>g.fields.join(' + ')).join(', ')+'\n선택 입력 부분을 조금 줄여 주세요.');return false;}if(capsExceeded.length){alert('이전에 저장한 글 중 현재 입력 제한을 초과한 항목이 있습니다: '+capsExceeded.join(', ')+'\n먼저 내용을 간추려 주세요. 기존 문장은 자동 삭제하지 않았습니다.');return false;}if(lastWarning){alert('A1 포스터에 모든 내용을 넣으려면 다음 항목을 줄이세요:\n'+lastWarning+'\n입력한 글은 삭제되지 않습니다.');return false;}return true;}
 pdf.onclick=()=>{if(exportReady())setTimeout(()=>window.print(),80);};
 function download(name,body,type){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([body],{type}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),18000);}
 const save=$('saveJson');if(save)save.onclick=()=>{
