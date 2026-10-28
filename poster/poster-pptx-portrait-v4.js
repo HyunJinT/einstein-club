@@ -26,12 +26,15 @@ function graph(s,p,x,y,w,h){
  const low=Math.min(0,...rows.map(v=>+v[1])),high=Math.max(1,...rows.map(v=>+v[1]))*1.1,range=Math.max(.001,high-low);
  const lx=x+.83,top=y+1.55,W=w-1.42,H=h-2.53,bw=W/rows.length,base=top+H,zero=base-(0-low)*H/range;
  const vertices=[];
+ const xValues=rows.map(v=>{const m=v[0].trim().match(/^[-+]?\d+(?:\.\d+)?/);return m?Number(m[0]):null;});
+ const proportional=type==='line'&&xValues.every(Number.isFinite)&&Math.max(...xValues)>Math.min(...xValues);
+ const xMin=proportional?Math.min(...xValues):0,xSpan=proportional?Math.max(...xValues)-xMin:1;
  rows.forEach((v,i)=>{
-  const yy=base-(+v[1]-low)*H/range,xx=lx+bw*(i+.5);
+  const yy=base-(+v[1]-low)*H/range,xx=proportional?lx+.2+(xValues[i]-xMin)/xSpan*(W-.4):lx+bw*(i+.5);
   vertices.push([xx,yy]);
   if(type==='bar')s.addShape(p.ShapeType.rect,{x:xx-bw*.26,y:Math.min(yy,zero),w:bw*.52,h:Math.max(.02,Math.abs(yy-zero)),fill:{color:i%2?'54B0AA':'25818A'},line:{color:'25818A',transparency:100}});
   s.addText(String(+v[1]),{x:xx-.28,y:Math.max(top,yy-.25),w:.56,h:.21,fontSize:10,color:'2A6571',align:'center',margin:0});
-  s.addText(v[0].slice(0,10),{x:lx+i*bw,y:base+.09,w:bw,h:.30,fontSize:10,align:'center',margin:0,fit:'shrink'});
+  s.addText(v[0].slice(0,10),{x:xx-bw*.5,y:base+.09,w:bw,h:.30,fontSize:10,align:'center',margin:0,fit:'shrink'});
  });
  if(type==='line'){
   for(let i=1;i<vertices.length;i++){
