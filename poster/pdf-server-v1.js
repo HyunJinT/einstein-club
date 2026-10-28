@@ -62,7 +62,7 @@ function download(blob,name){
 }
 function blobBase64(blob){return new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(String(rd.result).split(',')[1]||'');rd.onerror=()=>reject(Error('파일 읽기 실패'));rd.readAsDataURL(blob);});}
 function getScientists(){
- const lines=value('researchers').replace(/[，、;]/g,',').split(/[,\\n]+/).map(x=>x.trim()).filter(Boolean);
+ const lines=value('researchers').replace(/[，、;]/g,',').split(/[,\n]+/).map(x=>x.trim()).filter(Boolean);
  const results=[];
  for(const line of lines){
   const m=line.match(/^([0-9]{5})\s+([^\s,]{2,20})$/);
