@@ -27,10 +27,21 @@ for(const el of document.querySelectorAll('[data-key]')){
  const count=document.createElement('div');count.className='poster-character-status';
  el.after(count);
  const upd=()=>{const n=el.value.length;count.textContent=n+' / '+cap+'자 · 한도 내에서 작성';count.classList.toggle('near-limit',n>=cap*.88);schedule();};
- el.addEventListener('input',()=>{
-   // maxlength also protects typing and paste. Existing drafts are never silently truncated.
+ el.addEventListener('input',(ev)=>{
+   if(ev.isComposing)return;
+   // Prevent extra hard line breaks from consuming all poster height.
+   const maxBreaks=el.dataset.key==='method'?2:
+     ['researchers','references','contributions','variables'].includes(el.dataset.key)?1:0;
+   const oldText=el.value;
+   let count=0;
+   const next=oldText.replace(/\r\n?/g,'\n').replace(/\n/g,()=>count++<maxBreaks?'\n':' ');
+   if(next!==oldText){
+     const at=el.selectionStart||next.length;
+     el.value=next;
+     try{el.setSelectionRange(Math.min(at,next.length),Math.min(at,next.length));}catch(err){}
+   }
    upd();
- });upd();
+ },true);upd();
 }
 const imageInputs=[['method','methodImage','methodPhoto','methodPhotoList'],['result','resultImage','resultPhoto','resultPhotoList']];
 for(const [kind,id,,listId] of imageInputs){
@@ -167,7 +178,7 @@ function fitComposite(){
  const box=$('pQuestionHypothesis');
  if(box){
    const parts=[...box.querySelectorAll('.poster-composite-part')];
-   for(const part of parts){if(!fitOne(part,12,8.5))bad.push('연구질문·가설');}
+   for(const part of parts){if(!fitOne(part,12,8))bad.push('연구질문·가설');}
  }
  const summary=$('pSummary');
  if(summary){for(const part of summary.querySelectorAll('.poster-summary-part')){if(!fitOne(part,12,8.5))bad.push('연구 개요·주요 결과');}}
@@ -181,7 +192,7 @@ function fitComposite(){
 function analyze(){
  let bad=[];
  for(const el of poster.querySelectorAll('.poster-section .body:not(#pQuestionHypothesis):not(#pMethods):not(#pSummary)')){
-  if(!fitOne(el,14,9.5)){const title=el.closest('.poster-section')?.querySelector('h3')?.textContent||'본문';bad.push(title);}
+  if(!fitOne(el,14,8.5)){const title=el.closest('.poster-section')?.querySelector('h3')?.textContent||'본문';bad.push(title);}
  }
  bad.push(...fitComposite());
  if(!fitOne($('pTitle'),28,17))bad.push('연구 제목');
