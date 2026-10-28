@@ -56,7 +56,7 @@ async function refreshServerDraft(){
   if(v.draft){state=cloneFromStorage(v.draft);state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':state.position;}
   serverRevision=Number(v.revision)||0;serverEditAllowed=!!v.canEdit;
   lastReceipt=v.receipt||'';lastFiles=Array.isArray(v.submittedFiles)?v.submittedFiles:[];
-  lastServerSavedAt=v.savedAt||'';changeCounter++;step=v.submitted?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;editingAfterSubmit=false;submitReceipt=null;render();
+  lastServerSavedAt=v.savedAt||'';changeCounter++;step=v.submitted?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;editingAfterSubmit=false;submitReceipt=null;render();restoreLastEditedField();
   statusText(v.savedAt?'✓ 서버 기록 불러옴 · '+v.savedAt:'서버에 저장된 작성 기록이 없습니다.');
  }catch(e){statusText('서버 기록 조회 실패: '+e.message,true);}
 }
@@ -70,12 +70,27 @@ window.addEventListener('einstein:verified',function(e){
  state.studentId=v.studentId;state.name=v.name;
  if(v.leader)state.position='모둠 조장';
  step=v.submitted?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;isSaved=!!v.draft;submitReceipt=null;editingAfterSubmit=false;
- render();
+ render();restoreLastEditedField();
  statusText(serverEditAllowed?(v.draft?'✓ 서버에 저장된 이전 작성 내용을 불러왔습니다'+(v.savedAt?' · '+v.savedAt:''):'처음 작성하는 학생입니다. 입력 후 약 3초면 서버에 자동저장됩니다.'):'제출 기한이 지나 읽기만 가능합니다.',!serverEditAllowed);
 });
 
+
+function restoreLastEditedField(){
+ const f=state.resumeField;
+ if(!f||!verifiedStudent||lastReceipt)return;
+ setTimeout(()=>{
+  const matches=[...document.querySelectorAll('input[data-field],textarea[data-field],textarea[data-role-note],textarea[data-evidence-note],select[data-field]')];
+  const el=matches.find(x=>String(x.dataset.field||'')===String(f.field||'')&&
+    String(x.dataset.project||'')===String(f.project||'')&&
+    String(x.dataset.roleNote||'')===String(f.roleNote||'')&&
+    String(x.dataset.evidenceNote||'')===String(f.evidenceNote||'')&&
+    String(x.dataset.role||'')===String(f.role||''));
+  if(el)el.scrollIntoView({block:'center',behavior:'auto'});
+ },120);
+}
+
 function makeProject(){return {id:seq++,title:'',mode:'모둠 탐구',team:'',question:'',motivation:'',hypothesis:'',design:'',results:'',analysis:'',challenge:'',nextTry:'',summary:'',themeLink:'',roles:[],roleNotes:{}};}
-function fresh(){return {resumeStep:0,resumeProjectId:1,excludedFileUrls:[],year:'2026',studentId:'',name:'',careerGoal:'',position:'직책 없음',positionWork:'',researchTheme:'',researchQuestion:'',themeConnection:'',projects:[makeProject()],evidence:[],evidenceNotes:{},growthConcept:'',growthChange:'',followup:'',futurePlan:'',otherContribution:'',teacherNote:'',confirmed:false};}
+function fresh(){return {resumeStep:0,resumeProjectId:1,resumeField:null,excludedFileUrls:[],year:'2026',studentId:'',name:'',careerGoal:'',position:'직책 없음',positionWork:'',researchTheme:'',researchQuestion:'',themeConnection:'',projects:[makeProject()],evidence:[],evidenceNotes:{},growthConcept:'',growthChange:'',followup:'',futurePlan:'',otherContribution:'',teacherNote:'',confirmed:false};}
 const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const attr=esc;const txt=(field,placeholder='',rows=3,extra='')=>`<textarea class="text-area ${rows===2?'short':''}" rows="${rows}" placeholder="${esc(placeholder)}" ${extra}>${esc(field)}</textarea>`;
 const field=(label,body,{required=false,hint='',full=false}={})=>`<div class="field ${full?'full':''}"><label class="question-label">${label}${required?'<span class="req"> *</span>':''}</label>${hint?`<p class="hint">${hint}</p>`:''}${body}</div>`;
@@ -335,7 +350,7 @@ function go(n){
   }
  }
  step=n;
- state.resumeStep=n;state.resumeProjectId=activeProjectId;
+ state.resumeStep=n;state.resumeProjectId=activeProjectId;state.resumeField=null;
  dirty(false);
  render();
  window.scrollTo({top:0,behavior:'smooth'});
@@ -348,7 +363,7 @@ function dirty(resetConfirm=true){
  navRefreshTimer=setTimeout(function(){navRefreshTimer=null;renderNav();},180);
 }
 function getProject(id){return state.projects.find(x=>x.id===Number(id));}
-function handleInput(e){const t=e.target;if(t.dataset?.field==='studentId'||t.dataset?.field==='name')return;if(!t.dataset)return;if(t.dataset.project&&t.dataset.field){const p=getProject(t.dataset.project);if(p){p[t.dataset.field]=t.value;dirty();}return;}if(t.dataset.roleNote){const p=getProject(t.dataset.roleNote);if(p){p.roleNotes[t.dataset.role]=t.value;dirty();}return;}if(t.dataset.evidenceNote){state.evidenceNotes[t.dataset.evidenceNote]=t.value;dirty();return;}if(t.dataset.field&&Object.prototype.hasOwnProperty.call(state,t.dataset.field)){state[t.dataset.field]=t.value;dirty();}}
+function handleInput(e){const t=e.target;if(t.dataset?.field==='studentId'||t.dataset?.field==='name')return;if(!t.dataset)return;state.resumeStep=step;state.resumeField={field:t.dataset.field||'',project:t.dataset.project||'',roleNote:t.dataset.roleNote||'',evidenceNote:t.dataset.evidenceNote||'',role:t.dataset.role||''};if(t.dataset.project&&t.dataset.field){const p=getProject(t.dataset.project);if(p){p[t.dataset.field]=t.value;dirty();}return;}if(t.dataset.roleNote){const p=getProject(t.dataset.roleNote);if(p){p.roleNotes[t.dataset.role]=t.value;dirty();}return;}if(t.dataset.evidenceNote){state.evidenceNotes[t.dataset.evidenceNote]=t.value;dirty();return;}if(t.dataset.field&&Object.prototype.hasOwnProperty.call(state,t.dataset.field)){state[t.dataset.field]=t.value;dirty();}}
 function handleChange(e){const t=e.target;if(t.id==='reportFiles'||t.id==='posterFiles'){const kind=t.id==='reportFiles'?'report':'poster';uploadFiles[kind]=Array.from(t.files||[]);const holder=$(kind==='report'?'selectedReports':'selectedPosters');if(holder)holder.textContent=uploadFiles[kind].map(f=>f.name).join(' / ')||'선택한 파일이 없습니다.';return;}if(t.dataset?.projectRole){const p=getProject(t.dataset.projectRole),r=t.value;if(p){p.roles=t.checked?[...new Set([...p.roles,r])]:p.roles.filter(x=>x!==r);const choice=t.closest('.role-choice'),editor=choice?.querySelector('.role-inline-editor');if(choice)choice.classList.toggle('selected',t.checked);if(editor)editor.hidden=!t.checked;}dirty();return;}if(t.dataset?.evidence){const k=t.dataset.evidence;if(t.checked&&state.evidence.length>=3){t.checked=false;notify('실제 경험이 있는 항목을 최대 3개까지만 선택해 주세요.');return;}state.evidence=t.checked?[...state.evidence,k]:state.evidence.filter(x=>x!==k);const choice=t.closest('.evidence-choice'),editor=choice?.querySelector('.evidence-inline-editor');if(choice)choice.classList.toggle('selected',t.checked);if(editor)editor.hidden=!t.checked;dirty();return;}if(t.id==='confirmCheck'){state.confirmed=t.checked;dirty(false);}if(t.id==='pdfReady'){checklist.pdf=t.checked;}if(t.id==='originalReady'){checklist.original=t.checked;}if(t.dataset?.field==='position'){state.position=t.value;render();dirty();}}
 function cloneFromStorage(o){if(!o||typeof o!=='object'||!Array.isArray(o.projects)||!o.projects.length||o.projects.length>30)throw Error('유효한 아인슈타인 백업 파일이 아닙니다.');let base=fresh();const out={...base,...o};out.careerGoal=typeof out.careerGoal==='string'?out.careerGoal:'';out.researchTheme=typeof out.researchTheme==='string'?out.researchTheme:'';out.researchQuestion=typeof out.researchQuestion==='string'?out.researchQuestion:'';out.themeConnection=typeof out.themeConnection==='string'?out.themeConnection:'';out.projects=o.projects.map((p,i)=>{const merged={...makeProject(),...p,roles:Array.isArray(p.roles)?p.roles.filter(r=>PROJECT_ROLES.includes(r)):[],roleNotes:p.roleNotes&&typeof p.roleNotes==='object'?p.roleNotes:{}};if(!merged.summary&&p.primary)merged.summary=[p.results,p.analysis].filter(Boolean).join(' / ');merged.id=i+1;delete merged.primary;return merged;});seq=out.projects.length+1;out.evidence=Array.isArray(o.evidence)?o.evidence.filter(k=>EVIDENCES.some(e=>e[0]===k)).slice(0,3):[];out.evidenceNotes=o.evidenceNotes&&typeof o.evidenceNotes==='object'?o.evidenceNotes:{};out.confirmed=!!o.confirmed;return out;}
 function saveDraft(){saveToServer(true);}
