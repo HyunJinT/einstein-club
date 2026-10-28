@@ -54,7 +54,7 @@ const appRight=document.querySelector('.appbar .right');if(appRight)appRight.tex
 const editor=document.querySelector('.intro');
 if(editor){const n=document.createElement('div');n.className='poster-fit-message';n.innerHTML='<strong>포스터는 A1 세로 1장으로 고정됩니다.</strong> 입력이 적으면 글자가 커지고, 많으면 읽기 쉬운 범위까지 자동으로 작아집니다. 사진은 실험 과정·실험 결과에 각각 최대 3장까지 넣을 수 있습니다.';editor.after(n);}
 const cards=poster.querySelectorAll('.poster-column');
-function setHeight(el,n){if(!el)return;el.style.setProperty('height',n+'px','important');el.style.setProperty('flex','0 0 '+n+'px','important');}
+function setHeight(el,n){if(!el)return;const h=n+'px',f='0 0 '+n+'px';if(el.style.getPropertyValue('height')!==h||el.style.getPropertyPriority('height')!=='important')el.style.setProperty('height',h,'important');if(el.style.getPropertyValue('flex')!==f||el.style.getPropertyPriority('flex')!=='important')el.style.setProperty('flex',f,'important');}
 if(cards.length===3){[[112,165,180],[150,226],[]].forEach((a,i)=>a.forEach((v,j)=>setHeight(cards[i].children[j],v)));}
 const css=document.createElement('style');css.textContent='.poster-title{white-space:normal!important;max-height:64px;line-height:1.12;overflow:hidden}.poster-researchers{white-space:normal;max-height:38px;overflow:hidden}.poster-section .body{line-height:1.48;overflow:hidden}.poster-photo-grid{padding:3px}.poster-photo-item small{font-size:9px}.photo-box{overflow:hidden}.poster-fit-message strong{font-weight:850}';document.head.appendChild(css);
 for(const el of document.querySelectorAll('[data-key]')){
@@ -128,7 +128,7 @@ function renderPhotoList(kind){
 function renderPhotos(){
  for(const [kind,,boxId] of imageInputs){
   const box=$(boxId),arr=pickPhotos(kind);if(!box)continue;
-  const signature=arr.map(p=>p.data.slice(0,45)+p.caption).join('|');
+  const signature=arr.map(p=>p.data.length+':'+p.data.slice(-100)+':'+p.caption).join('|');
   // Replace the older single-photo rendering when its contents change.
   if(arr.length){
    if(box.dataset.photosV3!==signature||!box.querySelector('.poster-photo-grid')){
@@ -217,6 +217,16 @@ function optionalSectionLayout(){
  display(methodPhoto,methodPhotos);
  display(resultPhoto,resultPhotos);
  display(graph,hasGraph);
+ const methodHeading=column1.children[2]?.querySelector('h3');
+ if(methodHeading){
+  const title=(getFieldValue('variables').trim()||getFieldValue('materials').trim())?'03 재료 및 연구 방법':'03 연구 방법';
+  if(methodHeading.textContent!==title)methodHeading.textContent=title;
+ }
+ const summaryHeading=column2.children[0]?.querySelector('h3');
+ if(summaryHeading){
+  const title=getFieldValue('abstract').trim()?'04 연구 개요·주요 결과':'04 연구 결과';
+  if(summaryHeading.textContent!==title)summaryHeading.textContent=title;
+ }
  setHeight(column1.children[2],methodPhotos?180:290);
  if(!hasGraph&&!resultPhotos){
   setHeight(column2.children[0],565);
