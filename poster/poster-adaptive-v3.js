@@ -242,10 +242,13 @@ function optionalSectionLayout(){
  if(!hasGraph&&!resultPhotos){
   setHeight(column2.children[0],565);
  }else if(!hasGraph){
-  setHeight(column2.children[0],210);
+  // Keep result-photo panels compact; enlarge the adjacent results text card instead.
+  setHeight(column2.children[0],330);
+  setHeight(resultPhoto,250);
  }else{
   setHeight(column2.children[0],resultPhotos?150:178);
   setHeight(graph,resultPhotos?226:390);
+  if(resultPhotos)setHeight(resultPhoto,196);
  }
  // The question, analysis and conclusion are required. Optional cards vanish.
  display(column3.children[1],!!getFieldValue('limitations').trim());
