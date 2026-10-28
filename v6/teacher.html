@@ -44,12 +44,23 @@ async function authenticate(k,resuming){
  if(!k){notice('교사 코드를 입력하세요.');return;}
  b.disabled=true;
  try{
-  const result=await call('getEinsteinTeacherDashboard',k);
-  code=k;all=result;
+  // 먼저 빠른 코드 목록 조회로 인증해 즉시 관리 화면을 표시합니다.
+  const initialTokens=await call('listEinsteinCodesV8',k);
+  code=k;all=[];
   if(!resuming){if($('rememberSession').checked){if(!rememberAuth(k))alert('브라우저 저장소 제한으로 이번 탭의 인증을 유지하지 못할 수 있습니다.');}else forgetSession();}
   $('privateArea').hidden=false;$('authForm').hidden=true;$('teacherCode').value='';notice('');
-  render();
-  try{await reloadTokens();}catch(e){$('codeCount').textContent='서버 코드 업데이트가 필요합니다: '+e.message;}
+  showTokens(initialTokens);
+  $('counts').textContent='제출현황 불러오는 중…';
+  $('list').innerHTML='';
+  // Drive에서 제출 보고서를 읽는 느린 요청은 별도로 실행합니다.
+  call('getEinsteinTeacherDashboard',k).then(function(data){
+   if(code!==k)return;
+   all=data;render();
+  }).catch(function(e){
+   if(code!==k)return;
+   $('counts').textContent='제출현황 조회 실패 · 새로고침 버튼으로 재시도하세요.';
+   $('list').textContent='서버 응답: '+e.message;
+  });
  }catch(e){
   if(resuming)forgetSession();
   code='';$('privateArea').hidden=true;$('authForm').hidden=false;
@@ -128,8 +139,9 @@ function buildWorkbook(rows){
 }
 $('exportXlsx').onclick=async()=>{
  const b=$('exportXlsx');if(b.disabled)return;
- try{setBusy(b,true);await reloadTokens();
-  if(!tokens.length)return alert('등록된 학생이 없습니다. 먼저 명단을 등록하세요.');
+ try{setBusy(b,true);
+  // 내려받을 때 불필요한 Google Apps Script 호출을 반복하지 않습니다.
+  if(!tokens.length)return alert('조회된 학생이 없습니다. 먼저 전체 코드 다시 조회를 누르세요.');
   const missing=tokens.filter(x=>!x.code);
   if(missing.length)return alert(`${missing.length}명의 기존 코드는 복구할 수 없습니다. '복원 불가 학생만 일괄 갱신' 후 Excel을 다운로드하세요.`);
   const rows=[['학번','이름','조장 여부','개별 제출코드','코드 상태'],...tokens.map(x=>[x.id,x.name,x.leader?'조장':'일반',x.code,x.status])];
