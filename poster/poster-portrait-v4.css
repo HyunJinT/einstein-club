@@ -67,12 +67,34 @@
 #pQuestionHypothesis,#pSummary,#pMethods{align-content:stretch;min-height:0}
 .poster-method-part,.poster-summary-part,.poster-composite-part{min-height:0;min-width:0;overflow:hidden;overflow-wrap:anywhere;word-break:break-word}
 .poster-section[style*="display: none"]{display:none!important}
-/* Photo size controls: keep uncropped images and make single-photo cards calmer. */
-.poster-photo-grid .poster-photo-item{width:var(--photo-percent,100%);height:var(--photo-percent,100%);justify-self:center;align-self:center;max-width:100%;max-height:100%}
-.poster-photo-grid .poster-photo-item img{flex:1 1 auto;min-height:0}
+/* Photo collage: 1px gutters, no letterboxing, no shrink-to-center. */
+.photo-box .poster-photo-grid{
+ width:100%!important;height:100%!important;
+ padding:0!important;gap:1px!important;
+ grid-template-columns:var(--tile-columns,repeat(var(--picture-count,1),minmax(0,1fr)))!important;
+ grid-template-rows:minmax(0,1fr)!important;
+ align-items:stretch!important;justify-items:stretch!important;
+ overflow:hidden!important;
+}
+.photo-box .poster-photo-grid .poster-photo-item{
+ position:relative!important;
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;
+ align-self:stretch!important;justify-self:stretch!important;
+ display:block!important;overflow:hidden!important;
+}
+.photo-box .poster-photo-grid .poster-photo-item img{
+ width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;
+ max-width:100%!important;max-height:100%!important;
+ display:block!important;object-fit:cover!important;object-position:center!important;
+}
+.photo-box .poster-photo-grid .poster-photo-item small{
+ position:absolute!important;left:0;right:0;bottom:0;z-index:1;
+ padding:2px 4px;background:#17384bca;color:#fff;
+ font-size:9px;line-height:1.2;max-height:26px;overflow:hidden;
+ text-overflow:ellipsis;
+}
 .poster-column:first-child .poster-section:nth-child(4) .photo-box,
-.poster-column:nth-child(2) .poster-section:nth-child(3) .photo-box{flex:1 1 auto;height:100%;min-height:0}
-.photo-display-size{display:flex;align-items:center;gap:10px;margin:6px 0 9px}
-.photo-display-size label{display:block;font-size:12px;font-weight:750;color:#314b61;margin:0}
-.photo-display-size select{flex:1;min-width:0;max-width:190px;border:1px solid #cedde7;border-radius:8px;background:#fff;color:#203a50;font-size:12px;padding:7px 9px}
-
+.poster-column:nth-child(2) .poster-section:nth-child(3) .photo-box{
+ flex:1 1 auto;height:100%;min-height:0;
+}
