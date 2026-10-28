@@ -36,6 +36,8 @@ function graph(s,p,x,y,w,h){
   s.addText(String(+v[1]),{x:xx-.28,y:Math.max(top,yy-.25),w:.56,h:.21,fontSize:10,color:'2A6571',align:'center',margin:0});
   s.addText(v[0].slice(0,10),{x:xx-bw*.5,y:base+.09,w:bw,h:.30,fontSize:10,align:'center',margin:0,fit:'shrink'});
  });
+ const xAxisName=options&&options.getXAxis()?options.getXAxis():'실험 조건';
+ s.addText(xAxisName,{x:x+.42,y:y+h-.35,w:w-.84,h:.25,fontSize:10,color:'58788A',align:'center',margin:0,fit:'shrink'});
  if(type==='line'){
   for(let i=1;i<vertices.length;i++){
    const p0=vertices[i-1],p1=vertices[i];
