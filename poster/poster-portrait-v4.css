@@ -41,3 +41,11 @@
  .poster{width:792px!important;height:1120px!important;transform:scale(2.829)!important;transform-origin:top left!important;left:0!important;top:0!important}
  .poster-fit-message,.poster-graph-table{display:none!important}
 }
+
+/* V5: prevent paired research question/hypothesis and method items from clipping */
+#pQuestionHypothesis{display:grid!important;grid-template-rows:45% 55%;gap:3px;padding:0;align-content:stretch;min-height:0}
+.poster-composite-part{display:block;min-height:0;overflow:hidden!important;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.28}
+.poster-composite-part strong{font-weight:800;color:#1b6372;margin-right:5px}
+#pMethods{display:grid!important;grid-template-rows:28% 24% 48%;gap:2px;align-content:stretch;min-height:0}
+.poster-method-part{min-height:0;overflow:hidden!important;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.26}
+.poster-method-part strong{font-weight:800;color:#1b6372}
