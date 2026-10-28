@@ -73,3 +73,6 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
 .student-identity{padding:13px 16px;background:#eaf8f5;color:#145d61;border:1px solid #a7dacf;border-radius:13px;margin:20px 0;font-weight:750}
 .student-login-note{color:#647888;font-size:12px;line-height:1.75;margin:14px 0 0}
 @media(max-width:600px){.student-login-card{padding:17px}.student-login-controls{display:grid;grid-template-columns:1fr}.student-login-code-wrap{min-width:0}}
+
+/* Experimental role section: breathing room after group/collaborator input */
+.subcard > .fields + .field{margin-top:24px}
