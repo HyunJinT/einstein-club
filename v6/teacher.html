@@ -29,11 +29,65 @@ code.secret{background:#f5f8fb;border:1px solid #dce7ef;padding:3px 5px;border-r
 function call(fn,...a){return new Promise((ok,no)=>{if(!connected){no(Error('서버 연결 전: 이 파일을 GitHub에서 직접 연 경우 미리보기만 가능합니다.'));return;}google.script.run.withSuccessHandler(ok).withFailureHandler(e=>no(Error(e.message||String(e))))[fn](...a);});}
 function notice(s){$('alert').textContent=s;}
 function snippet(label,t){return t?`<div class="excerpt"><strong>${esc(label)}</strong>${esc(t)}</div>`:'';}
-function render(){const q=$('search').value.trim().toLowerCase();const results=all.filter(x=>[x.studentId,x.name,x.theme,x.question].join(' ').toLowerCase().includes(q));$('counts').textContent=`제출 완료 ${all.length}명 · 검색 결과 ${results.length}명`;
- $('list').innerHTML=results.map(s=>`<article class="card result-card"><h3>${esc(s.studentId)} · ${esc(s.name)} <span class="pill">${esc(s.career||'진로 미정')}</span></h3><div class="hint">최근 접수 ${esc(s.receivedAt)} · 제출 ${s.revisionCount||1}회 · 실험 ${s.experiments.length}건 · 보고서 ${s.files.filter(x=>x.kind==='report').length}개 · 포스터 ${s.files.filter(x=>x.kind==='poster').length}개</div>
- ${snippet('큰 연구주제 / 연구질문',s.theme+'\n'+s.question)}${s.experiments.map((x,i)=>snippet('실험 '+(i+1)+' · '+x.title+' / 핵심 결과',x.result)).join('')}${s.evidence.map(x=>snippet(({problem:'문제해결',self:'자기주도',data:'근거 분석',cooperate:'협력',responsibility:'책임감',curiosity:'후속 탐구'})[x.key]||x.key,x.note)).join('')}
- ${snippet('새롭게 이해한 개념',s.growth)}${snippet('탐구 태도 변화',s.change)}
- <details><summary>실험별 역할 · 문제해결 · 원본 증빙 펼쳐보기</summary>${s.experiments.map(x=>`<h4>${esc(x.title)}</h4>${x.roleNotes.map(r=>snippet(r.role,r.note)).join('')}${snippet('시행착오·한계',x.challenge)}${snippet('과학적 해석',x.analysis)}`).join('')}${snippet('직책과 실제 수행',s.position+' '+s.positionWork)}${snippet('후속 질문',s.followup)}<h4>최신 제출 파일</h4>${s.files.map(f=>`<div><a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.kind==='poster'?'[포스터] ':'[보고서] ')}${esc(f.name)}</a></div>`).join('')}<h4>수정 제출 이력 (원본 보관)</h4>${(s.history||[]).map((h,i)=>`<div>${i+1}차 · ${esc(h.submittedAt)} · <a href="${esc(h.folderUrl)}" target="_blank" rel="noopener noreferrer">제출 폴더 열기</a></div>`).join('')}<p><a href="${esc(s.folderUrl)}" target="_blank" rel="noopener noreferrer">최신 제출 폴더 (원본 JSON 포함)</a></p></details></article>`).join('')||'<div class="card">제출 완료된 학생이 없습니다.</div>';}
+
+let selectedStudentId='';
+function trimEvidence(value,max=150){const text=String(value||'').replace(/\s+/g,' ').trim();return text.length>max?text.slice(0,max)+'…':text;}
+function evidenceSummary(s){
+ const experiments=(s.experiments||[]).map(x=>[x.title,x.result,x.analysis].filter(Boolean).join(' · ')).filter(Boolean);
+ const roles=(s.experiments||[]).flatMap(x=>(x.roleNotes||[]).map(r=>(x.title?x.title+' / ':'')+r.role+': '+r.note));
+ const evidence=(s.evidence||[]).map(x=>x.note?x.key+': '+x.note:'').filter(Boolean);
+ return {experiments:experiments.join('\n'),roles:roles.join('\n'),evidence:evidence.join('\n'),
+   reportPreview:experiments.join('\n'),attachments:(s.files||[]).map(f=>f.name).join(' / ')};
+}
+function downloadSummaryExcel(){
+ if(!all.length){alert('완료된 제출 기록을 불러온 뒤 다운로드하세요.');return;}
+ const head=['학번','이름','진로 분야','큰 연구주제','핵심 연구질문','실험 제목과 주요 결과 (학생 입력)','과학적 해석','실제 수행 역할','문제해결·협력 등 구체적 사례','새롭게 이해한 과학 개념','탐구 태도의 변화','후속 질문','첨부 보고서·포스터 파일명','제출 횟수','최신 접수번호','최신 제출시각','근거 구분'];
+ const rows=[head,...all.sort((a,b)=>String(a.studentId).localeCompare(String(b.studentId))).map(s=>{
+  const e=evidenceSummary(s);
+  return [s.studentId,s.name,s.career,s.theme,s.question,e.experiments,(s.experiments||[]).map(x=>x.analysis).filter(Boolean).join('\n'),e.roles,e.evidence,s.growth,s.change,s.followup,e.attachments,s.revisionCount||1,s.receipt,s.receivedAt,'학생이 작성한 활동기록을 발췌함. 첨부 보고서 본문은 자동 분석하지 않음'];
+ })];
+ const blob=buildWorkbook(rows,'학생별_생기부_근거요약'),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='아인슈타인_학생별_생기부근거_요약_'+new Date().toISOString().slice(0,10)+'.xlsx';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+function render(){
+ const q=$('search').value.trim().toLowerCase();
+ const results=all.filter(x=>[x.studentId,x.name,x.theme,x.question].join(' ').toLowerCase().includes(q));
+ $('counts').textContent='제출 완료 '+all.length+'명 · 검색 결과 '+results.length+'명';
+ if(!results.length){$('list').innerHTML='<div class="card">제출 완료된 학생이 없거나 검색 결과가 없습니다.</div>';return;}
+ const selected=results.find(x=>x.studentId===selectedStudentId);
+ const rows=results.map(s=>{
+  const ev=evidenceSummary(s);
+  return '<tr><td><button type="button" class="student-detail-open" data-open-student="'+esc(s.studentId)+'">'+esc(s.studentId)+' · '+esc(s.name)+'</button></td>'+
+   '<td>'+esc(s.career||'-')+'</td><td>'+esc(trimEvidence(s.theme,85))+'</td>'+
+   '<td>'+esc(trimEvidence(ev.experiments,165))+'</td><td>'+esc(trimEvidence(ev.evidence,130))+'</td>'+
+   '<td>'+esc(s.files.filter(x=>x.kind==='report').length+' 보고서 / '+s.files.filter(x=>x.kind==='poster').length+' 포스터')+'</td><td>'+esc(s.receivedAt||'')+'</td></tr>';
+ }).join('');
+ let details='';
+ if(selected){
+  const s=selected,e=evidenceSummary(s);
+  details='<article class="card result-card" id="studentDetails"><h2>'+esc(s.studentId)+' · '+esc(s.name)+' <span class="pill">'+esc(s.career||'진로 미정')+'</span></h2>'+
+   '<p class="hint">최신 접수 '+esc(s.receivedAt)+' · 수정 제출 '+esc(s.revisionCount||1)+'회 · 실제 제출자료를 근거로 작성해주세요.</p>'+
+   snippet('큰 연구주제 / 연구질문',s.theme+'\n'+s.question)+
+   s.experiments.map((x,i)=>snippet('실험 '+(i+1)+' · '+x.title+' / 핵심 결과',x.result)+snippet('과학적 해석',x.analysis)+
+     snippet('한계 및 개선',x.challenge)+(x.roleNotes||[]).map(r=>snippet('실제로 한 역할 · '+r.role,r.note)).join('')).join('')+
+   s.evidence.map(x=>snippet(x.key,x.note)).join('')+
+   snippet('새롭게 이해한 개념',s.growth)+snippet('탐구 태도 변화',s.change)+snippet('후속 탐구',s.followup)+
+   '<h3>최신 제출 첨부파일</h3>'+
+   (s.files.map(f=>'<div><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer">'+esc((f.kind==='poster'?'[포스터] ':'[보고서] ')+f.name)+'</a></div>').join('')||'<p class="hint">등록된 파일 없음</p>')+
+   '<p class="hint">보고서 핵심개요는 학생이 직접 작성한 연구기록의 제목·결과·해석을 발췌한 것입니다. 첨부된 PDF·HWP·Word 본문 전체를 자동으로 읽어 요약한 것은 아닙니다.</p>'+
+   '<details><summary>이전 제출 이력 보기</summary>'+((s.history||[]).map((h,i)=>'<div>'+(i+1)+'차 · '+esc(h.submittedAt)+' · <a href="'+esc(h.folderUrl)+'" target="_blank" rel="noopener noreferrer">이전 제출 폴더</a></div>').join(''))+'</details></article>';
+ }
+ $('list').innerHTML='<section class="card"><h2>학생별 생기부 참고 근거 요약</h2><p class="hint">학번·이름을 클릭하면 제출한 실제 내용과 첨부파일을 펼쳐 볼 수 있습니다. 아래 표는 학생이 직접 작성한 탐구 기록을 근거로 요약한 것이며, 첨부된 보고서 본문 자동 분석 결과는 아닙니다.</p>'+
+ '<button type="button" id="evidenceXlsx">전체 학생 생기부 근거요약 Excel 다운로드 (.xlsx)</button>'+
+ '<div class="table-scroller" style="max-height:540px"><table style="min-width:1060px"><thead><tr><th>학생 (상세 보기)</th><th>진로</th><th>연구주제</th><th>실험·보고서 핵심개요</th><th>활동 근거</th><th>첨부</th><th>최종 접수</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+details;
+}
+$('list').addEventListener('click',ev=>{
+ const t=ev.target.closest('[data-open-student]');
+ if(t){selectedStudentId=t.dataset.openStudent;render();$('studentDetails')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
+ if(ev.target.closest('#evidenceXlsx')){try{downloadSummaryExcel();}catch(e){alert('요약표 다운로드 실패: '+e.message);}}
+});
+
 // 인증을 탭별로 최대 8시간만 기억합니다. 영구 저장(localStorage)은 사용하지 않습니다.
 const SESSION_KEY='einstein_teacher_auth_tab_v1',SESSION_MS=8*60*60*1000;
 function forgetSession(){try{sessionStorage.removeItem(SESSION_KEY);}catch(e){}}
@@ -127,13 +181,13 @@ function zipUncompressed(files){
  return new Blob([...parts,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 function colName(i){let s='';for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s;}
-function buildWorkbook(rows){
+function buildWorkbook(rows,sheetName='학생별 제출코드'){
  const sheetRows=rows.map((r,ri)=>'<row r="'+(ri+1)+'">'+r.map((v,ci)=>'<c r="'+colName(ci)+(ri+1)+'" t="inlineStr"><is><t>'+xmlEscape(v)+'</t></is></c>').join('')+'</row>').join('');
  const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/><col min="3" max="3" width="12" customWidth="1"/><col min="4" max="4" width="28" customWidth="1"/><col min="5" max="5" width="18" customWidth="1"/></cols><sheetData>'+sheetRows+'</sheetData></worksheet>';
  return zipUncompressed({
  '[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
  '_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
- 'xl/workbook.xml':'<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="학생별 제출코드" sheetId="1" r:id="rId1"/></sheets></workbook>',
+ 'xl/workbook.xml':'<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+xmlEscape(String(sheetName).slice(0,31))+'" sheetId="1" r:id="rId1"/></sheets></workbook>',
  'xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
  'xl/worksheets/sheet1.xml':sheet});
 }
