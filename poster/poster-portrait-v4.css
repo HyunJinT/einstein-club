@@ -49,3 +49,10 @@
 #pMethods{display:grid!important;grid-template-rows:28% 24% 48%;gap:2px;align-content:stretch;min-height:0}
 .poster-method-part{min-height:0;overflow:hidden!important;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.26}
 .poster-method-part strong{font-weight:800;color:#1b6372}
+
+
+/* V5: reserve separate space for overview and results; keep text compact but legible */
+#pSummary{display:grid!important;grid-template-rows:44% 56%;gap:3px;align-content:stretch;min-height:0}
+.poster-summary-part{min-height:0;overflow:hidden!important;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.28}
+.poster-summary-part strong{font-weight:800;color:#1b6372}
+.poster-section .body:not(#pQuestionHypothesis):not(#pMethods):not(#pSummary){line-height:1.3!important}
