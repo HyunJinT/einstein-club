@@ -195,10 +195,10 @@ ${submitPanel()}
 <section class="content-card"><button class="btn danger" id="resetBtn">작성내용 모두 삭제</button></section>`;}
 
 function excludedSubmittedUrls(){return Array.isArray(state.excludedFileUrls)?state.excludedFileUrls:[];}
-function submittedFileCards(){
+function submittedFileCards(kind){
  if(!lastFiles.length)return '<p class="hint">아직 제출된 첨부파일이 없습니다.</p>';
  const excluded=excludedSubmittedUrls();
- return lastFiles.map((f,i)=>{
+ return lastFiles.filter(f=>!kind||f.kind===kind).map((f,i)=>{
   const gone=excluded.includes(f.url);
   return '<div class="existing-upload '+(gone?'excluded':'')+'"><button type="button" class="existing-file-open" data-view-upload="'+attr(f.url)+'" '+(gone?'disabled':'')+' title="파일 열어보기">📎 '+esc(f.kind==='poster'?'[포스터] ':'[보고서] ')+esc(f.name)+'</button><span class="hint">'+(Number(f.size||0)/1048576).toFixed(1)+' MB</span><button class="existing-file-remove" type="button" data-toggle-upload="'+attr(f.url)+'" title="'+(gone?'제외 취소':'수정 제출에서 제외')+'">'+(gone?'↶ 되돌리기':'×')+'</button>'+(gone?'<span class="hint">다음 수정 제출에서 제외 예정 · 이전 제출 이력에는 보관</span>':'')+'</div>';
  }).join('');
@@ -256,9 +256,9 @@ function submitPanel(){
  ${IN_GAS?'<div class="highlight-box">✓ 제출 서버가 연결되어 있습니다. 저장 완료 응답이 나와야 실제 접수된 것입니다.</div>':'<div class="error-list"><h3>시범판: 아직 제출 서버가 연결되지 않았습니다.</h3>이 화면에서는 내용을 작성하고 파일을 선택해 볼 수 있지만 실제 접수는 되지 않습니다. 교사가 Google Apps Script 배포를 완료하면 활성화됩니다.</div>'}
  <div class="privacy"><strong>제출 인증</strong><br>교사가 학생별로 발급한 전용 제출코드를 입력하세요. 코드가 없으면 개인정보가 포함된 자료를 전송하지 않습니다.</div>
  <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 인증한 코드로 제출합니다.${lastReceipt?`<br>기존 접수번호: <code>${esc(lastReceipt)}</code> · 이번에는 수정본을 제출합니다.`:""}</div>
- ${lastFiles.length?`<div class="info-box"><strong>기존 제출 파일 (파일명을 눌러 확인 / ×로 제외 예정 표시)</strong><p class="hint">새 파일은 기존 파일에 추가됩니다. ×로 제외한 파일은 다음 최종 제출 이후 목록에서 사라지지만, 이전 제출 이력에는 보관됩니다.</p>${submittedFileCards()}</div>`:""}
- ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
- ${field('모둠별 탐구포스터',`<input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
+
+ ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>${lastFiles.some(f=>f.kind==='report')?`<div class="existing-upload-group"><strong>이미 제출한 보고서</strong><p class="hint">파일을 열어 확인하거나 ×로 다음 수정 제출에서 제외할 수 있습니다.</p>${submittedFileCards('report')}</div>`:'' }`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
+ ${field('모둠별 탐구포스터',`<input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>이미 제출한 포스터</strong>${submittedFileCards('poster')}</div>`:'' }`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
  <div class="section-actions"><button class="btn primary" id="submitAppBtn" ${!IN_GAS||submitBusy?'disabled':''}>${submitBusy?'서버에 제출 중…':'✓ 모든 자료 최종 제출하기'}</button></div>
  <div id="submitProgress" class="hint" role="status" aria-live="polite"></div>
