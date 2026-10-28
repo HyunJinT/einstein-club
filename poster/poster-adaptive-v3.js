@@ -34,7 +34,7 @@ function recalculateCaps(){
   el.maxLength=Math.max(max,el.value.length);
   const count=el.nextElementSibling?.classList.contains('poster-character-status')?el.nextElementSibling:null;
   if(count){
-   count.textContent=el.value.length+' / '+max+'자'+(sharedGroups.some(g=>g.fields.includes(k))?' · 다른 칸을 비우면 늘어남':'');
+   count.textContent=el.value.length+' / '+max+'자';
    count.classList.toggle('near-limit',el.value.length>=max||el.value.length>=limits[k]*.90);
   }
  }
@@ -52,7 +52,7 @@ const sizeLabel=document.querySelector('.preview-head .print-meta');
 if(sizeLabel)sizeLabel.textContent='A1 세로 · 모든 모둠 동일 · 594×841mm';
 const appRight=document.querySelector('.appbar .right');if(appRight)appRight.textContent='A1 세로 · 글자 수 자동 조절';
 const editor=document.querySelector('.intro');
-if(editor){const n=document.createElement('div');n.className='poster-fit-message';n.innerHTML='<strong>포스터는 A1 세로 1장으로 고정됩니다.</strong> 입력이 적으면 글자가 커지고, 많으면 읽기 쉬운 범위까지 자동으로 작아집니다. 사진은 실험 과정·실험 결과에 각각 최대 3장까지 넣을 수 있습니다.';editor.after(n);}
+if(editor){const n=document.createElement('div');n.className='poster-fit-message';n.innerHTML='<strong>글자 수 안내</strong><p style="margin:5px 0 0;line-height:1.65">입력 가능한 글자 수는 작성한 항목에 따라 달라집니다. 선택 항목을 비우면 같은 영역의 다른 항목을 더 길게 작성할 수 있습니다.</p><p style="margin:6px 0 0;color:#527885;line-height:1.6">포스터는 모든 모둠이 A1 세로형 1장으로 통일되며, 글자 크기와 사진 배치는 내용에 맞춰 자동 조절됩니다.</p>';editor.after(n);}
 const cards=poster.querySelectorAll('.poster-column');
 function setHeight(el,n){if(!el)return;const h=n+'px',f='0 0 '+n+'px';if(el.style.getPropertyValue('height')!==h||el.style.getPropertyPriority('height')!=='important')el.style.setProperty('height',h,'important');if(el.style.getPropertyValue('flex')!==f||el.style.getPropertyPriority('flex')!=='important')el.style.setProperty('flex',f,'important');}
 if(cards.length===3){[[112,165,180],[150,226],[]].forEach((a,i)=>a.forEach((v,j)=>setHeight(cards[i].children[j],v)));}
