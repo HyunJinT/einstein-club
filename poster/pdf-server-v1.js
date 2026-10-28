@@ -84,7 +84,7 @@ function getLogin(){
   box.elements.studentId.focus();
  });
 }
-async function postToGas(data){
+async function postToGas(data,action='uploadEinsteinPosterV15'){
  return new Promise((resolve,reject)=>{
   const nonce=(crypto?.randomUUID?.()||String(Date.now())+Math.random().toString(16).slice(2));
   const iframe=document.createElement('iframe');const target='einsteinPosterResponse_'+nonce.replace(/[^A-Za-z0-9]/g,'');
@@ -100,9 +100,9 @@ async function postToGas(data){
    if(settled)return;settled=true;cleanup();
    if(p.ok)resolve(p);else reject(Error(p.error||'학교 서버 업로드가 거부되었습니다.'));
   };
-  const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error('서버 응답 시간이 초과되었습니다. 등록 여부를 확인하고 재시도해 주세요.'));}},110000);
+  const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error(action==='pingEinsteinPosterV15'?'학교 서버의 포스터 업로드 기능이 아직 배포되지 않았습니다.':'서버 응답이 지연됩니다. 등록 여부를 먼저 확인하세요.'));}},action==='pingEinsteinPosterV15'?14000:110000);
   window.addEventListener('message',receive);
-  const payload={action:'uploadEinsteinPosterV15',nonce,...data};
+  const payload={action,nonce,...data};
   for(const [key,v] of Object.entries(payload)){
    const field=document.createElement('input');field.type='hidden';field.name=key;field.value=String(v);form.appendChild(field);
   }
@@ -126,8 +126,11 @@ serverButton.addEventListener('click',async e=>{
  try{team=getScientists();}catch(err){alert(err.message);return;}
  const login=await getLogin();if(!login)return;
  if(!team.some(x=>x.studentId===login.studentId)){alert('로그인할 대표 학생의 학번이 포스터 연구자 명단에 없습니다.');return;}
- loading(true,'고화질 PDF 생성 중…');
+ loading(true,'학교 서버 연결 확인 중…');
  try{
+  progress('학교 서버의 포스터 업로드 기능을 확인 중입니다…');
+  await postToGas({},'pingEinsteinPosterV15');
+  serverButton.textContent='고화질 PDF 생성 중…';
   progress('A1 세로형 포스터를 PDF로 제작 중입니다…');
   const blob=await makePdf();if(!blob)return;
   serverButton.textContent='학교 서버에 업로드 중…';
