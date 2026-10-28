@@ -83,21 +83,22 @@ b.onclick=async()=>{
   card(s,p,'02 연구질문·가설',[detail('연구질문','question'),detail('가설 및 근거','hypothesis')].filter(Boolean).join('\n\n'),.63,7.95,10.85,3.06);
   const methodPic=api.photos.method||[],resultPic=api.photos.result||[],hasData=Boolean(field('graphData').trim());
   const processText=[detail('변인','variables'),detail('재료','materials'),detail('실험 절차','method')].filter(Boolean).join('\n\n');
-  card(s,p,'03 재료 및 연구 방법',processText,.63,11.28,10.85,methodPic.length?6.13:10.10);
+  card(s,p,(field('variables').trim()||field('materials').trim())?'03 재료 및 연구 방법':'03 연구 방법',processText,.63,11.28,10.85,methodPic.length?6.13:10.10);
   if(methodPic.length)await photos(s,p,'실험 과정 사진',methodPic,.63,17.7,10.85,3.96);
   const summaryText=[detail('연구 개요','abstract'),detail('주요 결과','results')].filter(Boolean).join('\n\n');
+  const summaryHeading=field('abstract').trim()?'04 연구 개요·주요 결과':'04 연구 결과';
   if(hasData&&resultPic.length){
-    card(s,p,'04 연구 개요·주요 결과',summaryText,11.86,4.04,10.9,4.15);
+    card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,4.15);
     graph(s,p,11.86,8.46,10.9,6.99);
     await photos(s,p,'실험 결과·관찰 사진',resultPic,11.86,15.72,10.9,5.94);
   }else if(hasData){
-    card(s,p,'04 연구 개요·주요 결과',summaryText,11.86,4.04,10.9,5.03);
+    card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,5.03);
     graph(s,p,11.86,9.37,10.9,12.29);
   }else if(resultPic.length){
-    card(s,p,'04 연구 개요·주요 결과',summaryText,11.86,4.04,10.9,8.20);
+    card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,8.20);
     await photos(s,p,'실험 결과·관찰 사진',resultPic,11.86,12.56,10.9,9.10);
   }else{
-    card(s,p,'04 연구 개요·주요 결과',summaryText,11.86,4.04,10.9,17.62);
+    card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,17.62);
   }
   // 07 and 09 are optional. Fill remaining slots with essential analysis/conclusion.
   const lower=[
