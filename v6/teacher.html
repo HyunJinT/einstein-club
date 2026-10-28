@@ -10,9 +10,13 @@ th{background:#edf4f9;position:sticky;top:0;color:#2c455b}
 code.secret{background:#f5f8fb;border:1px solid #dce7ef;padding:3px 5px;border-radius:5px;font-size:11px}
 .resetBlock{margin-top:15px;padding:12px;background:#f8fafc;border:1px solid #dce8ee;border-radius:12px}
 .resetBlock summary{color:#75441e}
+
+.remember-session{display:flex;align-items:center;gap:8px;font-weight:400;font-size:13px;margin-top:10px;color:#37526a}
+.remember-session input{width:18px;height:18px;margin:0;flex-shrink:0}
+#logout{background:#697b87}
 </style></head><body><header><small style="color:#92c9ce">2026 EINSTEIN SCIENCE CLUB</small><h1>교사용 · 동아리 특기사항 근거 확인</h1><div style="color:#d1e5eb">학생이 실제로 제출한 자료에서 주요 탐구 근거만 발췌합니다. 자동으로 생기부 문장을 생성하지 않습니다.</div></header>
-<main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">Apps Script 초기화 때 제공된 비밀 접근코드를 입력하세요. 서버에서 확인하며 학생용 앱에 이 코드는 포함되지 않습니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><p id="alert"></p></section>
-<div id="privateArea" hidden><div class="grid"><section class="card"><h2>학생별 제출코드 발급</h2><p class="hint">한 줄에 학생 1명씩 입력합니다. 형식: <code>20000,홍길동,조장</code> 또는 <code>20001,김영희</code><br>이미 발급된 학생을 다시 입력해도 같은 코드를 조회합니다. 기존 데이터에는 일회성 갱신이 필요할 수 있습니다.</p><textarea id="rosterInput" placeholder="20000,홍길동,조장&#10;20001,김영희"></textarea><button id="issue">제출코드 발급</button><p class="hint">코드는 교사용 서버에 보관됩니다. 발급 버튼을 다시 눌러도 기존 코드는 변경되지 않습니다.</p><textarea id="issued" readonly placeholder="조회 또는 발급한 학생별 코드" style="min-height:100px"></textarea><button id="copy">화면 목록 복사</button>
+<main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">Apps Script 초기화 때 제공된 비밀 접근코드를 입력하세요. 서버에서 확인하며 학생용 앱에 이 코드는 포함되지 않습니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간, 개인 PC에서만)</label><p class="hint">공용 컴퓨터에서는 선택하지 마세요. 로그인 중인 탭을 닫거나 직접 로그아웃하면 다시 인증해야 합니다.</p><p id="alert"></p></section>
+<div id="privateArea" hidden><div style="text-align:right;margin-bottom:4px"><button id="logout" type="button">교사 로그아웃</button></div><div class="grid"><section class="card"><h2>학생별 제출코드 발급</h2><p class="hint">한 줄에 학생 1명씩 입력합니다. 형식: <code>20000,홍길동,조장</code> 또는 <code>20001,김영희</code><br>이미 발급된 학생을 다시 입력해도 같은 코드를 조회합니다. 기존 데이터에는 일회성 갱신이 필요할 수 있습니다.</p><textarea id="rosterInput" placeholder="20000,홍길동,조장&#10;20001,김영희"></textarea><button id="issue">제출코드 발급</button><p class="hint">코드는 교사용 서버에 보관됩니다. 발급 버튼을 다시 눌러도 기존 코드는 변경되지 않습니다.</p><textarea id="issued" readonly placeholder="조회 또는 발급한 학생별 코드" style="min-height:100px"></textarea><button id="copy">화면 목록 복사</button>
 <div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
 <div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th></tr></thead><tbody id="codeRows"></tbody></table></div>
 <details class="resetBlock"><summary>기존 코드 복원 불가 학생 · 1회 갱신 / 개별 코드 재발급</summary><p class="hint">과거 서버에서 해시값만 저장한 코드는 복원할 수 없습니다. 아래 버튼은 코드를 분실한 학생에게 <strong>새 코드</strong>를 발급합니다. 기존 코드는 무효화되며, 이미 업로드 중이거나 완료한 학생은 갱신되지 않습니다.</p>
@@ -30,7 +34,40 @@ function render(){const q=$('search').value.trim().toLowerCase();const results=a
  ${snippet('큰 연구주제 / 연구질문',s.theme+'\n'+s.question)}${s.experiments.map((x,i)=>snippet('실험 '+(i+1)+' · '+x.title+' / 핵심 결과',x.result)).join('')}${s.evidence.map(x=>snippet(({problem:'문제해결',self:'자기주도',data:'근거 분석',cooperate:'협력',responsibility:'책임감',curiosity:'후속 탐구'})[x.key]||x.key,x.note)).join('')}
  ${snippet('새롭게 이해한 개념',s.growth)}${snippet('탐구 태도 변화',s.change)}
  <details><summary>실험별 역할 · 문제해결 · 원본 증빙 펼쳐보기</summary>${s.experiments.map(x=>`<h4>${esc(x.title)}</h4>${x.roleNotes.map(r=>snippet(r.role,r.note)).join('')}${snippet('시행착오·한계',x.challenge)}${snippet('과학적 해석',x.analysis)}`).join('')}${snippet('직책과 실제 수행',s.position+' '+s.positionWork)}${snippet('후속 질문',s.followup)}<h4>제출 파일</h4>${s.files.map(f=>`<div><a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.kind==='poster'?'[포스터] ':'[보고서] ')}${esc(f.name)}</a></div>`).join('')}<p><a href="${esc(s.folderUrl)}" target="_blank" rel="noopener noreferrer">학생별 제출 폴더 보기 (활동기록 원문 JSON 포함)</a></p></details></article>`).join('')||'<div class="card">제출 완료된 학생이 없습니다.</div>';}
-$('login').onclick=async()=>{code=$('teacherCode').value.trim();if(!code){notice('교사 코드를 입력하세요.');return;}try{all=await call('getEinsteinTeacherDashboard',code);$('privateArea').hidden=false;$('authForm').hidden=true;$('teacherCode').value='';render();try{await reloadTokens();}catch(e){$('codeCount').textContent='서버 코드 업데이트가 필요합니다: '+e.message;}}catch(e){notice(e.message);}};
+// 인증을 탭별로 최대 8시간만 기억합니다. 영구 저장(localStorage)은 사용하지 않습니다.
+const SESSION_KEY='einstein_teacher_auth_tab_v1',SESSION_MS=8*60*60*1000;
+function forgetSession(){try{sessionStorage.removeItem(SESSION_KEY);}catch(e){}}
+function rememberAuth(k){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({key:k,expires:Date.now()+SESSION_MS}));return true;}catch(e){return false;}}
+function restoreAuth(){try{const obj=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(obj&&typeof obj.key==='string'&&obj.expires>Date.now())return obj.key;}catch(e){}forgetSession();return '';}
+async function authenticate(k,resuming){
+ const b=$('login');if(b.disabled)return;
+ if(!k){notice('교사 코드를 입력하세요.');return;}
+ b.disabled=true;
+ try{
+  const result=await call('getEinsteinTeacherDashboard',k);
+  code=k;all=result;
+  if(!resuming){if($('rememberSession').checked){if(!rememberAuth(k))alert('브라우저 저장소 제한으로 이번 탭의 인증을 유지하지 못할 수 있습니다.');}else forgetSession();}
+  $('privateArea').hidden=false;$('authForm').hidden=true;$('teacherCode').value='';notice('');
+  render();
+  try{await reloadTokens();}catch(e){$('codeCount').textContent='서버 코드 업데이트가 필요합니다: '+e.message;}
+ }catch(e){
+  if(resuming)forgetSession();
+  code='';$('privateArea').hidden=true;$('authForm').hidden=false;
+  notice((resuming?'이전 인증을 다시 확인할 수 없습니다. 재로그인해 주세요. ':'')+e.message);
+ }finally{b.disabled=false;}
+}
+$('login').onclick=()=>authenticate($('teacherCode').value.trim(),false);
+$('teacherCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('login').click();}});
+$('logout').onclick=()=>{
+ forgetSession();code='';all=[];tokens=[];$('rememberSession').checked=false;
+ $('privateArea').hidden=true;$('authForm').hidden=false;
+ $('teacherCode').value='';$('issued').value='';$('list').innerHTML='';
+ $('codesTable').querySelector('tbody').innerHTML='';$('codeCount').textContent='';
+ $('counts').textContent='-';notice('로그아웃했습니다.');
+};
+const savedKey=restoreAuth();
+if(savedKey){$('rememberSession').checked=true;notice('이 탭의 교사 인증을 확인하는 중입니다…');authenticate(savedKey,true);}
+
 $('refresh').onclick=async()=>{try{all=await call('getEinsteinTeacherDashboard',code);render();}catch(e){alert(e.message);}};
 function tokenText(rows){return rows.map(x=>[x.id,x.name,x.code||'[코드 복원 불가]',x.leader?'조장':'일반',x.status].join('\t')).join('\n');}
 function showTokens(rows){
