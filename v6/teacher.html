@@ -31,6 +31,33 @@ function notice(s){$('alert').textContent=s;}
 function snippet(label,t){return t?`<div class="excerpt"><strong>${esc(label)}</strong>${esc(t)}</div>`:'';}
 
 let selectedStudentId='';
+const fullRecordCache=new Map(),fullRecordPending=new Set();
+
+function fullStudentRecordHTML(info){
+ const st=info?.student;
+ if(!st)return '<p class="hint">학생의 원문을 찾을 수 없습니다.</p>';
+ const paragraphs=[
+  snippet('희망 진로 분야',st.careerGoal),
+  snippet('큰 연구주제·질문',String(st.researchTheme||'')+'\n'+String(st.researchQuestion||'')),
+  snippet('탐구 흐름',st.themeConnection)
+ ];
+ (st.projects||[]).forEach((p,i)=>{
+  paragraphs.push('<h4>실험 '+(i+1)+' · '+esc(p.title)+'</h4>');
+  [['탐구 형태',p.mode],['모둠·협력 학생',p.team],['실험 질문',p.question],['탐구 동기',p.motivation],
+   ['가설',p.hypothesis],['실험 설계',p.design],['관찰·측정 결과',p.results],['과학적 해석',p.analysis],
+   ['어려움·한계',p.challenge],['시도한 개선·제안',p.nextTry],['핵심 결과',p.summary],
+   ['연구주제와의 연결',p.themeLink]].forEach(([label,value])=>{if(value)paragraphs.push(snippet(label,value));});
+  (p.roles||[]).forEach(role=>paragraphs.push(snippet('실제 담당 역할: '+role,(p.roleNotes||{})[role])));
+ });
+ paragraphs.push(snippet('동아리에서 맡은 직책',st.position));
+ paragraphs.push(snippet('직책 관련 실제 활동',st.positionWork));
+ (st.evidence||[]).forEach(k=>paragraphs.push(snippet('활동 근거: '+k,(st.evidenceNotes||{})[k])));
+ [['그밖의 협력·기여',st.otherContribution],['새롭게 이해한 개념',st.growthConcept],
+  ['탐구 방식 변화',st.growthChange],['후속 질문',st.followup],['추가 탐구 계획',st.futurePlan],
+  ['기타 학생 기록',st.teacherNote]].forEach(([label,value])=>{if(value)paragraphs.push(snippet(label,value));});
+ return paragraphs.join('');
+}
+
 function trimEvidence(value,max=150){const text=String(value||'').replace(/\s+/g,' ').trim();return text.length>max?text.slice(0,max)+'…':text;}
 function evidenceSummary(s){
  const experiments=(s.experiments||[]).map(x=>[x.title,x.result,x.analysis].filter(Boolean).join(' · ')).filter(Boolean);
@@ -56,6 +83,7 @@ function render(){
  $('counts').textContent='제출 완료 '+all.length+'명 · 검색 결과 '+results.length+'명';
  if(!results.length){$('list').innerHTML='<div class="card">제출 완료된 학생이 없거나 검색 결과가 없습니다.</div>';return;}
  const selected=results.find(x=>x.studentId===selectedStudentId);
+ const fullRecord=fullRecordCache.get(selectedStudentId);
  const rows=results.map(s=>{
   const ev=evidenceSummary(s);
   return '<tr><td><button type="button" class="student-detail-open" data-open-student="'+esc(s.studentId)+'">'+esc(s.studentId)+' · '+esc(s.name)+'</button></td>'+
@@ -73,6 +101,7 @@ function render(){
      snippet('한계 및 개선',x.challenge)+(x.roleNotes||[]).map(r=>snippet('실제로 한 역할 · '+r.role,r.note)).join('')).join('')+
    s.evidence.map(x=>snippet(x.key,x.note)).join('')+
    snippet('새롭게 이해한 개념',s.growth)+snippet('탐구 태도 변화',s.change)+snippet('후속 탐구',s.followup)+
+   '<details class="full-record" '+(fullRecord?'open':'')+'><summary>학생이 작성한 전체 원문 보기</summary>'+(fullRecord?fullStudentRecordHTML(fullRecord):'<p class="hint">선택한 학생의 전체 원문을 서버에서 불러오는 중입니다…</p>')+'</details>'+ 
    '<h3>최신 제출 첨부파일</h3>'+
    (s.files.map(f=>'<div><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer">'+esc((f.kind==='poster'?'[포스터] ':'[보고서] ')+f.name)+'</a></div>').join('')||'<p class="hint">등록된 파일 없음</p>')+
    '<p class="hint">보고서 핵심개요는 학생이 직접 작성한 연구기록의 제목·결과·해석을 발췌한 것입니다. 첨부된 PDF·HWP·Word 본문 전체를 자동으로 읽어 요약한 것은 아닙니다.</p>'+
@@ -84,7 +113,23 @@ function render(){
 }
 $('list').addEventListener('click',ev=>{
  const t=ev.target.closest('[data-open-student]');
- if(t){selectedStudentId=t.dataset.openStudent;render();$('studentDetails')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
+ if(t){
+  selectedStudentId=t.dataset.openStudent;render();$('studentDetails')?.scrollIntoView({behavior:'smooth',block:'start'});
+  if(!fullRecordCache.has(selectedStudentId)&&!fullRecordPending.has(selectedStudentId)){
+   const requested=selectedStudentId;fullRecordPending.add(requested);
+   call('getEinsteinStudentFullRecordV12',code,requested).then(info=>{
+    fullRecordPending.delete(requested);fullRecordCache.set(requested,info);
+    if(selectedStudentId===requested)render();
+   }).catch(err=>{
+    fullRecordPending.delete(requested);
+    if(selectedStudentId===requested){
+     const el=$('studentDetails')?.querySelector('.full-record');
+     if(el)el.innerHTML='<summary>학생 전체 기록 조회</summary><p class="status-warning">원문 불러오기 실패: '+esc(err.message)+'</p>';
+    }
+   });
+  }
+  return;
+ }
  if(ev.target.closest('#evidenceXlsx')){try{downloadSummaryExcel();}catch(e){alert('요약표 다운로드 실패: '+e.message);}}
 });
 
