@@ -204,6 +204,44 @@ function submittedFileCards(){
  }).join('');
 }
 
+
+async function openSubmittedUpload(url){
+ const item=lastFiles.find(f=>f.url===url);
+ if(!item||excludedSubmittedUrls().includes(url)){notify('현재 제출 파일 목록에서 찾을 수 없습니다.');return;}
+ const previewable=/\.(pdf|png|jpe?g)$/i.test(item.name);
+ const win=previewable?window.open('about:blank','_blank'):null;
+ if(win){try{win.document.title='첨부파일 불러오는 중';win.document.body.textContent='보안 서버에서 파일을 불러오고 있습니다…';}catch(e){}}
+ const previous=$('serverSaveStatus')?.textContent||'';
+ try{
+  let offset=0,total=0,mime='application/octet-stream',chunks=[],filename=item.name;
+  for(let i=0;i<90;i++){
+   const result=await gasCall('readEinsteinFileChunkV12',accessCode,url,offset);
+   if(!result||!result.bytesBase64)throw Error('파일 데이터가 비어 있습니다.');
+   mime=result.mime||mime;filename=result.name||filename;total=Number(result.size)||0;
+   const data=atob(result.bytesBase64),part=new Uint8Array(data.length);
+   for(let k=0;k<data.length;k++)part[k]=data.charCodeAt(k);
+   chunks.push(part);
+   offset=Number(result.nextOffset);
+   statusText('파일 확인 중… '+Math.round(100*offset/Math.max(1,total))+'%');
+   if(offset>=total)break;
+   if(i===89)throw Error('파일 다운로드가 완료되지 않았습니다.');
+  }
+  const blob=new Blob(chunks,{type:mime}),blobUrl=URL.createObjectURL(blob);
+  if(previewable&&win){win.location.replace(blobUrl);}
+  else{
+   if(win)win.close();
+   const a=document.createElement('a');a.href=blobUrl;a.download=filename;
+   document.body.appendChild(a);a.click();a.remove();
+  }
+  setTimeout(()=>URL.revokeObjectURL(blobUrl),120000);
+  statusText(previous||'✓ 첨부파일 확인 완료');
+ }catch(err){
+  if(win){try{win.document.body.textContent='파일을 열지 못했습니다: '+err.message;}catch(e){}}
+  statusText('첨부파일 확인 실패: '+err.message,true);
+  notify('파일 확인 실패: '+err.message);
+ }
+}
+
 function submitPanel(){
  const leader=state.position==='모둠 조장';
  const fileList=(kind)=>uploadFiles[kind].map(f=>`<div class="submission-file"><span>📎 ${esc(f.name)}</span><span>${(f.size/1048576).toFixed(1)} MB</span></div>`).join('')||'<div class="hint">선택한 파일이 없습니다.</div>';
