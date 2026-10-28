@@ -76,3 +76,17 @@ body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display
 
 /* Experimental role section: breathing room after group/collaborator input */
 .subcard > .fields + .field{margin-top:24px}
+
+/* Step 3: competence selections expand their own evidence editor in place */
+.evidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.evidence-choice{background:white;border:1px solid #dfe8ee;border-radius:12px;overflow:hidden;min-width:0}
+.evidence-choice.selected{border-color:#81cabc;background:#f3fbf8;box-shadow:0 2px 8px rgba(30,110,100,.06)}
+.evidence-item{display:flex;align-items:center;gap:9px;min-height:51px;padding:12px 14px;font-size:13px;font-weight:700;color:#31475b;cursor:pointer}
+.evidence-item input{accent-color:#168b8b;flex-shrink:0}
+.evidence-choice.selected .evidence-item{background:#e9f8f3;color:#13756c}
+.evidence-inline-editor{padding:13px 14px 15px;border-top:1px solid #ceebe2}
+.evidence-inline-editor[hidden]{display:none!important}
+.evidence-inline-editor .text-area{background:#fff;min-height:100px}
+.evidence-inline-editor .hint{margin:7px 0 10px;line-height:1.6}
+.missing-required.evidence-choice,.missing-required.evidence-inline-editor{border-color:#cb465b!important;box-shadow:0 0 0 3px #fde8eb!important}
+@media(max-width:740px){.evidence-grid{grid-template-columns:1fr}}
