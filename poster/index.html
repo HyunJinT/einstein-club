@@ -7,9 +7,9 @@
 <style>
 :root{font-family:'Malgun Gothic','Apple SD Gothic Neo','NanumSquare',sans-serif;color:#20364a;background:#eff4f8;font-synthesis:none}
 *{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:wait;opacity:.55}
-.appbar{height:66px;background:#162e49;color:white;display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:10;box-shadow:0 3px 15px #18324817}
+.appbar{min-height:70px;height:auto;background:#162e49;color:white;display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:10;box-shadow:0 3px 15px #18324817}
 .appbar .mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(130deg,#36adbe,#1f8d86);font-size:24px}
-.appbar .heading{display:flex;flex-direction:column;gap:3px}.appbar strong{font-size:15px}.appbar small{color:#b7d8df;font-size:11px}.appbar .right{margin-left:auto;font-size:11px;color:#c1d9e1}
+.appbar .heading{display:flex;flex-direction:column;gap:3px}.appbar strong{font-size:15px}.appbar small{color:#b7d8df;font-size:11px}.appbar .top-actions{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:7px}.appbar .top-actions .btn{font-size:11px;min-height:34px;padding:7px 10px;border-radius:8px;white-space:nowrap}.appbar .top-actions .btn.primary{background:#1a929b;border-color:#1a929b;color:#fff}.appbar .top-actions .btn.dark{background:#244b68;border-color:#496c82;color:#fff}.appbar .top-actions .btn.soft{background:#eaf5f7;border-color:#d1e6e9;color:#184d61}.upload-status{border:1px solid #c9e3e1;background:#f1faf8;padding:10px 12px;margin:0 0 14px;border-radius:10px;font-size:12px;line-height:1.6;color:#22616a;overflow-wrap:anywhere}.upload-status[hidden]{display:none!important}
 .workspace{display:grid;grid-template-columns:minmax(360px,435px) minmax(0,1fr);min-height:calc(100vh - 66px)}
 .editor{background:#fff;border-right:1px solid #dae6ee;padding:20px 19px 80px;max-height:calc(100vh - 66px);overflow-y:auto}
 .intro{padding:19px;border-radius:15px;background:#eaf7f5;border:1px solid #c3e4e1;margin-bottom:18px}
@@ -46,31 +46,32 @@
 .poster-bottom strong{font-size:11px;color:#236b75;flex:0 0 155px}.poster-bottom p{font-size:10px;margin:0;line-height:1.35;color:#506b79;white-space:pre-wrap;overflow:hidden}
 .toast{position:fixed;bottom:20px;right:24px;background:#173f56;color:#fff;padding:11px 17px;border-radius:10px;font-size:12px;box-shadow:0 9px 25px #0003;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}.toast.on{opacity:1}
 @media(max-width:1180px){.workspace{grid-template-columns:minmax(300px,380px) minmax(0,1fr)}.preview-area{padding:18px 14px 28px}.poster-frame{padding:9px}}
-@media(max-width:800px){.appbar{padding:0 13px;height:61px}.workspace{display:block}.editor{max-height:none;overflow:visible;border-right:0;border-bottom:1px solid #dfeaf1;padding:17px 15px}.preview-area{padding:16px 12px 27px}.preview-head{flex-wrap:wrap}.intro h1{font-size:20px}.appbar .right{display:none}}
+@media(max-width:800px){.appbar{padding:10px 13px;min-height:61px;gap:8px}.appbar .top-actions{flex:1 0 100%;justify-content:flex-start}.appbar .top-actions .btn{font-size:11px;padding:8px 9px}.workspace{display:block}.editor{max-height:none;overflow:visible;border-right:0;border-bottom:1px solid #dfeaf1;padding:17px 15px}.preview-area{padding:16px 12px 27px}.preview-head{flex-wrap:wrap}.intro h1{font-size:20px}}
 @media(max-width:440px){.appbar .heading strong{font-size:13px}.editor-actions{display:grid;grid-template-columns:1fr 1fr}.editor-actions .btn{padding:9px 6px}.poster-frame{padding:4px;border-radius:6px}.preview-area{padding:12px 7px 22px}.preview-head{padding:0 7px}.poster-school{letter-spacing:0}}
 @media print {html,body{height:1px!important;min-height:0!important;max-height:1px!important;overflow:hidden!important;} .appbar,.editor,.preview-head,.toast{display:none!important;} .workspace,.preview-area,.poster-frame{position:static!important;height:0!important;min-height:0!important;max-height:0!important;overflow:visible!important;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;} .poster-shell{position:fixed!important;top:0!important;left:0!important;width:840mm!important;height:593mm!important;max-height:593mm!important;overflow:hidden!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;} .poster{transform:scale(2.815)!important;transform-origin:top left!important;left:0!important;top:0!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important;} }
 @page{size:594mm 841mm;margin:0}
 @media print{html,body{width:840mm!important;height:593mm!important;background:#fff!important;margin:0!important;padding:0!important}body *{visibility:hidden!important}.poster,.poster *{visibility:visible!important}.appbar,.editor,.preview-head,.toast{display:none!important}.workspace,.preview-area,.poster-frame,.poster-shell{width:840mm!important;height:593mm!important;min-height:0!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important;border:0!important;background:#fff!important;box-shadow:none!important;display:block!important}.poster-shell{position:absolute!important;left:0!important;top:0!important}.poster{transform:scale(2.815)!important;transform-origin:top left!important;left:0!important;top:0!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.0/dist/pptxgen.bundle.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
 <link rel="stylesheet" href="./poster-format-v2.css?v=2">
 </head>
 <body>
-<header class="appbar"><div class="mark">⚛</div><div class="heading"><strong>2026 은행고등학교 아인슈타인 동아리</strong><small>소논문형 연구포스터 제작실</small></div><div class="right">A1 가로 · 3단 연구포스터</div></header>
+<header class="appbar">
+ <div class="mark">⚛</div><div class="heading"><strong>2026 은행고등학교 아인슈타인 동아리</strong><small>소논문형 연구포스터 제작실</small></div>
+ <nav class="top-actions" aria-label="연구포스터 작업 메뉴">
+  <button class="btn primary" id="uploadPosterServer" type="button">☁ 서버에 업로드하기</button>
+  <button class="btn soft" id="savePdf" type="button">▣ 고화질 PDF 다운로드</button>
+  <button class="btn dark" id="saveJson" type="button">⇩ 작업 백업</button>
+  <button class="btn soft" id="loadJson" type="button">⇧ 작업 불러오기</button>
+  <a class="btn soft" href="https://script.google.com/macros/s/AKfycbwcgV5NXm75aETWnzJpGCtLfihfb4i4mQGfB_0Ext5s4Zq2quWzHoRl8TqIv38LVGMWuA/exec" target="_blank" rel="noopener noreferrer" style="text-decoration:none">↗ 동아리 활동 기록 앱 열기</a>
+  <input type="file" id="loadJsonFile" accept=".json,application/json" hidden>
+ </nav>
+</header>
 <div class="workspace">
  <aside class="editor" id="editor">
-  <div class="intro"><div class="eyebrow">POSTER MAKER · 2026</div><h1>연구를 포스터로 완성하세요</h1><p>왼쪽에 연구 내용을 간결하게 입력하면 오른쪽 A1 세로형 포스터가 자동으로 완성됩니다. 완성 후 서버에 업로드하거나 PDF로 저장하고, 모둠 대표가 서버에 업로드하고, 연구자는 학생 앱에서 등록된 포스터를 확인하세요.</p></div>
-  <div class="editor-actions">
-   <button class="btn primary" id="uploadPosterServer" type="button">☁ 서버에 업로드하기</button>
-   <button class="btn soft" id="savePdf">▣ 고화질 PDF 다운로드</button>
-   <button class="btn dark" id="savePptx">▧ PPTX 다운로드</button>
-   <button class="btn soft" id="saveJson">⇩ 작업 백업</button>
-   <button class="btn" id="loadJson">⇧ 작업 불러오기</button>
-   <a class="btn soft" href="https://script.google.com/macros/s/AKfycbwcgV5NXm75aETWnzJpGCtLfihfb4i4mQGfB_0Ext5s4Zq2quWzHoRl8TqIv38LVGMWuA/exec" target="_blank" rel="noopener noreferrer" style="text-decoration:none">↗ 기존 학생 제출 앱 열기</a>
-   <input type="file" id="loadJsonFile" accept=".json,application/json" hidden>
-  </div>
+  <div class="intro"><div class="eyebrow">POSTER MAKER · 2026</div><h1>연구를 포스터로 완성하세요</h1><p>왼쪽에 연구 내용을 입력하면 오른쪽에 A1 세로형 포스터가 자동으로 완성됩니다. 완성 후 상단 메뉴에서 PDF를 저장하거나 모둠 대표가 서버에 등록할 수 있습니다.</p></div>
+  <div id="einsteinPosterUploadStatus" class="upload-status" role="status" aria-live="polite" hidden></div>
   <details class="section" open><summary><span class="number">01</span> 연구 기본 정보</summary><div class="section-body">
    <div class="field"><label for="title">연구제목 *</label><input id="title" data-key="title" placeholder="예: 과산화수소 농도가 효모 생존에 미치는 영향" maxlength="48"></div>
    <div class="field"><label for="researchers">연구자 (학번 이름, 쉼표 구분) *</label><textarea id="researchers" data-key="researchers" maxlength="105" rows="2" placeholder="예: 20111 김가영, 20112 홍길동, 20113 이서준"></textarea></div>
@@ -109,9 +110,9 @@
    <div class="field"><label>참고문헌</label><textarea data-key="references" maxlength="48" rows="3" placeholder="저자(연도), 제목, 출처 또는 URL. 생성형 AI 사용 시 활용 범위를 기재"></textarea></div>
    <div class="field"><label>연구자별 실제 역할</label><textarea data-key="contributions" maxlength="48" rows="3" placeholder="20111 김가영: 실험 설계·데이터 분석\n20112 홍길동: 반복 실험·사진 기록"></textarea></div>
   </div></details>
-  <div class="editnote"><strong>제작·제출 안내</strong><br>• 연구포스터는 모둠별 1개를 제작하면 됩니다. 포스터 제작이 필요 없는 학생은 이 앱을 이용하지 않아도 됩니다.<br>• 입력 내용은 이 브라우저에 임시저장됩니다. 다른 컴퓨터에서 이어서 작업하려면 <strong>작업 백업</strong> 파일을 옮겨 불러오세요.<br>• PDF 버튼은 인쇄 창 없이 A1 세로형 고화질 PDF를 내려받습니다. ‘서버에 업로드하기’는 학생 인증 후 학교 서버의 저장 완료 응답을 확인합니다.<br>• 완성본은 기존 <strong>아인슈타인 활동 결과물 제출 앱</strong>에서 모둠 대표가 첨부해 제출하세요.</div>
+  <div class="editnote"><strong>제작·제출 안내</strong><br>• 연구포스터는 모둠별 1개를 제작하면 됩니다. 포스터 제작이 필요 없는 학생은 이 앱을 이용하지 않아도 됩니다.<br>• 입력 내용은 이 브라우저에 임시저장됩니다. 다른 컴퓨터에서 이어서 작업하려면 <strong>작업 백업</strong> 파일을 옮겨 불러오세요.<br>• PDF 버튼은 인쇄 창 없이 A1 세로형 고화질 PDF를 내려받습니다. ‘서버에 업로드하기’는 학생 인증 후 학교 서버의 저장 완료 응답을 확인합니다.<br>• 서버에 등록된 모둠 포스터는 연구자 각자의 <strong>동아리 활동 기록 앱</strong>에서 '내 모둠 연구포스터'로 확인할 수 있습니다. 개인 보고서 제출은 별도로 진행합니다.</div>
  </aside>
- <div class="preview-area"><div class="preview-head"><div><h2>포스터 미리보기</h2><p>작성 중인 내용을 그대로 반영합니다. 색상과 구조는 기본 양식으로 고정되어 있어요.</p></div><span class="print-meta">A1 · 세로형 · 594 × 841 mm</span></div>
+ <div class="preview-area"><div class="preview-head"><div><h2>포스터 미리보기</h2><p>작성 중인 내용을 그대로 반영합니다. 색상과 구조는 기본 양식으로 고정되어 있어요.</p></div></div>
   <div class="poster-frame"><div class="poster-shell" id="posterShell"><section class="poster" id="posterCanvas">
     <div class="poster-header"><div class="flair"></div><div class="poster-school">2026 은행고등학교 아인슈타인 동아리</div><div class="poster-title" id="pTitle">연구제목: [연구 제목을 입력하세요]</div><div class="poster-researchers" id="pAuthors">연구자: [학번 이름, 학번 이름]</div></div>
     <div class="poster-grid">
@@ -155,7 +156,6 @@ function init(){try{model=JSON.parse(localStorage.getItem(STORAGE)||'{}')||{};im
  $('methodImage').addEventListener('change',e=>importPhoto(e,'methodImage'));$('resultImage').addEventListener('change',e=>importPhoto(e,'resultImage'));
  $('saveJson').onclick=saveJson;$('loadJson').onclick=()=>$('loadJsonFile').click();$('loadJsonFile').addEventListener('change',loadJson);
  $('savePdf').onclick=()=>{render();toast('인쇄 창에서 대상을 PDF로 저장으로 선택하세요.');setTimeout(()=>window.print(),80)};
- $('savePptx').onclick=makePptx;
  window.addEventListener('resize',resizePoster);render();resizePoster();}
 function changed(){clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(STORAGE,JSON.stringify({...model,images:Object.fromEntries(Object.entries(images).filter(([k,v])=>v&&v.length<800000))}));}catch(e){}},450);render();}
 function resizePoster(){const shell=$('posterShell');let w=shell.getBoundingClientRect().width;shell.style.height=(w*792/1120)+'px';$('posterCanvas').style.setProperty('--scale',String(w/1120));}
@@ -182,37 +182,6 @@ function download(content,name,type){const b=new Blob([content],{type});const u=
 function safeFile(){return (model.title||'아인슈타인_연구포스터').trim().replace(/[\\/:*?"<>|]/g,'_').slice(0,45)||'연구포스터'}
 function saveJson(){const full={format:'einstein-poster-v1',savedAt:new Date().toISOString(),model,images};download(JSON.stringify(full,null,2),safeFile()+'_작업백업.json','application/json');toast('편집용 작업 백업을 저장했습니다.');}
 async function loadJson(e){const f=e.target.files?.[0];if(!f)return;try{const x=JSON.parse(await f.text());if(x.format!=='einstein-poster-v1'||!x.model)throw Error('포스터 제작실 백업파일이 아닙니다.');model=x.model;images=x.images||{};for(const key of FIELDS){const el=document.querySelector('[data-key="'+key+'"]');if(el)el.value=model[key]||'';}changed();toast('작업 내용을 불러왔습니다.');}catch(err){alert('작업 불러오기 실패: '+err.message);}finally{e.target.value='';}}
-function pptxRichText(slide,label,text,x,y,w,h,size=17){const opts={x,y,w,h,margin:.12,fontFace:'Malgun Gothic',fontSize:size,color:'344F61',breakLine:false,valign:'top',fit:'shrink',paraSpaceAfterPt:5};slide.addText(String(text||'해당 내용을 작성하세요.'),opts);}
-function pptxCard(slide,pptx,title,text,x,y,w,h,fs=17){slide.addShape(pptx.ShapeType.roundRect,{x,y,w,h,rectRadius:.17,fill:{color:'FFFFFF'},line:{color:'D9E6EC',width:1},radius:.15});slide.addShape(pptx.ShapeType.rect,{x:x+.21,y:y+.23,w:.065,h:.42,line:{color:'159B9D',transparency:100},fill:{color:'159B9D'}});slide.addText(title,{x:x+.37,y:y+.19,w:w-.55,h:.52,margin:0,fontFace:'Malgun Gothic',fontSize:21,bold:true,color:'167480'});if(text)pptxRichText(slide,title,text,x+.26,y+.84,w-.52,h-.94,fs);}
-function pptxPhoto(slide,pptx,title,data,x,y,w,h){pptxCard(slide,pptx,title,'',x,y,w,h);const ix=x+.26,iy=y+.88,iw=w-.52,ih=h-1.1;if(data){try{slide.addImage({data,x:ix,y:iy,w:iw,h:ih,sizingContain:true});}catch(e){slide.addText('사진을 불러오지 못했습니다.',{x:ix,y:iy,w:iw,h:ih,fontSize:13,color:'8A9AA5'});}}else slide.addText('실험 사진 (선택)',{x:ix,y:iy+.35,w:iw,h:.5,fontSize:15,color:'90AAB5',align:'center'});}
-function pptxGraph(slide,pptx,x,y,w,h){pptxCard(slide,pptx,'05 연구 결과 그래프','',x,y,w,h);const data=graphRows(),left=x+.70,top=y+1.68,gh=h-2.48,gw=w-1.25;if(!data.length){slide.addText('그래프 데이터를 입력해 주세요.',{x:left,y:top+.7,w:gw,h:.4,fontFace:'Malgun Gothic',fontSize:15,color:'92A3AE',align:'center'});return;}
- const lo=Math.min(0,...data.map(d=>d.value)),hi=Math.max(1,...data.map(d=>d.value))*1.08,range=Math.max(.001,hi-lo),y0=top+gh-(0-lo)*gh/range;
- slide.addText((model.graphTitle||'')+'   '+(model.graphUnit||''),{x:x+.33,y:y+.86,w:w-.6,h:.37,fontSize:14,color:'446E7D',bold:true,margin:0});
- for(let i=0;i<4;i++){const value=lo+(hi-lo)*i/3,pos=top+gh-(value-lo)*gh/range;slide.addShape(pptx.ShapeType.line,{x:left,y:pos,w:gw,h:0,line:{color:'DCE7EB',width:.8,dash:'dash'}});slide.addText(String(Math.round(value*10)/10),{x:left-.45,y:pos-.10,w:.4,h:.2,fontFace:'Malgun Gothic',fontSize:10,color:'6A8491',align:'right',margin:0});}
- const bw=gw/data.length;data.forEach((d,i)=>{const bx=left+i*bw+bw*.2,barW=bw*.58,valY=top+gh-(d.value-lo)*gh/range,barH=Math.max(.03,Math.abs(y0-valY));slide.addShape(pptx.ShapeType.rect,{x:bx,y:Math.min(valY,y0),w:barW,h:barH,line:{color:i%2?'4CACA9':'237D88',transparency:100},fill:{color:i%2?'4CACA9':'237D88'}});slide.addText(String(d.value),{x:bx-.05,y:Math.max(top-.03,Math.min(valY,y0)-.27),w:barW+.1,h:.20,fontSize:10,color:'246074',align:'center',margin:0});slide.addText(d.label.slice(0,10),{x:left+i*bw,y:top+gh+.14,w:bw,h:.33,fontFace:'Malgun Gothic',fontSize:11,color:'385E70',align:'center',margin:0});});}
-async function makePptx(){const btn=$('savePptx');if(btn.disabled)return;const PPT=window.pptxgen||window.PptxGenJS;if(!PPT){alert('PPTX 제작 모듈을 불러오지 못했습니다. 인터넷을 확인하고 새로고침해 주세요.');return;}
- btn.disabled=true;btn.textContent='PPTX 제작 중…';try{const pptx=new PPT();pptx.defineLayout({name:'A1POSTER',width:33.11,height:23.39});pptx.layout='A1POSTER';pptx.author='은행고등학교 아인슈타인 동아리';pptx.subject='2026 연구포스터';pptx.title=model.title||'아인슈타인 동아리 연구포스터';pptx.lang='ko-KR';const slide=pptx.addSlide();slide.background={color:'F7FAFC'};
- const navy='17324C',teal='197D86';slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:33.11,h:3.45,line:{color:navy,transparency:100},fill:{color:navy}});slide.addShape(pptx.ShapeType.rect,{x:0,y:3.38,w:33.11,h:.07,line:{color:teal,transparency:100},fill:{color:teal}});
- slide.addText('2026 은행고등학교 아인슈타인 동아리',{x:.85,y:.47,w:31.5,h:.56,fontFace:'Malgun Gothic',fontSize:22,bold:true,color:'9EDBDA',margin:0,charSpacing:2});
- slide.addText('연구제목: '+(model.title||'[연구 제목을 입력하세요]'),{x:.85,y:1.23,w:31.4,h:1.03,fontFace:'Malgun Gothic',fontSize:51,bold:true,color:'FFFFFF',margin:0,fit:'shrink'});
- slide.addText('연구자: '+(model.researchers||'[학번 이름, 학번 이름]').replace(/\n/g,', ')+(model.group?'  |  모둠: '+model.group:''),{x:.85,y:2.47,w:31.3,h:.62,fontFace:'Malgun Gothic',fontSize:23,color:'DDEEF0',margin:0,fit:'shrink'});
- const x=[.65,11.04,23.10],w=[10.00,11.65,9.36],gap=.38;
- pptxCard(slide,pptx,'01 연구 배경·필요성',model.background,x[0],3.79,w[0],4.35,19);
- pptxCard(slide,pptx,'02 연구질문·가설',[model.question?'연구질문: '+model.question:'',model.hypothesis?'가설: '+model.hypothesis:''].filter(Boolean).join('\n\n'),x[0],8.52,w[0],3.82,18);
- pptxCard(slide,pptx,'03 재료 및 연구 방법',[model.variables?'변인: '+model.variables:'',model.materials?'재료: '+model.materials:'',model.method?'절차: '+model.method:''].filter(Boolean).join('\n\n'),x[0],12.70,w[0],6.52,18);
- pptxPhoto(slide,pptx,'실험 과정 사진',images.methodImage,x[0],19.53,w[0],2.72);
- pptxCard(slide,pptx,'04 연구 개요·주요 결과',[model.abstract,model.results].filter(Boolean).join('\n\n'),x[1],3.79,w[1],5.80,19);
- pptxGraph(slide,pptx,x[1],9.95,w[1],8.62);
- pptxPhoto(slide,pptx,'실험 결과 사진',images.resultImage,x[1],18.91,w[1],3.34);
- pptxCard(slide,pptx,'06 결과 분석·논의',model.discussion,x[2],3.79,w[2],6.08,19);
- pptxCard(slide,pptx,'07 연구 한계 및 개선',model.limitations,x[2],10.25,w[2],4.09,17);
- pptxCard(slide,pptx,'08 결론',model.conclusion,x[2],14.72,w[2],3.61,19);
- pptxCard(slide,pptx,'09 후속 탐구',model.followup,x[2],18.68,w[2],3.57,17);
- slide.addShape(pptx.ShapeType.rect,{x:0,y:22.52,w:33.11,h:.87,line:{color:'E6F3F5',transparency:100},fill:{color:'E6F3F5'}});
- slide.addText('참고문헌 · 연구자 기여',{x:.70,y:22.67,w:5.2,h:.35,fontFace:'Malgun Gothic',fontSize:16,bold:true,color:'287581',margin:0});
- slide.addText([model.references?'참고문헌: '+model.references:'',model.contributions?'연구 기여: '+model.contributions:''].filter(Boolean).join('    |    ')||'참고문헌과 실제 연구 기여 내용 입력',{x:5.90,y:22.63,w:26.5,h:.5,fontFace:'Malgun Gothic',fontSize:13,color:'526F7F',margin:0,fit:'shrink'});
- await pptx.writeFile({fileName:safeFile()+'.pptx'});toast('PPTX 파일 저장 완료');
- }catch(e){console.error(e);alert('PPTX 저장 오류: '+e.message);}finally{btn.disabled=false;btn.textContent='▧ PPTX 다운로드';}}
 init();
 })();
 </script>
