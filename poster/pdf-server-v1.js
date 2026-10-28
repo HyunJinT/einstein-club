@@ -5,6 +5,7 @@ const pdfButton=$('savePdf'),serverButton=$('uploadPosterServer'),poster=$('post
 if(!pdfButton||!serverButton||!poster)return;
 const ENDPOINT='https://script.google.com/macros/s/AKfycbwcgV5NXm75aETWnzJpGCtLfihfb4i4mQGfB_0Ext5s4Zq2quWzHoRl8TqIv38LVGMWuA/exec';
 const MAX_FILE=15*1024*1024;
+const V16_CHUNK_CHARS=360000;
 let working=false;
 function safeName(s){return String(s||'아인슈타인_연구포스터').trim().replace(/[\\/:*?"<>|]/g,'_').slice(0,52)||'연구포스터';}
 function value(k){return document.querySelector('[data-key="'+k+'"]')?.value?.trim()||'';}
@@ -46,7 +47,7 @@ async function makePdf(){
   }
  });
  if(canvas.width<2300||canvas.height<3300)throw Error('렌더링 해상도가 충분하지 않습니다.');
- const jpeg=canvas.toDataURL('image/jpeg',.94);
+ const jpeg=canvas.toDataURL('image/jpeg',.89);
  canvas.width=1;canvas.height=1;
  const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:[594,841],compress:true,putOnlyUsedFonts:true});
  pdf.addImage(jpeg,'JPEG',0,0,594,841,undefined,'FAST');
@@ -100,7 +101,8 @@ async function postToGas(data,action='uploadEinsteinPosterV15'){
    if(settled)return;settled=true;cleanup();
    if(p.ok)resolve(p);else reject(Error(p.error||'학교 서버 업로드가 거부되었습니다.'));
   };
-  const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error(action==='pingEinsteinPosterV15'?'학교 서버의 포스터 업로드 기능이 아직 배포되지 않았습니다.':'서버 응답이 지연됩니다. 등록 여부를 먼저 확인하세요.'));}},action==='pingEinsteinPosterV15'?14000:110000);
+  const timeouts={pingEinsteinPosterV15:14000,beginEinsteinPosterV16:35000,chunkEinsteinPosterV16:55000,finishEinsteinPosterV16:100000,statusEinsteinPosterV16:28000};
+  const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error('서버 응답 시간 초과 ('+action+')'));}},timeouts[action]||45000);
   window.addEventListener('message',receive);
   const payload={action,nonce,...data};
   for(const [key,v] of Object.entries(payload)){
@@ -133,12 +135,47 @@ serverButton.addEventListener('click',async e=>{
   serverButton.textContent='고화질 PDF 생성 중…';
   progress('A1 세로형 포스터를 PDF로 제작 중입니다…');
   const blob=await makePdf();if(!blob)return;
-  serverButton.textContent='학교 서버에 업로드 중…';
-  progress('학교 서버가 학생 신원과 연구자 명단을 확인하고 저장합니다…');
+  if(!window.crypto?.subtle)throw Error('HTTPS 연결에서만 안전하게 PDF 파일을 전송할 수 있습니다.');
+  const pdfBytes=await blob.arrayBuffer();
+  const hashBytes=new Uint8Array(await crypto.subtle.digest('SHA-256',pdfBytes));
+  const pdfHash=[...hashBytes].map(b=>b.toString(16).padStart(2,'0')).join('');
   const b64=await blobBase64(blob);
-  const result=await postToGas({studentId:login.studentId,password:login.password,title:value('title'),researchers:JSON.stringify(team),pdfBase64:b64});
-  progress('서버 등록 완료! 포스터 번호: '+(result.posterId||'-')+'. 연구자들이 학생 앱에서 본인 포스터를 확인할 수 있습니다.');
-  alert('학교 서버에 고화질 PDF가 등록되었습니다. 연구자들에게 학생용 앱에서 포스터를 확인하도록 안내해 주세요.');
+  const partCount=Math.ceil(b64.length/V16_CHUNK_CHARS);
+  if(partCount<1||partCount>65)throw Error('PDF 용량이 너무 큽니다. 사진 파일 크기를 줄여주세요.');
+  progress('연구자 확인 및 전송 준비 중…');
+  const begin=await postToGas({studentId:login.studentId,password:login.password,
+    title:value('title'),researchers:JSON.stringify(team),pdfHash,totalSize:blob.size,partCount},'beginEinsteinPosterV16');
+  login.password='';
+  if(begin.existing&&begin.posterId){
+    progress('✅ 이미 등록된 포스터입니다. 중복 업로드가 필요하지 않습니다. 포스터 번호: '+begin.posterId);
+    alert('이미 등록된 동일한 포스터를 찾았습니다. 학생 앱에서 확인하세요.');
+    return;
+  }
+  if(!begin.uploadId||!begin.token)throw Error('서버로부터 분할 업로드 인증정보를 받지 못했습니다.');
+  const auth={uploadId:begin.uploadId,token:begin.token};
+  for(let i=0;i<partCount;i++){
+    serverButton.textContent='PDF 전송 '+(i+1)+'/'+partCount;
+    progress('PDF를 나누어 안전하게 전송 중… '+(i+1)+' / '+partCount);
+    const part=b64.slice(i*V16_CHUNK_CHARS,(i+1)*V16_CHUNK_CHARS);
+    let ok=false,lastError;
+    for(let attempt=0;attempt<2&&!ok;attempt++){
+      try{const ack=await postToGas({...auth,index:i,part},'chunkEinsteinPosterV16');ok=!!ack?.ok;}
+      catch(err){lastError=err;}
+    }
+    if(!ok)throw Error('PDF '+(i+1)+'번째 조각 업로드 실패: '+(lastError?.message||'서버 응답 없음'));
+  }
+  serverButton.textContent='서버 저장 확인 중…';
+  progress('PDF 파일 조립 및 연구자별 등록을 확인 중입니다…');
+  let result;
+  try{result=await postToGas(auth,'finishEinsteinPosterV16');}
+  catch(err){
+    const status=await postToGas(auth,'statusEinsteinPosterV16');
+    if(status.complete&&status.posterId)result={ok:true,posterId:status.posterId};
+    else throw err;
+  }
+  if(!result?.posterId)throw Error('서버가 포스터 등록번호를 반환하지 않았습니다.');
+  progress('✅ 서버 등록 완료! 포스터 번호: '+result.posterId+' · 연구자 '+team.map(m=>m.studentId).join(', ')+'에게 연결되었습니다.');
+  alert('학교 서버에 고화질 PDF가 등록됐습니다. 연구자 '+team.length+'명이 학생용 앱에서 확인할 수 있습니다.');
  }catch(err){console.error(err);progress('서버 업로드 실패: '+err.message,true);alert('서버 업로드가 완료되지 않았습니다.\n'+err.message+'\nApps Script 포스터 업로드 기능 배포 여부를 확인하세요.');}
  finally{login.password='';loading(false);}
 },true);
