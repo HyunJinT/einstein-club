@@ -56,7 +56,7 @@ async function refreshServerDraft(){
   if(v.draft){state=cloneFromStorage(v.draft);state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':state.position;}
   serverRevision=Number(v.revision)||0;serverEditAllowed=!!v.canEdit;
   lastReceipt=v.receipt||'';lastFiles=Array.isArray(v.submittedFiles)?v.submittedFiles:[];
-  lastServerSavedAt=v.savedAt||'';changeCounter++;step=v.submitted?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;editingAfterSubmit=false;submitReceipt=null;render();restoreLastEditedField();
+  lastServerSavedAt=v.savedAt||'';changeCounter++;editingAfterSubmit=!!(v.submitted&&state.editingSubmissionDraft);step=(v.submitted&&!editingAfterSubmit)?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;editingAfterSubmit=false;submitReceipt=null;render();restoreLastEditedField();
   statusText(v.savedAt?'✓ 서버 기록 불러옴 · '+v.savedAt:'서버에 저장된 작성 기록이 없습니다.');
  }catch(e){statusText('서버 기록 조회 실패: '+e.message,true);}
 }
@@ -69,7 +69,7 @@ window.addEventListener('einstein:verified',function(e){
  state=v.draft?cloneFromStorage(v.draft):fresh();
  state.studentId=v.studentId;state.name=v.name;
  if(v.leader)state.position='모둠 조장';
- step=v.submitted?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;isSaved=!!v.draft;submitReceipt=null;editingAfterSubmit=false;
+ editingAfterSubmit=!!(v.submitted&&state.editingSubmissionDraft);step=(v.submitted&&!editingAfterSubmit)?4:Math.min(4,Math.max(0,Number(state.resumeStep)||0));activeProjectId=state.projects.some(p=>p.id===Number(state.resumeProjectId))?Number(state.resumeProjectId):state.projects[0].id;isSaved=!!v.draft;submitReceipt=null;
  render();restoreLastEditedField();
  statusText(serverEditAllowed?(v.draft?'✓ 서버에 저장된 이전 작성 내용을 불러왔습니다'+(v.savedAt?' · '+v.savedAt:''):'처음 작성하는 학생입니다. 입력 후 약 3초면 서버에 자동저장됩니다.'):'제출 기한이 지나 읽기만 가능합니다.',!serverEditAllowed);
 });
@@ -77,7 +77,7 @@ window.addEventListener('einstein:verified',function(e){
 
 function restoreLastEditedField(){
  const f=state.resumeField;
- if(!f||!verifiedStudent||lastReceipt)return;
+ if(!f||!verifiedStudent||(lastReceipt&&!editingAfterSubmit))return;
  setTimeout(()=>{
   const matches=[...document.querySelectorAll('input[data-field],textarea[data-field],textarea[data-role-note],textarea[data-evidence-note],select[data-field]')];
   const el=matches.find(x=>String(x.dataset.field||'')===String(f.field||'')&&
@@ -90,7 +90,7 @@ function restoreLastEditedField(){
 }
 
 function makeProject(){return {id:seq++,title:'',mode:'모둠 탐구',team:'',question:'',motivation:'',hypothesis:'',design:'',results:'',analysis:'',challenge:'',nextTry:'',summary:'',themeLink:'',roles:[],roleNotes:{}};}
-function fresh(){return {resumeStep:0,resumeProjectId:1,resumeField:null,excludedFileUrls:[],year:'2026',studentId:'',name:'',careerGoal:'',position:'직책 없음',positionWork:'',researchTheme:'',researchQuestion:'',themeConnection:'',projects:[makeProject()],evidence:[],evidenceNotes:{},growthConcept:'',growthChange:'',followup:'',futurePlan:'',otherContribution:'',teacherNote:'',confirmed:false};}
+function fresh(){return {resumeStep:0,resumeProjectId:1,resumeField:null,editingSubmissionDraft:false,excludedFileUrls:[],year:'2026',studentId:'',name:'',careerGoal:'',position:'직책 없음',positionWork:'',researchTheme:'',researchQuestion:'',themeConnection:'',projects:[makeProject()],evidence:[],evidenceNotes:{},growthConcept:'',growthChange:'',followup:'',futurePlan:'',otherContribution:'',teacherNote:'',confirmed:false};}
 const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const attr=esc;const txt=(field,placeholder='',rows=3,extra='')=>`<textarea class="text-area ${rows===2?'short':''}" rows="${rows}" placeholder="${esc(placeholder)}" ${extra}>${esc(field)}</textarea>`;
 const field=(label,body,{required=false,hint='',full=false}={})=>`<div class="field ${full?'full':''}"><label class="question-label">${label}${required?'<span class="req"> *</span>':''}</label>${hint?`<p class="hint">${hint}</p>`:''}${body}</div>`;
@@ -325,7 +325,7 @@ async function submitApp(){
   setSubmitProgress('업로드 목록을 확인하고 최종 접수 중…');
   const result=await gasCall('finalizeEinsteinSubmissionV12',start.submissionId,state.studentId,accessCode);
   if(!result||!result.ok)throw Error('제출 확인 응답이 없습니다.');
-  submitReceipt=result;editingAfterSubmit=false;state.excludedFileUrls=[];
+  submitReceipt=result;editingAfterSubmit=false;state.editingSubmissionDraft=false;state.excludedFileUrls=[];changeCounter++;
   lastReceipt=result.receipt;
   lastFiles=Array.isArray(result.files)?result.files:lastFiles;
   uploadFiles={report:[],poster:[]};
@@ -333,7 +333,7 @@ async function submitApp(){
   safeRemove(STORAGE_KEY);
   render();notify('접수되었습니다. 마감 전까지 수정해 다시 제출할 수 있습니다.');
  }catch(e){console.error(e);setSubmitProgress('제출 실패: '+e.message+' · 실패했을 때는 바로 다시 제출하지 말고 담당 교사에게 접수 상태를 확인하세요.');}
- finally{submitBusy=false;const b=$('submitAppBtn');if(b)b.disabled=false;}
+ finally{submitBusy=false;if(submitReceipt)scheduleServerSave();const b=$('submitAppBtn');if(b)b.disabled=false;}
 }
 function render(){clearTimeout(navRefreshTimer);if(!state.projects.some(p=>p.id===activeProjectId))activeProjectId=state.projects[0].id;renderNav();$('stepContent').innerHTML=[step0,step1,step2,step3,step4][step]();}
 function go(n){
@@ -420,7 +420,7 @@ $('app').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)r
  state.excludedFileUrls=[...ex];dirty(false);render();return;
 }
 if(t.dataset.viewUpload!==undefined){openSubmittedUpload(t.dataset.viewUpload);return;}
-if(t.id==='editAfterSubmitBtn'){submitReceipt=null;editingAfterSubmit=true;render();return;}if(t.id==='draftSaveBtn'){saveDraft();return;}if(t.id==='draftLoadBtn'){loadDraft();return;}if(t.id==='backupBtn'){backup();return;}if(t.id==='downloadPdfBtn'){directPdf();return;}if(t.id==='submitAppBtn'){submitApp();return;}if(t.id==='printPdfBtn'){printPdf();return;}if(t.id==='saveFormURL'){saveFormUrl();return;}if(t.id==='openFormBtn'){formOpen();return;}if(t.id==='resetBtn'){if(!confirm('이 기기의 현재 작성 내용과 임시저장을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.'))return;safeRemove(STORAGE_KEY);state=fresh();if(verifiedStudent){state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':'직책 없음';}activeProjectId=state.projects[0].id;checklist={pdf:false,original:false};isSaved=false;dirty();go(0);notify('현재 기록을 비웠습니다. 서버에도 빈 초안으로 자동저장합니다.');return;}});
+if(t.id==='editAfterSubmitBtn'){submitReceipt=null;editingAfterSubmit=true;state.editingSubmissionDraft=true;state.resumeStep=4;dirty(false);render();return;}if(t.id==='draftSaveBtn'){saveDraft();return;}if(t.id==='draftLoadBtn'){loadDraft();return;}if(t.id==='backupBtn'){backup();return;}if(t.id==='downloadPdfBtn'){directPdf();return;}if(t.id==='submitAppBtn'){submitApp();return;}if(t.id==='printPdfBtn'){printPdf();return;}if(t.id==='saveFormURL'){saveFormUrl();return;}if(t.id==='openFormBtn'){formOpen();return;}if(t.id==='resetBtn'){if(!confirm('이 기기의 현재 작성 내용과 임시저장을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.'))return;safeRemove(STORAGE_KEY);state=fresh();if(verifiedStudent){state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':'직책 없음';}activeProjectId=state.projects[0].id;checklist={pdf:false,original:false};isSaved=false;dirty();go(0);notify('현재 기록을 비웠습니다. 서버에도 빈 초안으로 자동저장합니다.');return;}});
 $('jsonImport').addEventListener('change',e=>{importJSON(e.target.files?.[0]);e.target.value='';});
 // Backup-file restore entry is available from the keyboard/accessibility button, and both draft toolbar actions.
 const restore=document.createElement('button');restore.type='button';restore.className='btn';restore.textContent='백업 불러오기';restore.title='JSON 백업 파일에서 복원';restore.addEventListener('click',()=>$('jsonImport').click());$('backupBtn').after(restore);
