@@ -53,7 +53,7 @@ b.onclick=async()=>{
  if(!P){alert('PPTX 제작 모듈을 불러오지 못했습니다. 인터넷을 확인하세요.');return;}
  b.disabled=true;
  try{
-  const p=new P();p.defineLayout({name:'A1_PORTRAIT',width:23.39,height:33.11});p.layout='A1';p.author='은행고등학교 아인슈타인 동아리';
+  const p=new P();p.defineLayout({name:'A1_PORTRAIT',width:23.39,height:33.11});p.layout='A1_PORTRAIT';p.author='은행고등학교 아인슈타인 동아리';
   const s=p.addSlide();s.background={color:'F7FAFC'};
   s.addShape(p.ShapeType.rect,{x:0,y:0,w:23.39,h:3.75,fill:{color:'17324C'},line:{color:'17324C',transparency:100}});
   s.addText('2026 은행고등학교 아인슈타인 동아리',{x:.66,y:.46,w:22.1,h:.55,fontSize:22,bold:true,color:'9BDBDB',margin:0,fontFace:'Malgun Gothic'});
