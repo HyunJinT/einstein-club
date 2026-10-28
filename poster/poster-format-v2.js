@@ -5,9 +5,7 @@ style('./poster-fixed-a1-v3.css?v=7');
 style('./poster-portrait-v4.css?v=8');
 var frame=document.querySelector('.poster-frame');
 if(frame){var note=document.createElement('div');note.className='poster-fit-message';note.id='posterFitStatus';note.textContent='A1 세로형 1장 · 글자 크기는 입력량에 맞춰 자동 조절됩니다.';frame.before(note);}
-script('./poster-adaptive-v3.js?v=9',function(){
- script('./poster-table-v4.js?v=7',function(){
-  script('./poster-pptx-portrait-v4.js?v=8');
- });
+script('./poster-adaptive-v3.js?v=10',function(){
+ script('./poster-table-v4.js?v=7');
 });
 })();
