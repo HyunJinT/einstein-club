@@ -18,7 +18,7 @@ function loading(on,msg){
  serverButton.textContent=on?(msg||'서버 업로드 준비 중…'):serverButton.dataset.originalLabel;
 }
 function progress(message,isError){
- const target=$('einsteinPosterUploadStatus');if(target){target.textContent=message;target.style.color=isError?'#a2393b':'#27645c';}
+ const target=$('einsteinPosterUploadStatus');if(target){target.hidden=false;target.textContent=message;target.style.color=isError?'#a2393b':'#27645c';}
 }
 async function makePdf(){
  const api=window.__einsteinPosterV3;
@@ -133,7 +133,6 @@ pdfButton.addEventListener('click',async e=>{
  catch(err){console.error(err);progress('PDF 생성 실패: '+err.message,true);alert('PDF 생성 실패: '+err.message);}
  finally{loading(false);}
 },true);
-const status=document.createElement('div');status.id='einsteinPosterUploadStatus';status.style.cssText='font-size:12px;line-height:1.6;padding:7px 1px;color:#446a7b';serverButton.closest('.editor-actions')?.after(status);
 serverButton.addEventListener('click',async e=>{
  e.preventDefault();e.stopImmediatePropagation();
  if(working)return;
