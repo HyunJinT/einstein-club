@@ -167,6 +167,13 @@ function renderPhotos(){
     box.replaceChildren(grid);box.dataset.photosV3=signature;
     updateColumns();
    }
+   // Wide frames use a single row; taller frames show one tall tile plus two stacked tiles.
+   const grid=box.querySelector('.poster-photo-grid');
+   if(grid){
+    const ratio=box.clientWidth/Math.max(1,box.clientHeight);
+    const layout=arr.length===3&&ratio<2.35?'mosaic':'row';
+    if(grid.dataset.layout!==layout)grid.dataset.layout=layout;
+   }
   }else{
    if(box.querySelector('.poster-photo-grid')){const text=document.createElement('span');text.textContent=(kind==='method'?'실험 과정 사진':'실험 결과 사진')+' (선택)';box.replaceChildren(text);}
    box.dataset.photosV3='';
