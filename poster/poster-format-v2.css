@@ -1,0 +1,22 @@
+
+/* POSTER SIZE V2: A1 landscape or A0 portrait (twice A1 height) */
+.format-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px;padding:11px 13px;border:1px solid #cbdce7;background:#fff;border-radius:10px}
+.format-controls label{font-size:12px;font-weight:800;color:#1e4a63}
+.format-controls select{min-height:39px;padding:8px 10px;border:1px solid #b9d1dd;border-radius:7px;background:#fff;color:#1c4b65;font-size:13px}
+.format-description{flex:1 1 190px;font-size:11px;line-height:1.6;color:#527188}
+.overflow-notice{margin:8px 0 12px;border:1px solid #e5af99;background:#fff1e8;color:#883e1d;padding:11px 13px;border-radius:9px;font-size:12px;line-height:1.65}
+.overflow-notice[hidden]{display:none!important}
+.poster.expanded-a0{height:1584px}
+.poster.expanded-a0 .poster-grid{height:1418px}
+.poster.expanded-a0 .poster-column{gap:13px}
+.poster.expanded-a0 .poster-section .body{font-size:12.5px;line-height:1.65}
+.poster.expanded-a0 .poster-column:first-child .poster-section:nth-child(1){height:350px!important;flex:0 0 350px}
+.poster.expanded-a0 .poster-column:first-child .poster-section:nth-child(2){height:255px!important;flex:0 0 255px}
+.poster.expanded-a0 .poster-column:first-child .poster-section:nth-child(3){height:470px!important;flex:0 0 470px}
+.poster.expanded-a0 .poster-column:nth-child(2) .poster-section:nth-child(1){height:450px!important;flex:0 0 450px}
+.poster.expanded-a0 .poster-column:nth-child(2) .poster-section:nth-child(2){height:430px!important;flex:0 0 430px}
+.poster.expanded-a0 .poster-column:nth-child(3) .poster-section:nth-child(1){height:390px!important;flex:0 0 390px}
+.poster.expanded-a0 .poster-column:nth-child(3) .poster-section:nth-child(2){height:290px!important;flex:0 0 290px}
+.poster.expanded-a0 .poster-column:nth-child(3) .poster-section:nth-child(3){height:310px!important;flex:0 0 310px}
+.poster.expanded-a0 .poster-chart{height:285px}
+@media(max-width:800px){.format-controls{padding:9px}.format-controls label{width:100%}.format-controls select{width:100%}}
