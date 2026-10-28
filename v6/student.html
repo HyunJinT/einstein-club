@@ -63,6 +63,21 @@
 .step-validation ul{margin:7px 0 0;padding-left:22px;font-size:13px;color:#983a46;line-height:1.9}
 .missing-required .text-input,.missing-required .text-area,.missing-required .select,.missing-required.role-inline-editor,.missing-required.role-choice{border-color:#cb465b!important;box-shadow:0 0 0 3px #fde8eb!important}
 @media print{.step-validation{display:none!important}}
+
+/* v9: server-verified student login */
+[hidden]{display:none!important}
+body:not(.einstein-auth) #navSteps,body:not(.einstein-auth) .top-actions{display:none!important}
+.student-login-card{max-width:720px;margin:25px auto 35px;padding:28px;background:#fff;border-radius:18px;border:1px solid #dbe6ef;box-shadow:0 10px 35px #17344a10}
+.student-login-card h2{font-size:22px;color:#173652;margin:0 0 9px}
+.student-login-card .code-instructions{color:#506c7c;font-size:14px;margin:0 0 19px}
+.student-login-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.student-login-controls input{flex:1;min-width:210px;height:47px;padding:10px 13px;font:inherit;font-size:16px;border:1px solid #b6cbdc;border-radius:9px}
+.student-login-controls button{height:47px;border:0;border-radius:9px;background:#177e8d;color:white;font-weight:700;padding:0 20px;cursor:pointer}
+.student-login-controls button:disabled{opacity:.6}
+.student-login-feedback{min-height:24px;color:#af3434;font-size:13px;margin:11px 0 0}
+.student-identity{padding:13px 16px;background:#eaf8f5;color:#145d61;border:1px solid #a7dacf;border-radius:13px;margin:20px 0;font-weight:750}
+.student-login-note{color:#647888;font-size:12px;line-height:1.75;margin:14px 0 0}
+@media(max-width:600px){.student-login-card{padding:17px}.student-login-controls{display:grid;grid-template-columns:1fr}.student-login-controls input{min-width:0}}
 </style>
 </head>
 <body>
@@ -76,13 +91,54 @@
  <main class="main">
   <header class="topbar"><div class="eyebrow">EINSTEIN SCIENCE CLUB · 2026</div><div class="top-actions"><button type="button" class="btn" id="draftSaveBtn">↧ 임시저장</button><button type="button" class="btn" id="draftLoadBtn">↥ 불러오기</button><button type="button" class="btn" id="backupBtn" title="다른 기기에서도 불러올 수 있는 JSON 백업 파일">백업 파일</button><input type="file" id="jsonImport" accept=".json,application/json" hidden></div></header>
   <section class="hero"><div class="hero-tag">ONE YEAR · ONE SCIENTIFIC JOURNEY</div><h1>나의 탐구가 남긴 흔적</h1><p>아인슈타인 동아리에서 시도하고, 관찰하고, 수정하고, 성장했던 경험을 사실에 근거하여 기록합니다.</p><svg class="hero-atom" viewBox="0 0 160 160" fill="none" aria-hidden="true"><circle cx="80" cy="80" r="8" fill="white"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3" transform="rotate(60 80 80)"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3" transform="rotate(120 80 80)"/></svg></section>
+  <section id="studentLoginGate" class="student-login-card">
+    <h2>개별 제출코드로 시작하기</h2>
+    <p class="code-instructions">선생님이 발급한 <strong>나만의 제출코드</strong>를 입력하세요. 올바른 코드라면 등록된 학번·이름이 자동으로 표시됩니다.</p>
+    <label for="studentLoginCode" style="display:block;margin-bottom:8px;font-weight:750">학생 개별 제출코드</label>
+    <div class="student-login-controls"><input type="password" id="studentLoginCode" placeholder="개별 제출코드 입력" autocomplete="off" spellcheck="false"/><button type="button" id="studentLoginBtn">코드 확인 · 시작</button></div>
+    <p class="student-login-feedback" id="studentLoginFeedback" role="status" aria-live="polite"></p>
+    <p class="student-login-note">학번과 이름은 서버의 등록 명단에서 확인합니다. 코드가 없거나 틀리면 담당 교사에게 문의하세요.<br>코드는 다른 컴퓨터에서도 사용할 수 있지만, <strong>작성 중인 글은 자동 동기화되지 않습니다.</strong> 다른 컴퓨터에서 이어 작성하려면 백업 파일을 이용하세요.</p>
+  </section>
+  <div id="studentWorkspace" hidden>
+  <div class="student-identity" id="studentIdentity" role="status"></div>
   <div class="status-area"><div><div class="flex" style="justify-content:space-between"><strong class="small" id="stepTitle">학생 정보</strong><span class="tiny muted" id="progressText">1 / 5단계</span></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div><div class="completion" id="completionText">저장 전 · <strong>0%</strong> 작성</div></div>
   <div id="stepContent"><div class="content-card" id="bootFallback" role="alert" style="padding:22px;line-height:1.8"><strong>학생 입력 화면을 불러오는 중입니다.</strong><p>학번·이름 입력란이 계속 나타나지 않으면 Ctrl+Shift+R로 새로고침하세요. 화면이 그대로라면 교사에게 연락해 주세요.</p></div></div>
+  </div><!-- /studentWorkspace -->
   <div class="footer-note">© 2026 아인슈타인 과학동아리 · 임시저장은 현재 브라우저에만 보관 · 최종 제출은 이 앱에서 진행합니다.</div>
  </main>
 </div>
 <div id="printRoot" class="print-root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+ 'use strict';
+ var q=function(id){return document.getElementById(id);};
+ var button=q('studentLoginBtn'),input=q('studentLoginCode'),output=q('studentLoginFeedback');
+ if(!button||!input||!output)return;
+ function feedback(t){output.textContent=String(t||'');}
+ function unlock(profile,token){
+  if(!profile || !/^\d{5}$/.test(String(profile.studentId)) || !String(profile.name||'').trim())throw Error('서버의 학생 정보가 올바르지 않습니다.');
+  window.__einsteinStudentIdentity={studentId:String(profile.studentId),name:String(profile.name),leader:!!profile.leader,code:token};
+  q('studentLoginGate').hidden=true;
+  q('studentWorkspace').hidden=false;
+  document.body.classList.add('einstein-auth');
+  q('studentIdentity').textContent='인증 완료 · '+profile.studentId+' '+profile.name+(profile.leader?' · 모둠 조장':'');
+  window.dispatchEvent(new CustomEvent('einstein:verified',{detail:window.__einsteinStudentIdentity}));
+ }
+ function login(){
+  var token=input.value.trim().toUpperCase();
+  if(!/^E[0-9A-F]{13}$/.test(token)){feedback('학생 개별 제출코드를 정확히 입력해 주세요.');return;}
+  if(typeof google==='undefined'||!google.script||!google.script.run){feedback('이 페이지는 화면 미리보기입니다. 담당 교사가 안내한 Apps Script 제출 주소를 이용해 주세요.');return;}
+  button.disabled=true;feedback('학생 정보를 확인하고 있습니다…');
+  google.script.run.withSuccessHandler(function(profile){
+   button.disabled=false;
+   try{unlock(profile,token);}catch(e){feedback(e.message);}
+  }).withFailureHandler(function(err){button.disabled=false;feedback('인증 실패: '+(err&&err.message?err.message:'코드 확인에 실패했습니다.'));}).lookupEinsteinStudentByCode(token);
+ }
+ button.addEventListener('click',login);
+ input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();login();}});
+})();
+</script>
 <script>
 (function(){
   function showInitError(message){
@@ -96,7 +152,7 @@
   window.__einsteinShowInitError=showInitError;
   window.addEventListener('error',function(e){showInitError(e.message||'스크립트 실행 오류');});
   window.addEventListener('unhandledrejection',function(e){showInitError(e.reason&&e.reason.message||'비동기 초기화 오류');});
-  window.addEventListener('load',function(){setTimeout(function(){var el=document.getElementById('stepContent');if(el&&!el.querySelector('.section-title'))showInitError('학생 입력 화면이 나타나지 않았습니다.');},1800);});
+  window.addEventListener('load',function(){setTimeout(function(){var el=document.getElementById('stepContent');if(el && !document.getElementById('studentWorkspace').hidden && !el.querySelector('.section-title'))showInitError('학생 입력 화면이 나타나지 않았습니다.');},1800);});
 })();
 </script>
 <script>
@@ -111,6 +167,16 @@ const safeRemove=k=>{try{localStorage.removeItem(k)}catch{}};
 let seq=1, step=0, state=fresh(), activeProjectId=1, isSaved=false, toastTimer=null, checklist={pdf:false,original:false};
 const IN_GAS=typeof google !== 'undefined' && !!(google.script && google.script.run);
 let accessCode='', uploadFiles={report:[],poster:[]}, submitBusy=false, submitReceipt=null;
+let verifiedStudent=null;
+window.addEventListener('einstein:verified',function(e){
+ const v=e.detail;
+ verifiedStudent={studentId:v.studentId,name:v.name,leader:v.leader};
+ accessCode=v.code;
+ state=fresh();state.studentId=v.studentId;state.name=v.name;
+ state.position=v.leader?'모둠 조장':'직책 없음';
+ step=0;activeProjectId=state.projects[0].id;isSaved=false;
+ render();
+});
 
 function makeProject(){return {id:seq++,title:'',mode:'모둠 탐구',team:'',question:'',motivation:'',hypothesis:'',design:'',results:'',analysis:'',challenge:'',nextTry:'',summary:'',themeLink:'',roles:[],roleNotes:{}};}
 function fresh(){return {year:'2026',studentId:'',name:'',careerGoal:'',position:'직책 없음',positionWork:'',researchTheme:'',researchQuestion:'',themeConnection:'',projects:[makeProject()],evidence:[],evidenceNotes:{},growthConcept:'',growthChange:'',followup:'',futurePlan:'',otherContribution:'',teacherNote:'',confirmed:false};}
@@ -124,7 +190,7 @@ const footer=(prev,nextLabel='다음 단계 →')=>`<div class="section-actions"
 function title(n,h,desc){return `<div class="section-title"><div class="step-number">${n}</div><div><h2>${h}</h2><p>${desc}</p></div></div>`;}
 function step0(){return `<section class="content-card">${title('01','나의 기록 시작하기','기본 정보는 PDF의 제목 및 파일명에 사용됩니다.')}
 <div class="info-box">동아리활동 특기사항을 작성하기 위한 참고자료입니다. 과장된 표현보다 실제로 한 행동과 확인 가능한 탐구 결과를 작성하세요.</div>
-<div class="fields">${field('학번',`<input class="text-input" data-field="studentId" maxlength="5" inputmode="numeric" placeholder="예: 20000" value="${attr(state.studentId)}"/>`,{required:true,hint:'숫자 5자리로 입력하세요.'})}${field('이름',`<input class="text-input" data-field="name" maxlength="20" placeholder="이름" value="${attr(state.name)}"/>`,{required:true})}</div>
+<div class="fields">${field('학번',`<input class="text-input" data-field="studentId" maxlength="5" readonly aria-readonly="true" inputmode="numeric" placeholder="예: 20000" value="${attr(state.studentId)}"/>`,{required:true,hint:'숫자 5자리로 입력하세요.'})}${field('이름',`<input class="text-input" data-field="name" maxlength="20" readonly aria-readonly="true" placeholder="이름" value="${attr(state.name)}"/>`,{required:true})}</div>
 <div class="career-field">${field('희망 진로 분야',`<input class="text-input" data-field="careerGoal" maxlength="150" value="${attr(state.careerGoal)}" placeholder="예: 의생명·바이오 / 화학·소재 / 기계·전자공학 / 미정"/>`,{required:true,hint:'현재 관심 있는 분야를 자유롭게 작성하세요. 정하지 않았다면 ‘미정’ 또는 ‘탐색 중’이라고 입력하세요.'})}</div>
 <div class="mini-rule"></div><h3 style="font-size:16px;margin:0 0 9px">작성 안내</h3><div class="highlight-box"><strong>좋은 답변의 기준</strong><br>① 무엇을 했는지 ② 왜 그렇게 했는지 ③ 어떤 관찰·자료를 얻었는지 ④ 그로부터 어떻게 생각이 달라졌는지를 구체적으로 작성하면 좋습니다.</div>
 <div class="privacy"><strong>개인정보·임시저장 주의</strong><br>작성 중인 내용은 서버로 자동 전송되지 않습니다. 최종 제출하기를 누르고 서버의 접수 완료 응답을 받아야 제출됩니다. '임시저장'은 현재 브라우저에만 저장됩니다. 공용 컴퓨터에서는 임시저장 대신 개인 백업 파일을 사용하고, 제출 후에는 '작성내용 삭제'를 눌러 주세요.</div>${footer(-1)}</section>`;}
@@ -240,7 +306,7 @@ function submitPanel(){
  ${title('05-B','앱에서 바로 최종 제출하기','개인 보고서와 모둠 포스터를 별도 구글폼 없이 제출합니다.')}
  ${IN_GAS?'<div class="highlight-box">✓ 제출 서버가 연결되어 있습니다. 저장 완료 응답이 나와야 실제 접수된 것입니다.</div>':'<div class="error-list"><h3>시범판: 아직 제출 서버가 연결되지 않았습니다.</h3>이 화면에서는 내용을 작성하고 파일을 선택해 볼 수 있지만 실제 접수는 되지 않습니다. 교사가 Google Apps Script 배포를 완료하면 활성화됩니다.</div>'}
  <div class="privacy"><strong>제출 인증</strong><br>교사가 학생별로 발급한 전용 제출코드를 입력하세요. 코드가 없으면 개인정보가 포함된 자료를 전송하지 않습니다.</div>
- ${field('학생별 제출코드',`<input id="submitAccessCode" class="text-input" type="password" autocomplete="off" value="${attr(accessCode)}" placeholder="교사가 발급한 제출코드"/>`,{required:true})}
+ <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 확인한 제출코드로 최종 제출합니다.</div>
  ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
  ${field('모둠별 탐구포스터',`<input type="file" id="posterFiles" class="text-input" accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>`,{required:leader,hint:leader?'조장 필수: 모둠 최종 포스터 1개를 첨부하세요.':'조장이 아니면 제출할 필요가 없습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
@@ -317,15 +383,15 @@ function go(n){
 }
 function dirty(resetConfirm=true){isSaved=false;if(resetConfirm){state.confirmed=false;checklist.pdf=false;}renderNav();}
 function getProject(id){return state.projects.find(x=>x.id===Number(id));}
-function handleInput(e){const t=e.target;if(t.id==='submitAccessCode'){accessCode=t.value;return;}if(!t.dataset)return;if(t.dataset.project&&t.dataset.field){const p=getProject(t.dataset.project);if(p){p[t.dataset.field]=t.value;dirty();}return;}if(t.dataset.roleNote){const p=getProject(t.dataset.roleNote);if(p){p.roleNotes[t.dataset.role]=t.value;dirty();}return;}if(t.dataset.evidenceNote){state.evidenceNotes[t.dataset.evidenceNote]=t.value;dirty();return;}if(t.dataset.field&&Object.prototype.hasOwnProperty.call(state,t.dataset.field)){state[t.dataset.field]=t.value;dirty();}}
+function handleInput(e){const t=e.target;if(t.dataset?.field==='studentId'||t.dataset?.field==='name')return;if(!t.dataset)return;if(t.dataset.project&&t.dataset.field){const p=getProject(t.dataset.project);if(p){p[t.dataset.field]=t.value;dirty();}return;}if(t.dataset.roleNote){const p=getProject(t.dataset.roleNote);if(p){p.roleNotes[t.dataset.role]=t.value;dirty();}return;}if(t.dataset.evidenceNote){state.evidenceNotes[t.dataset.evidenceNote]=t.value;dirty();return;}if(t.dataset.field&&Object.prototype.hasOwnProperty.call(state,t.dataset.field)){state[t.dataset.field]=t.value;dirty();}}
 function handleChange(e){const t=e.target;if(t.id==='reportFiles'||t.id==='posterFiles'){const kind=t.id==='reportFiles'?'report':'poster';uploadFiles[kind]=Array.from(t.files||[]);const holder=$(kind==='report'?'selectedReports':'selectedPosters');if(holder)holder.textContent=uploadFiles[kind].map(f=>f.name).join(' / ')||'선택한 파일이 없습니다.';return;}if(t.dataset?.projectRole){const p=getProject(t.dataset.projectRole),r=t.value;if(p){p.roles=t.checked?[...new Set([...p.roles,r])]:p.roles.filter(x=>x!==r);const choice=t.closest('.role-choice'),editor=choice?.querySelector('.role-inline-editor');if(choice)choice.classList.toggle('selected',t.checked);if(editor)editor.hidden=!t.checked;}dirty();return;}if(t.dataset?.evidence){const k=t.dataset.evidence;if(t.checked&&state.evidence.length>=3){t.checked=false;notify('실제 경험이 있는 항목을 최대 3개까지만 선택해 주세요.');return;}state.evidence=t.checked?[...state.evidence,k]:state.evidence.filter(x=>x!==k);render();dirty();return;}if(t.id==='confirmCheck'){state.confirmed=t.checked;dirty(false);}if(t.id==='pdfReady'){checklist.pdf=t.checked;}if(t.id==='originalReady'){checklist.original=t.checked;}if(t.dataset?.field==='position'){state.position=t.value;render();dirty();}}
 function cloneFromStorage(o){if(!o||typeof o!=='object'||!Array.isArray(o.projects)||!o.projects.length||o.projects.length>30)throw Error('유효한 아인슈타인 백업 파일이 아닙니다.');let base=fresh();const out={...base,...o};out.careerGoal=typeof out.careerGoal==='string'?out.careerGoal:'';out.researchTheme=typeof out.researchTheme==='string'?out.researchTheme:'';out.researchQuestion=typeof out.researchQuestion==='string'?out.researchQuestion:'';out.themeConnection=typeof out.themeConnection==='string'?out.themeConnection:'';out.projects=o.projects.map((p,i)=>{const merged={...makeProject(),...p,roles:Array.isArray(p.roles)?p.roles.filter(r=>PROJECT_ROLES.includes(r)):[],roleNotes:p.roleNotes&&typeof p.roleNotes==='object'?p.roleNotes:{}};if(!merged.summary&&p.primary)merged.summary=[p.results,p.analysis].filter(Boolean).join(' / ');merged.id=i+1;delete merged.primary;return merged;});seq=out.projects.length+1;out.evidence=Array.isArray(o.evidence)?o.evidence.filter(k=>EVIDENCES.some(e=>e[0]===k)).slice(0,3):[];out.evidenceNotes=o.evidenceNotes&&typeof o.evidenceNotes==='object'?o.evidenceNotes:{};out.confirmed=!!o.confirmed;return out;}
 function saveDraft(){try{if(!safeSet(STORAGE_KEY,JSON.stringify(state)))throw Error('localStorage unavailable');isSaved=true;renderNav();notify('이 브라우저에 임시저장했습니다. 공용 PC에서는 사용 후 삭제하세요.');}catch{notify('저장할 수 없습니다. 백업 파일 다운로드를 이용하세요.');}}
-function loadDraft(){const raw=safeGet(STORAGE_KEY);if(!raw){notify('이 브라우저에 저장된 임시기록이 없습니다.');return;}if(!confirm('현재 작성 중인 내용을 임시저장 기록으로 교체할까요?'))return;try{state=cloneFromStorage(JSON.parse(raw));activeProjectId=state.projects[0].id;isSaved=true;render();notify('임시저장 기록을 불러왔습니다.');}catch{notify('임시저장 데이터를 열 수 없습니다.');}}
+function loadDraft(){const raw=safeGet(STORAGE_KEY);if(!raw){notify('이 브라우저에 저장된 임시기록이 없습니다.');return;}if(!confirm('현재 작성 중인 내용을 임시저장 기록으로 교체할까요?'))return;try{const loaded=cloneFromStorage(JSON.parse(raw));if(!verifiedStudent||loaded.studentId!==verifiedStudent.studentId||loaded.name!==verifiedStudent.name)throw Error('현재 인증된 학생의 임시저장이 아닙니다.');state=loaded;activeProjectId=state.projects[0].id;isSaved=true;render();notify('임시저장 기록을 불러왔습니다.');}catch{notify('임시저장 데이터를 열 수 없습니다.');}}
 function downloadBlob(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);}
 function fileStem(){return `${state.studentId||'학번'}_${(state.name||'이름').replace(/[\\/:*?"<>|\s]/g,'')}_아인슈타인_활동기록_2026`;}
 function backup(){const b=new Blob([JSON.stringify({...state,backupVersion:1},null,2)],{type:'application/json;charset=utf-8'});downloadBlob(b,fileStem()+'.json');notify('백업 파일을 저장했습니다. 이 파일에는 작성한 개인정보가 포함되어 있습니다.');}
-async function importJSON(file){if(!file)return;if(file.size>2e6){notify('백업 파일이 너무 큽니다.');return;}try{const obj=JSON.parse(await file.text());if(!confirm('불러온 파일로 현재 작성 내용을 덮어쓸까요?'))return;state=cloneFromStorage(obj);activeProjectId=state.projects[0].id;dirty();go(0);notify('백업 파일을 불러왔습니다.');}catch{notify('백업 파일 형식이 올바르지 않습니다.');}}
+async function importJSON(file){if(!file)return;if(file.size>2e6){notify('백업 파일이 너무 큽니다.');return;}try{const obj=JSON.parse(await file.text());if(!confirm('불러온 파일로 현재 작성 내용을 덮어쓸까요?'))return;const loaded=cloneFromStorage(obj);if(!verifiedStudent||loaded.studentId!==verifiedStudent.studentId||loaded.name!==verifiedStudent.name)throw Error('백업 파일의 학번·이름이 로그인 정보와 다릅니다.');state=loaded;activeProjectId=state.projects[0].id;dirty();go(0);notify('백업 파일을 불러왔습니다.');}catch{notify('백업 파일 형식이 올바르지 않습니다.');}}
 function validForPdf(){
  const e=errors();
  if(e.length){
@@ -367,7 +433,7 @@ offsets[im]=len;put(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${c.w
 const xref=len;put(`xref\n0 ${3+canvases.length*3}\n0000000000 65535 f \n`);for(let i=1;i<3+canvases.length*3;i++)put(String(offsets[i]).padStart(10,'0')+' 00000 n \n');put(`trailer\n<< /Size ${3+canvases.length*3} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);const out=new Uint8Array(len);let at=0;for(const p of pieces){out.set(p,at);at+=p.length;}return out;}
 try { render(); } catch (e) { if(window.__einsteinShowInitError) window.__einsteinShowInitError(e.message||String(e)); throw e; }
 $('stepContent').addEventListener('input',handleInput);$('stepContent').addEventListener('change',handleChange);
-$('app').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.go!==undefined){go(+t.dataset.go);return;}if(t.dataset.addProject!==undefined){if(state.projects.length>=20){notify('실험은 최대 20개까지 추가할 수 있습니다.');return;}const p=makeProject();state.projects.push(p);activeProjectId=p.id;dirty();render();notify(`실험 ${state.projects.length}번을 추가했습니다. 이 실험의 내용을 작성하세요.`);setTimeout(()=>{const h=$('projectList');h?.scrollIntoView({behavior:'smooth',block:'start'});h?.querySelector('[data-field="title"]')?.focus({preventScroll:true});},40);return;}if(t.dataset.selectProject!==undefined){const id=Number(t.dataset.selectProject);if(!getProject(id))return;activeProjectId=id;render();$('projectList')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(t.dataset.removeProject){if(state.projects.length===1){notify('최소 한 개의 실험은 필요합니다.');return;}if(!confirm('해당 실험의 모든 기록을 삭제하시겠습니까?'))return;const old=getProject(t.dataset.removeProject);const oldIndex=state.projects.indexOf(old);state.projects=state.projects.filter(x=>x!==old);if(activeProjectId===old.id)activeProjectId=state.projects[Math.min(oldIndex,state.projects.length-1)].id;dirty();render();notify('실험 기록을 삭제했습니다.');return;}if(t.id==='draftSaveBtn'){saveDraft();return;}if(t.id==='draftLoadBtn'){loadDraft();return;}if(t.id==='backupBtn'){backup();return;}if(t.id==='downloadPdfBtn'){directPdf();return;}if(t.id==='submitAppBtn'){submitApp();return;}if(t.id==='printPdfBtn'){printPdf();return;}if(t.id==='saveFormURL'){saveFormUrl();return;}if(t.id==='openFormBtn'){formOpen();return;}if(t.id==='resetBtn'){if(!confirm('이 기기의 현재 작성 내용과 임시저장을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.'))return;safeRemove(STORAGE_KEY);state=fresh();activeProjectId=state.projects[0].id;checklist={pdf:false,original:false};isSaved=false;go(0);notify('현재 기록과 임시저장을 삭제했습니다.');return;}});
+$('app').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.go!==undefined){go(+t.dataset.go);return;}if(t.dataset.addProject!==undefined){if(state.projects.length>=20){notify('실험은 최대 20개까지 추가할 수 있습니다.');return;}const p=makeProject();state.projects.push(p);activeProjectId=p.id;dirty();render();notify(`실험 ${state.projects.length}번을 추가했습니다. 이 실험의 내용을 작성하세요.`);setTimeout(()=>{const h=$('projectList');h?.scrollIntoView({behavior:'smooth',block:'start'});h?.querySelector('[data-field="title"]')?.focus({preventScroll:true});},40);return;}if(t.dataset.selectProject!==undefined){const id=Number(t.dataset.selectProject);if(!getProject(id))return;activeProjectId=id;render();$('projectList')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(t.dataset.removeProject){if(state.projects.length===1){notify('최소 한 개의 실험은 필요합니다.');return;}if(!confirm('해당 실험의 모든 기록을 삭제하시겠습니까?'))return;const old=getProject(t.dataset.removeProject);const oldIndex=state.projects.indexOf(old);state.projects=state.projects.filter(x=>x!==old);if(activeProjectId===old.id)activeProjectId=state.projects[Math.min(oldIndex,state.projects.length-1)].id;dirty();render();notify('실험 기록을 삭제했습니다.');return;}if(t.id==='draftSaveBtn'){saveDraft();return;}if(t.id==='draftLoadBtn'){loadDraft();return;}if(t.id==='backupBtn'){backup();return;}if(t.id==='downloadPdfBtn'){directPdf();return;}if(t.id==='submitAppBtn'){submitApp();return;}if(t.id==='printPdfBtn'){printPdf();return;}if(t.id==='saveFormURL'){saveFormUrl();return;}if(t.id==='openFormBtn'){formOpen();return;}if(t.id==='resetBtn'){if(!confirm('이 기기의 현재 작성 내용과 임시저장을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.'))return;safeRemove(STORAGE_KEY);state=fresh();if(verifiedStudent){state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':'직책 없음';}activeProjectId=state.projects[0].id;checklist={pdf:false,original:false};isSaved=false;go(0);notify('현재 기록과 임시저장을 삭제했습니다.');return;}});
 $('jsonImport').addEventListener('change',e=>{importJSON(e.target.files?.[0]);e.target.value='';});
 // Backup-file restore entry is available from the keyboard/accessibility button, and both draft toolbar actions.
 const restore=document.createElement('button');restore.type='button';restore.className='btn';restore.textContent='백업 불러오기';restore.title='JSON 백업 파일에서 복원';restore.addEventListener('click',()=>$('jsonImport').click());$('backupBtn').after(restore);
