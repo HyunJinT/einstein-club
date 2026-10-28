@@ -1,1 +1,13 @@
-(function(){var c=document.createElement('link');c.rel='stylesheet';c.href='./poster-fixed-a1-v3.css?v=3';document.head.appendChild(c);var frame=document.querySelector('.poster-frame');if(frame){var m=document.createElement('div');m.className='poster-fit-message';m.id='posterFitStatus';m.textContent='A1 가로 · 입력량에 따라 글자 크기 자동 조절';frame.before(m);}var s=document.createElement('script');s.src='./poster-adaptive-v3.js?v=3';s.onload=function(){var x=document.createElement('script');x.src='./poster-pptx-v3.js?v=3';document.body.appendChild(x);};document.body.appendChild(s);})();
+(function(){
+function style(url){var c=document.createElement('link');c.rel='stylesheet';c.href=url;document.head.appendChild(c);}
+function script(url,after){var s=document.createElement('script');s.src=url;s.onload=function(){if(after)after();};s.onerror=function(){console.warn('포스터 기능 로드 실패:',url);};document.body.appendChild(s);}
+style('./poster-fixed-a1-v3.css?v=4');
+style('./poster-portrait-v4.css?v=4');
+var frame=document.querySelector('.poster-frame');
+if(frame){var note=document.createElement('div');note.className='poster-fit-message';note.id='posterFitStatus';note.textContent='A1 세로형 1장 · 글자 크기는 입력량에 맞춰 자동 조절됩니다.';frame.before(note);}
+script('./poster-adaptive-v3.js?v=4',function(){
+ script('./poster-table-v4.js?v=4',function(){
+  script('./poster-pptx-portrait-v4.js?v=4');
+ });
+});
+})();
