@@ -331,7 +331,14 @@ async function submitApp(){
   while(saveInFlight)await new Promise(r=>setTimeout(r,110));
   if(!(await saveToServer(false)))throw Error('서버 자동저장에 실패했습니다. 접수 전에 저장을 확인하세요.');
   setSubmitProgress('제출 코드를 확인하고 기록을 전송하고 있습니다…');
-  const start=await gasCall('beginEinsteinSubmissionV12',{student:state,accessCode,newReportCount:uploadFiles.report.length,newPosterCount:uploadFiles.poster.length,excludeUrls:excludedSubmittedUrls()});
+  const request={student:state,accessCode,newReportCount:uploadFiles.report.length,newPosterCount:uploadFiles.poster.length,excludeUrls:excludedSubmittedUrls()};
+   let start;
+   try{start=await gasCall('beginEinsteinSubmissionV18',request);}
+   catch(e){
+     if(/Script function not found|not found|찾을 수 없|is not a function/i.test(String(e.message))&&!confirmedSharedPosterIds.length){
+       start=await gasCall('beginEinsteinSubmissionV12',request);
+     }else throw e;
+   }
   if(!start||!start.submissionId)throw Error('접수 세션을 발급받지 못했습니다.');
   let done=0;
   for(const kind of ['report','poster'])for(const file of uploadFiles[kind]){
