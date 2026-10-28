@@ -4,7 +4,7 @@ const field=k=>document.querySelector('[data-key="'+k+'"]')?.value||'';
 function card(s,p,title,text,x,y,w,h,fs=19){
  s.addShape(p.ShapeType.roundRect,{x,y,w,h,fill:{color:'FFFFFF'},line:{color:'D8E5EA'}});
  s.addText(title,{x:x+.3,y:y+.18,w:w-.6,h:.45,margin:0,fontSize:20,bold:true,color:'137581',fontFace:'Malgun Gothic'});
- if(text)s.addText(text,{x:x+.3,y:y+.78,w:w-.6,h:h-.9,fontSize:fs,margin:.06,color:'345366',valign:'top',fit:'shrink',fontFace:'Malgun Gothic'});
+ if(text){const density=String(text).length/(w*Math.max(1.5,h-.85));const adaptive=Math.max(15,Math.min(26,Math.min(fs+6,27-density*1.2)));s.addText(text,{x:x+.3,y:y+.78,w:w-.6,h:h-.9,fontSize:adaptive,margin:.06,color:'345366',valign:'top',fit:'shrink',fontFace:'Malgun Gothic'});}
 }
 function photos(s,p,title,arr,x,y,w,h){
  card(s,p,title,'',x,y,w,h);
