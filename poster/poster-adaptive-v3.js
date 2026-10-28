@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 const poster=$('posterCanvas'), pdf=$('savePdf'), pptx=$('savePptx');
 if(!poster||!pdf||!pptx)return;
 const K='einstein_poster_photos_v3',MAX=3;
-const limits={title:75,researchers:200,group:45,abstract:140,background:220,question:75,hypothesis:90,variables:105,materials:90,method:340,results:190,graphTitle:85,graphData:460,graphUnit:35,discussion:300,limitations:170,conclusion:180,followup:180,references:170,contributions:180};
+const limits={title:48,researchers:105,group:20,abstract:72,background:105,question:55,hypothesis:80,variables:55,materials:40,method:115,results:90,graphTitle:48,graphData:300,graphUnit:24,discussion:130,limitations:95,conclusion:105,followup:100,references:68,contributions:68};
 const photos={method:[],result:[]};
 try{const z=JSON.parse(localStorage.getItem(K)||'{}');for(const k of ['method','result'])if(Array.isArray(z[k]))photos[k]=z[k].slice(0,MAX);}catch(e){}
 let busy=false,lastWarning='',paintQueued=false,sequence=0;
@@ -13,21 +13,24 @@ function collect(){let x={};document.querySelectorAll('[data-key]').forEach(el=>
 function persist(){try{localStorage.setItem(K,JSON.stringify(photos));}catch(e){alert('사진 임시저장 공간이 부족합니다. 작업 백업 파일을 저장해 주세요.');}}
 function toast(m){const e=$('posterFitStatus');if(e){e.textContent=m;e.classList.add('problem');}}
 const sizeLabel=document.querySelector('.preview-head .print-meta');
-if(sizeLabel)sizeLabel.textContent='A1 가로 · 모든 모둠 동일 · 841×594mm';
-const appRight=document.querySelector('.appbar .right');if(appRight)appRight.textContent='A1 가로 · 내용량에 따른 글자 자동 조절';
+if(sizeLabel)sizeLabel.textContent='A1 세로 · 모든 모둠 동일 · 594×841mm';
+const appRight=document.querySelector('.appbar .right');if(appRight)appRight.textContent='A1 세로 · 글자 수 자동 조절';
 const editor=document.querySelector('.intro');
-if(editor){const n=document.createElement('div');n.className='poster-fit-message';n.innerHTML='<strong>포스터는 A1 가로 1장으로 고정됩니다.</strong> 입력이 적으면 글자가 커지고, 많으면 읽기 쉬운 범위까지 자동으로 작아집니다. 사진은 실험 과정·실험 결과에 각각 최대 3장까지 넣을 수 있습니다.';editor.after(n);}
+if(editor){const n=document.createElement('div');n.className='poster-fit-message';n.innerHTML='<strong>포스터는 A1 세로 1장으로 고정됩니다.</strong> 입력이 적으면 글자가 커지고, 많으면 읽기 쉬운 범위까지 자동으로 작아집니다. 사진은 실험 과정·실험 결과에 각각 최대 3장까지 넣을 수 있습니다.';editor.after(n);}
 const cards=poster.querySelectorAll('.poster-column');
 function setHeight(el,n){if(!el)return;el.style.setProperty('height',n+'px','important');el.style.setProperty('flex','0 0 '+n+'px','important');}
-if(cards.length===3){[[125,108,218],[147,225],[]].forEach((a,i)=>a.forEach((v,j)=>setHeight(cards[i].children[j],v)));}
+if(cards.length===3){[[112,165,180],[150,226],[]].forEach((a,i)=>a.forEach((v,j)=>setHeight(cards[i].children[j],v)));}
 const css=document.createElement('style');css.textContent='.poster-title{white-space:normal!important;max-height:64px;line-height:1.12;overflow:hidden}.poster-researchers{white-space:normal;max-height:38px;overflow:hidden}.poster-section .body{line-height:1.48;overflow:hidden}.poster-photo-grid{padding:3px}.poster-photo-item small{font-size:9px}.photo-box{overflow:hidden}.poster-fit-message strong{font-weight:850}';document.head.appendChild(css);
 for(const el of document.querySelectorAll('[data-key]')){
  const cap=limits[el.dataset.key];if(!cap)continue;
  el.maxLength=cap;
  const count=document.createElement('div');count.className='poster-character-status';
  el.after(count);
- const upd=()=>{const n=el.value.length;count.textContent=n+' / '+cap+'자 (포스터용 요약)';count.classList.toggle('near-limit',n>=cap*.88);schedule();};
- el.addEventListener('input',upd);upd();
+ const upd=()=>{const n=el.value.length;count.textContent=n+' / '+cap+'자 · 한도 내에서 작성';count.classList.toggle('near-limit',n>=cap*.88);schedule();};
+ el.addEventListener('input',()=>{
+   // maxlength also protects typing and paste. Existing drafts are never silently truncated.
+   upd();
+ });upd();
 }
 const imageInputs=[['method','methodImage','methodPhoto','methodPhotoList'],['result','resultImage','resultPhoto','resultPhotoList']];
 for(const [kind,id,,listId] of imageInputs){
@@ -103,11 +106,66 @@ function fitOne(el,max,min){
  while(size>min&&el.scrollHeight>el.clientHeight+1){size=Math.max(min,size-.5);el.style.fontSize=size+'px';}
  return el.scrollHeight<=el.clientHeight+1;
 }
+
+function renderCompositeSections(){
+ const question=document.querySelector('[data-key="question"]')?.value||'';
+ const hypothesis=document.querySelector('[data-key="hypothesis"]')?.value||'';
+ const box=$('pQuestionHypothesis');
+ if(box){
+   const signature=question+'\x1f'+hypothesis;
+   if(box.dataset.compositeSignature!==signature || box.children.length!==2){
+     const makePart=(label,value)=>{
+       const wrap=document.createElement('div');
+       wrap.className='poster-composite-part';
+       const header=document.createElement('strong');
+       header.textContent=label;
+       const text=document.createElement('span');
+       text.textContent=value || '입력 전';
+       wrap.append(header,text);
+       return wrap;
+     };
+     box.replaceChildren(makePart('연구질문',question),makePart('가설 및 근거',hypothesis));
+     box.dataset.compositeSignature=signature;
+   }
+ }
+ const methods=$('pMethods');
+ if(methods){
+   const vals=['variables','materials','method'].map(k=>document.querySelector('[data-key="'+k+'"]')?.value||'');
+   const signature=vals.join('\x1f');
+   if(methods.dataset.compositeSignature!==signature || methods.children.length!==3){
+     const labels=['변인','재료','실험 절차'];
+     const frag=document.createDocumentFragment();
+     for(let i=0;i<vals.length;i++){
+       const part=document.createElement('div');part.className='poster-method-part';
+       const strong=document.createElement('strong');strong.textContent=labels[i]+' · ';
+       part.append(strong,document.createTextNode(vals[i]||'입력 전'));
+       frag.appendChild(part);
+     }
+     methods.replaceChildren(frag);
+     methods.dataset.compositeSignature=signature;
+   }
+ }
+}
+function fitComposite(){
+ const bad=[];
+ const box=$('pQuestionHypothesis');
+ if(box){
+   const parts=[...box.querySelectorAll('.poster-composite-part')];
+   for(const part of parts){if(!fitOne(part,12,8.5))bad.push('연구질문·가설');}
+ }
+ const methods=$('pMethods');
+ if(methods){
+   const parts=[...methods.querySelectorAll('.poster-method-part')];
+   for(const part of parts){if(!fitOne(part,12,8.5))bad.push('실험 방법');}
+ }
+ return bad;
+}
 function analyze(){
  let bad=[];
- for(const el of poster.querySelectorAll('.poster-section .body')){
+ for(const el of poster.querySelectorAll('.poster-section .body:not(#pQuestionHypothesis):not(#pMethods)')){
   if(!fitOne(el,14,9.5)){const title=el.closest('.poster-section')?.querySelector('h3')?.textContent||'본문';bad.push(title);}
  }
+ bad.push(...fitComposite());
  if(!fitOne($('pTitle'),28,17))bad.push('연구 제목');
  if(!fitOne($('pAuthors'),13,10))bad.push('연구자');
  if(!fitOne($('pFooter'),11,8.5))bad.push('참고문헌·연구자 기여');
@@ -115,11 +173,11 @@ function analyze(){
 }
 function reflow(){
  if(busy)return;busy=true;try{
-  renderPhotos();const bad=analyze();lastWarning=bad.join(' · ');
+  renderPhotos();renderCompositeSections();const bad=analyze();lastWarning=bad.join(' · ');
   const status=$('posterFitStatus');
   if(status){
    status.classList.toggle('problem',!!bad.length);
-   status.textContent=bad.length?'⚠ 내용이 너무 많아 잘릴 수 있는 항목: '+bad.join(' · ')+'. 해당 내용을 줄이세요. 이 상태에서는 출력할 수 없습니다.':'✓ A1 가로 1장으로 정리되었습니다. 각 항목의 글자 크기를 내용량에 맞춰 자동 조절했습니다.';
+   status.textContent=bad.length?'⚠ 내용이 너무 많아 잘릴 수 있는 항목: '+bad.join(' · ')+'. 해당 내용을 줄이세요. 이 상태에서는 출력할 수 없습니다.':'✓ A1 세로 1장으로 정리되었습니다. 각 항목의 글자 크기를 내용량에 맞춰 자동 조절했습니다.';
   }
  }finally{busy=false;}
 }
@@ -127,7 +185,7 @@ function schedule(){if(paintQueued)return;paintQueued=true;requestAnimationFrame
 const observer=new MutationObserver(schedule);observer.observe(poster,{subtree:true,childList:true,characterData:true});
 window.addEventListener('resize',schedule);
 for(const kind of ['method','result'])renderPhotoList(kind);
-function exportReady(){reflow();if(lastWarning){alert('A1 포스터에 모든 내용을 넣으려면 다음 항목을 줄이세요:\n'+lastWarning+'\n입력한 글은 삭제되지 않습니다.');return false;}return true;}
+function exportReady(){reflow();const capsExceeded=Object.entries(limits).filter(([key,cap])=>(document.querySelector('[data-key="'+key+'"]')?.value||'').length>cap).map(([key])=>key);if(capsExceeded.length){alert('이전에 저장한 글 중 현재 입력 제한을 초과한 항목이 있습니다: '+capsExceeded.join(', ')+'\n먼저 내용을 간추려 주세요. 기존 문장은 자동 삭제하지 않았습니다.');return false;}if(lastWarning){alert('A1 포스터에 모든 내용을 넣으려면 다음 항목을 줄이세요:\n'+lastWarning+'\n입력한 글은 삭제되지 않습니다.');return false;}return true;}
 pdf.onclick=()=>{if(exportReady())setTimeout(()=>window.print(),80);};
 function download(name,body,type){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([body],{type}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),18000);}
 const save=$('saveJson');if(save)save.onclick=()=>{
