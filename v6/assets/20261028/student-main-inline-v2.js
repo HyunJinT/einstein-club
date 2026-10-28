@@ -193,18 +193,34 @@ ${renderErrors()}
 </section>
 ${submitPanel()}
 <section class="content-card"><button class="btn danger" id="resetBtn">작성내용 모두 삭제</button></section>`;}
+
+function excludedSubmittedUrls(){return Array.isArray(state.excludedFileUrls)?state.excludedFileUrls:[];}
+function submittedFileCards(){
+ if(!lastFiles.length)return '<p class="hint">아직 제출된 첨부파일이 없습니다.</p>';
+ const excluded=excludedSubmittedUrls();
+ return lastFiles.map((f,i)=>{
+  const gone=excluded.includes(f.url);
+  return '<div class="existing-upload '+(gone?'excluded':'')+'"><button type="button" class="existing-file-open" data-view-upload="'+attr(f.url)+'" '+(gone?'disabled':'')+' title="파일 열어보기">📎 '+esc(f.kind==='poster'?'[포스터] ':'[보고서] ')+esc(f.name)+'</button><span class="hint">'+(Number(f.size||0)/1048576).toFixed(1)+' MB</span><button class="existing-file-remove" type="button" data-toggle-upload="'+attr(f.url)+'" title="'+(gone?'제외 취소':'수정 제출에서 제외')+'">'+(gone?'↶ 되돌리기':'×')+'</button>'+(gone?'<span class="hint">다음 수정 제출에서 제외 예정 · 이전 제출 이력에는 보관</span>':'')+'</div>';
+ }).join('');
+}
+
 function submitPanel(){
  const leader=state.position==='모둠 조장';
  const fileList=(kind)=>uploadFiles[kind].map(f=>`<div class="submission-file"><span>📎 ${esc(f.name)}</span><span>${(f.size/1048576).toFixed(1)} MB</span></div>`).join('')||'<div class="hint">선택한 파일이 없습니다.</div>';
- if(submitReceipt)return `<section class="content-card" id="appSubmitPanel"><div class="highlight-box"><strong>✓ 서버 접수 완료</strong><br>접수번호: <code>${esc(submitReceipt.receipt||'')}</code><br>보고서 ${submitReceipt.reportCount}개 / 포스터 ${submitReceipt.posterCount}개<br>접수 시각: ${esc(submitReceipt.at||'')}</div><p class="hint">마감 전까지 수정하여 다시 제출할 수 있습니다. 이전 제출본도 기록으로 남습니다.</p><button type="button" id="editAfterSubmitBtn" class="btn">수정 후 다시 제출하기</button></section>`;
+ if(submitReceipt || (lastReceipt&&!editingAfterSubmit)){
+  const receipt=submitReceipt||{};
+  const reports=lastFiles.filter(f=>f.kind==='report').length;
+  const posters=lastFiles.filter(f=>f.kind==='poster').length;
+  return '<section class="content-card" id="appSubmitPanel"><div class="highlight-box"><strong>✓ 서버 접수 완료</strong><br>접수번호: <code>'+esc(receipt.receipt||lastReceipt)+'</code><br>보고서 '+reports+'개 / 포스터 '+posters+'개'+(receipt.at?'<br>접수 시각: '+esc(receipt.at):'')+'</div><h3>제출된 첨부파일 확인</h3><p class="hint">파일명을 누르면 본인 인증 후 열거나 내려받습니다. 파일을 변경하거나 제외하려면 먼저 수정 버튼을 눌러 주세요.</p>'+submittedFileCards()+'<p class="hint">마감 전까지 수정하여 다시 제출할 수 있으며, 이전 제출본은 교사 이력에 보관됩니다.</p><button type="button" id="editAfterSubmitBtn" class="btn">수정 후 다시 제출하기</button></section>';
+ }
  return `<section class="content-card" id="appSubmitPanel">
  ${title('05-B',lastReceipt?'수정본 다시 제출하기':'앱에서 바로 최종 제출하기','개인 보고서와 모둠 포스터를 별도 구글폼 없이 제출합니다.')}
  ${IN_GAS?'<div class="highlight-box">✓ 제출 서버가 연결되어 있습니다. 저장 완료 응답이 나와야 실제 접수된 것입니다.</div>':'<div class="error-list"><h3>시범판: 아직 제출 서버가 연결되지 않았습니다.</h3>이 화면에서는 내용을 작성하고 파일을 선택해 볼 수 있지만 실제 접수는 되지 않습니다. 교사가 Google Apps Script 배포를 완료하면 활성화됩니다.</div>'}
  <div class="privacy"><strong>제출 인증</strong><br>교사가 학생별로 발급한 전용 제출코드를 입력하세요. 코드가 없으면 개인정보가 포함된 자료를 전송하지 않습니다.</div>
  <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 인증한 코드로 제출합니다.${lastReceipt?`<br>기존 접수번호: <code>${esc(lastReceipt)}</code> · 이번에는 수정본을 제출합니다.`:""}</div>
- ${lastFiles.length?`<div class="info-box"><strong>이전에 제출한 첨부파일:</strong> ${lastFiles.map(f=>esc(f.name)).join(" · ")}<br>새 파일을 선택하지 않은 종류는 기존 파일을 그대로 사용합니다. 새 파일을 선택하면 해당 종류의 기존 파일을 교체합니다.</div>`:""}
+ ${lastFiles.length?`<div class="info-box"><strong>기존 제출 파일 (파일명을 눌러 확인 / ×로 제외 예정 표시)</strong><p class="hint">새 파일은 기존 파일에 추가됩니다. ×로 제외한 파일은 다음 최종 제출 이후 목록에서 사라지지만, 이전 제출 이력에는 보관됩니다.</p>${submittedFileCards()}</div>`:""}
  ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
- ${field('모둠별 탐구포스터',`<input type="file" id="posterFiles" class="text-input" accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>`,{required:leader,hint:leader?'조장 필수: 모둠 최종 포스터 1개를 첨부하세요.':'조장이 아니면 제출할 필요가 없습니다.'})}
+ ${field('모둠별 탐구포스터',`<input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
  <div class="section-actions"><button class="btn primary" id="submitAppBtn" ${!IN_GAS||submitBusy?'disabled':''}>${submitBusy?'서버에 제출 중…':'✓ 모든 자료 최종 제출하기'}</button></div>
  <div id="submitProgress" class="hint" role="status" aria-live="polite"></div>
@@ -217,7 +233,7 @@ function gasCall(name,...args){return new Promise((resolve,reject)=>{
  });}
 function gasFormCall(form){return new Promise((resolve,reject)=>{
  if(!IN_GAS){reject(Error('제출 서버가 연결되지 않았습니다.'));return;}
- google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(Error(e&&e.message?e.message:String(e)))).uploadEinsteinFile(form);
+ google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(Error(e&&e.message?e.message:String(e)))).uploadEinsteinFileV12(form);
  });}
 async function uploadOneFile(sid,kind,file){
  const form=document.createElement('form');form.style.display='none';form.method='post';form.enctype='multipart/form-data';
@@ -234,10 +250,10 @@ async function submitApp(){
  if(!IN_GAS){notify('서버 연결 전입니다. 실제 접수는 불가능합니다.');return;}
  if(!validForPdf())return;
  if(!accessCode.trim()){notify('교사가 발급한 제출코드를 입력하세요.');$('submitAccessCode')?.focus();return;}
- if(uploadFiles.report.length<1&&!lastFiles.some(f=>f.kind==='report')){notify('개인 최종보고서를 1개 이상 첨부하세요.');return;}
- if(state.position==='모둠 조장'&&uploadFiles.poster.length!==1&&!lastFiles.some(f=>f.kind==='poster')){notify('조장은 탐구포스터 1개를 첨부해야 합니다.');return;}
+ if(uploadFiles.report.length<1&&!lastFiles.some(f=>f.kind==='report'&&!excludedSubmittedUrls().includes(f.url))){notify('개인 최종보고서를 1개 이상 첨부하세요.');return;}
+ if(state.position==='모둠 조장'&&uploadFiles.poster.length<1&&!lastFiles.some(f=>f.kind==='poster'&&!excludedSubmittedUrls().includes(f.url))){notify('조장은 탐구포스터 1개를 첨부해야 합니다.');return;}
  const all=[...uploadFiles.report,...uploadFiles.poster];
- if(uploadFiles.report.length>10 || uploadFiles.poster.length>1 || all.some(f=>f.size>15*1048576||f.size===0) || all.reduce((a,f)=>a+f.size,0)>40*1048576){notify('파일 개수/크기 제한(각 15MB, 전체 40MB)을 확인하세요.');return;}
+ if(uploadFiles.report.length>10 || uploadFiles.poster.length>5 || all.some(f=>f.size>15*1048576||f.size===0) || all.reduce((a,f)=>a+f.size,0)>40*1048576){notify('파일 개수/크기 제한(각 15MB, 전체 40MB)을 확인하세요.');return;}
  if(!window.confirm(lastReceipt?'수정한 내용으로 다시 제출하시겠습니까? 기존 제출본은 이력으로 보관됩니다.':'작성한 내용과 첨부파일을 교사에게 최종 제출하시겠습니까?'))return;
  submitBusy=true;render();
  try{
@@ -246,7 +262,7 @@ async function submitApp(){
   while(saveInFlight)await new Promise(r=>setTimeout(r,110));
   if(!(await saveToServer(false)))throw Error('서버 자동저장에 실패했습니다. 접수 전에 저장을 확인하세요.');
   setSubmitProgress('제출 코드를 확인하고 기록을 전송하고 있습니다…');
-  const start=await gasCall('beginEinsteinSubmissionV10',{student:state,accessCode,newReportCount:uploadFiles.report.length,newPosterCount:uploadFiles.poster.length});
+  const start=await gasCall('beginEinsteinSubmissionV12',{student:state,accessCode,newReportCount:uploadFiles.report.length,newPosterCount:uploadFiles.poster.length,excludeUrls:excludedSubmittedUrls()});
   if(!start||!start.submissionId)throw Error('접수 세션을 발급받지 못했습니다.');
   let done=0;
   for(const kind of ['report','poster'])for(const file of uploadFiles[kind]){
@@ -254,7 +270,7 @@ async function submitApp(){
    await uploadOneFile(start.submissionId,kind,file);
   }
   setSubmitProgress('업로드 목록을 확인하고 최종 접수 중…');
-  const result=await gasCall('finalizeEinsteinSubmissionV10',start.submissionId,state.studentId,accessCode);
+  const result=await gasCall('finalizeEinsteinSubmissionV12',start.submissionId,state.studentId,accessCode);
   if(!result||!result.ok)throw Error('제출 확인 응답이 없습니다.');
   submitReceipt=result;editingAfterSubmit=false;state.excludedFileUrls=[];
   lastReceipt=result.receipt;
@@ -344,7 +360,14 @@ offsets[im]=len;put(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${c.w
 const xref=len;put(`xref\n0 ${3+canvases.length*3}\n0000000000 65535 f \n`);for(let i=1;i<3+canvases.length*3;i++)put(String(offsets[i]).padStart(10,'0')+' 00000 n \n');put(`trailer\n<< /Size ${3+canvases.length*3} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);const out=new Uint8Array(len);let at=0;for(const p of pieces){out.set(p,at);at+=p.length;}return out;}
 try { render(); } catch (e) { if(window.__einsteinShowInitError) window.__einsteinShowInitError(e.message||String(e)); throw e; }
 $('stepContent').addEventListener('input',handleInput);$('stepContent').addEventListener('change',handleChange);
-$('app').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.go!==undefined){go(+t.dataset.go);return;}if(t.dataset.addProject!==undefined){if(state.projects.length>=20){notify('실험은 최대 20개까지 추가할 수 있습니다.');return;}const p=makeProject();state.projects.push(p);activeProjectId=p.id;dirty();render();notify(`실험 ${state.projects.length}번을 추가했습니다. 이 실험의 내용을 작성하세요.`);setTimeout(()=>{const h=$('projectList');h?.scrollIntoView({behavior:'smooth',block:'start'});h?.querySelector('[data-field="title"]')?.focus({preventScroll:true});},40);return;}if(t.dataset.selectProject!==undefined){const id=Number(t.dataset.selectProject);if(!getProject(id))return;activeProjectId=id;state.resumeProjectId=id;dirty(false);render();$('projectList')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(t.dataset.removeProject){if(state.projects.length===1){notify('최소 한 개의 실험은 필요합니다.');return;}if(!confirm('해당 실험의 모든 기록을 삭제하시겠습니까?'))return;const old=getProject(t.dataset.removeProject);const oldIndex=state.projects.indexOf(old);state.projects=state.projects.filter(x=>x!==old);if(activeProjectId===old.id)activeProjectId=state.projects[Math.min(oldIndex,state.projects.length-1)].id;dirty();render();notify('실험 기록을 삭제했습니다.');return;}if(t.id==='editAfterSubmitBtn'){submitReceipt=null;editingAfterSubmit=true;render();return;}if(t.id==='draftSaveBtn'){saveDraft();return;}if(t.id==='draftLoadBtn'){loadDraft();return;}if(t.id==='backupBtn'){backup();return;}if(t.id==='downloadPdfBtn'){directPdf();return;}if(t.id==='submitAppBtn'){submitApp();return;}if(t.id==='printPdfBtn'){printPdf();return;}if(t.id==='saveFormURL'){saveFormUrl();return;}if(t.id==='openFormBtn'){formOpen();return;}if(t.id==='resetBtn'){if(!confirm('이 기기의 현재 작성 내용과 임시저장을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.'))return;safeRemove(STORAGE_KEY);state=fresh();if(verifiedStudent){state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':'직책 없음';}activeProjectId=state.projects[0].id;checklist={pdf:false,original:false};isSaved=false;dirty();go(0);notify('현재 기록을 비웠습니다. 서버에도 빈 초안으로 자동저장합니다.');return;}});
+$('app').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.go!==undefined){go(+t.dataset.go);return;}if(t.dataset.addProject!==undefined){if(state.projects.length>=20){notify('실험은 최대 20개까지 추가할 수 있습니다.');return;}const p=makeProject();state.projects.push(p);activeProjectId=p.id;dirty();render();notify(`실험 ${state.projects.length}번을 추가했습니다. 이 실험의 내용을 작성하세요.`);setTimeout(()=>{const h=$('projectList');h?.scrollIntoView({behavior:'smooth',block:'start'});h?.querySelector('[data-field="title"]')?.focus({preventScroll:true});},40);return;}if(t.dataset.selectProject!==undefined){const id=Number(t.dataset.selectProject);if(!getProject(id))return;activeProjectId=id;state.resumeProjectId=id;dirty(false);render();$('projectList')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(t.dataset.removeProject){if(state.projects.length===1){notify('최소 한 개의 실험은 필요합니다.');return;}if(!confirm('해당 실험의 모든 기록을 삭제하시겠습니까?'))return;const old=getProject(t.dataset.removeProject);const oldIndex=state.projects.indexOf(old);state.projects=state.projects.filter(x=>x!==old);if(activeProjectId===old.id)activeProjectId=state.projects[Math.min(oldIndex,state.projects.length-1)].id;dirty();render();notify('실험 기록을 삭제했습니다.');return;}if(t.dataset.toggleUpload!==undefined){
+ const url=t.dataset.toggleUpload;
+ const ex=new Set(excludedSubmittedUrls());
+ if(ex.has(url))ex.delete(url);else ex.add(url);
+ state.excludedFileUrls=[...ex];dirty(false);render();return;
+}
+if(t.dataset.viewUpload!==undefined){openSubmittedUpload(t.dataset.viewUpload);return;}
+if(t.id==='editAfterSubmitBtn'){submitReceipt=null;editingAfterSubmit=true;render();return;}if(t.id==='draftSaveBtn'){saveDraft();return;}if(t.id==='draftLoadBtn'){loadDraft();return;}if(t.id==='backupBtn'){backup();return;}if(t.id==='downloadPdfBtn'){directPdf();return;}if(t.id==='submitAppBtn'){submitApp();return;}if(t.id==='printPdfBtn'){printPdf();return;}if(t.id==='saveFormURL'){saveFormUrl();return;}if(t.id==='openFormBtn'){formOpen();return;}if(t.id==='resetBtn'){if(!confirm('이 기기의 현재 작성 내용과 임시저장을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.'))return;safeRemove(STORAGE_KEY);state=fresh();if(verifiedStudent){state.studentId=verifiedStudent.studentId;state.name=verifiedStudent.name;state.position=verifiedStudent.leader?'모둠 조장':'직책 없음';}activeProjectId=state.projects[0].id;checklist={pdf:false,original:false};isSaved=false;dirty();go(0);notify('현재 기록을 비웠습니다. 서버에도 빈 초안으로 자동저장합니다.');return;}});
 $('jsonImport').addEventListener('change',e=>{importJSON(e.target.files?.[0]);e.target.value='';});
 // Backup-file restore entry is available from the keyboard/accessibility button, and both draft toolbar actions.
 const restore=document.createElement('button');restore.type='button';restore.className='btn';restore.textContent='백업 불러오기';restore.title='JSON 백업 파일에서 복원';restore.addEventListener('click',()=>$('jsonImport').click());$('backupBtn').after(restore);
