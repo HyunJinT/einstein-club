@@ -30,10 +30,10 @@ function call(fn,...a){return new Promise((ok,no)=>{if(!connected){no(Error('서
 function notice(s){$('alert').textContent=s;}
 function snippet(label,t){return t?`<div class="excerpt"><strong>${esc(label)}</strong>${esc(t)}</div>`:'';}
 function render(){const q=$('search').value.trim().toLowerCase();const results=all.filter(x=>[x.studentId,x.name,x.theme,x.question].join(' ').toLowerCase().includes(q));$('counts').textContent=`제출 완료 ${all.length}명 · 검색 결과 ${results.length}명`;
- $('list').innerHTML=results.map(s=>`<article class="card result-card"><h3>${esc(s.studentId)} · ${esc(s.name)} <span class="pill">${esc(s.career||'진로 미정')}</span></h3><div class="hint">접수 ${esc(s.receivedAt)} · 실험 ${s.experiments.length}건 · 보고서 ${s.files.filter(x=>x.kind==='report').length}개 · 포스터 ${s.files.filter(x=>x.kind==='poster').length}개</div>
+ $('list').innerHTML=results.map(s=>`<article class="card result-card"><h3>${esc(s.studentId)} · ${esc(s.name)} <span class="pill">${esc(s.career||'진로 미정')}</span></h3><div class="hint">최근 접수 ${esc(s.receivedAt)} · 제출 ${s.revisionCount||1}회 · 실험 ${s.experiments.length}건 · 보고서 ${s.files.filter(x=>x.kind==='report').length}개 · 포스터 ${s.files.filter(x=>x.kind==='poster').length}개</div>
  ${snippet('큰 연구주제 / 연구질문',s.theme+'\n'+s.question)}${s.experiments.map((x,i)=>snippet('실험 '+(i+1)+' · '+x.title+' / 핵심 결과',x.result)).join('')}${s.evidence.map(x=>snippet(({problem:'문제해결',self:'자기주도',data:'근거 분석',cooperate:'협력',responsibility:'책임감',curiosity:'후속 탐구'})[x.key]||x.key,x.note)).join('')}
  ${snippet('새롭게 이해한 개념',s.growth)}${snippet('탐구 태도 변화',s.change)}
- <details><summary>실험별 역할 · 문제해결 · 원본 증빙 펼쳐보기</summary>${s.experiments.map(x=>`<h4>${esc(x.title)}</h4>${x.roleNotes.map(r=>snippet(r.role,r.note)).join('')}${snippet('시행착오·한계',x.challenge)}${snippet('과학적 해석',x.analysis)}`).join('')}${snippet('직책과 실제 수행',s.position+' '+s.positionWork)}${snippet('후속 질문',s.followup)}<h4>제출 파일</h4>${s.files.map(f=>`<div><a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.kind==='poster'?'[포스터] ':'[보고서] ')}${esc(f.name)}</a></div>`).join('')}<p><a href="${esc(s.folderUrl)}" target="_blank" rel="noopener noreferrer">학생별 제출 폴더 보기 (활동기록 원문 JSON 포함)</a></p></details></article>`).join('')||'<div class="card">제출 완료된 학생이 없습니다.</div>';}
+ <details><summary>실험별 역할 · 문제해결 · 원본 증빙 펼쳐보기</summary>${s.experiments.map(x=>`<h4>${esc(x.title)}</h4>${x.roleNotes.map(r=>snippet(r.role,r.note)).join('')}${snippet('시행착오·한계',x.challenge)}${snippet('과학적 해석',x.analysis)}`).join('')}${snippet('직책과 실제 수행',s.position+' '+s.positionWork)}${snippet('후속 질문',s.followup)}<h4>최신 제출 파일</h4>${s.files.map(f=>`<div><a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.kind==='poster'?'[포스터] ':'[보고서] ')}${esc(f.name)}</a></div>`).join('')}<h4>수정 제출 이력 (원본 보관)</h4>${(s.history||[]).map((h,i)=>`<div>${i+1}차 · ${esc(h.submittedAt)} · <a href="${esc(h.folderUrl)}" target="_blank" rel="noopener noreferrer">제출 폴더 열기</a></div>`).join('')}<p><a href="${esc(s.folderUrl)}" target="_blank" rel="noopener noreferrer">최신 제출 폴더 (원본 JSON 포함)</a></p></details></article>`).join('')||'<div class="card">제출 완료된 학생이 없습니다.</div>';}
 // 인증을 탭별로 최대 8시간만 기억합니다. 영구 저장(localStorage)은 사용하지 않습니다.
 const SESSION_KEY='einstein_teacher_auth_tab_v1',SESSION_MS=8*60*60*1000;
 function forgetSession(){try{sessionStorage.removeItem(SESSION_KEY);}catch(e){}}
@@ -53,7 +53,7 @@ async function authenticate(k,resuming){
   $('counts').textContent='제출현황 불러오는 중…';
   $('list').innerHTML='';
   // Drive에서 제출 보고서를 읽는 느린 요청은 별도로 실행합니다.
-  call('getEinsteinTeacherDashboard',k).then(function(data){
+  call('getEinsteinTeacherDashboardV10',k).then(function(data){
    if(code!==k)return;
    all=data;render();
   }).catch(function(e){
@@ -79,7 +79,7 @@ $('logout').onclick=()=>{
 const savedKey=restoreAuth();
 if(savedKey){$('rememberSession').checked=true;notice('이 탭의 교사 인증을 확인하는 중입니다…');authenticate(savedKey,true);}
 
-$('refresh').onclick=async()=>{try{all=await call('getEinsteinTeacherDashboard',code);render();}catch(e){alert(e.message);}};
+$('refresh').onclick=async()=>{try{all=await call('getEinsteinTeacherDashboardV10',code);render();}catch(e){alert(e.message);}};
 function tokenText(rows){return rows.map(x=>[x.id,x.name,x.code||'[코드 복원 불가]',x.leader?'조장':'일반',x.status].join('\t')).join('\n');}
 function showTokens(rows){
  tokens=(rows||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)));
