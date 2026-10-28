@@ -264,7 +264,7 @@ function submitPanel(){
   const receipt=submitReceipt||{};
   const reports=lastFiles.filter(f=>f.kind==='report').length;
   const posters=lastFiles.filter(f=>f.kind==='poster').length;
-  return '<section class="content-card" id="appSubmitPanel"><div class="highlight-box"><strong>✓ 서버 접수 완료</strong><br>접수번호: <code>'+esc(receipt.receipt||lastReceipt)+'</code><br>보고서 '+reports+'개 / 포스터 '+posters+'개'+(receipt.at?'<br>접수 시각: '+esc(receipt.at):'')+'</div><h3>제출된 첨부파일 확인</h3><p class="hint">파일명을 누르면 본인 인증 후 열거나 내려받습니다. 파일을 변경하거나 제외하려면 먼저 수정 버튼을 눌러 주세요.</p>'+submittedFileCards()+'<p class="hint">마감 전까지 수정하여 다시 제출할 수 있으며, 이전 제출본은 교사 이력에 보관됩니다.</p><button type="button" id="editAfterSubmitBtn" class="btn">수정 후 다시 제출하기</button></section>';
+  return '<section class="content-card" id="appSubmitPanel"><div class="highlight-box"><strong>✓ 서버 접수 완료</strong><br>접수번호: <code>'+esc(receipt.receipt||lastReceipt)+'</code><br>보고서 '+reports+'개 / 포스터 '+posters+'개'+(receipt.at?'<br>접수 시각: '+esc(receipt.at):'')+'</div><div id="einsteinSharedPosterMount" style="margin:14px 0"></div><h3>제출된 첨부파일 확인</h3><p class="hint">파일명을 누르면 본인 인증 후 열거나 내려받습니다. 파일을 변경하거나 제외하려면 먼저 수정 버튼을 눌러 주세요.</p>'+submittedFileCards()+'<p class="hint">마감 전까지 수정하여 다시 제출할 수 있으며, 이전 제출본은 교사 이력에 보관됩니다.</p><button type="button" id="editAfterSubmitBtn" class="btn">수정 후 다시 제출하기</button></section>';
  }
  return `<section class="content-card" id="appSubmitPanel">
  ${title('05-B',lastReceipt?'수정본 다시 제출하기':'앱에서 바로 최종 제출하기','개인 보고서와 모둠 포스터를 별도 구글폼 없이 제출합니다.')}
@@ -273,6 +273,7 @@ function submitPanel(){
  <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 인증한 코드로 제출합니다.${lastReceipt?`<br>기존 접수번호: <code>${esc(lastReceipt)}</code> · 이번에는 수정본을 제출합니다.`:""}</div>
 
  ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>${lastFiles.some(f=>f.kind==='report')?`<div class="existing-upload-group"><strong>이미 제출한 보고서</strong><p class="hint">파일을 열어 확인하거나 ×로 다음 수정 제출에서 제외할 수 있습니다.</p>${submittedFileCards('report')}</div>`:'' }`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
+ <div id="einsteinSharedPosterMount" style="margin:14px 0"></div>
  ${field('모둠별 탐구포스터',`<div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">모둠에서 포스터를 제작한다면 전용 제작 앱에서 연구제목·연구자·가설·방법·결과를 입력한 뒤 PDF 또는 PPTX로 저장하세요.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div><input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>이미 제출한 포스터</strong>${submittedFileCards('poster')}</div>`:'' }`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
  <div class="section-actions"><button class="btn primary" id="submitAppBtn" ${!IN_GAS||submitBusy?'disabled':''}>${submitBusy?'서버에 제출 중…':'✓ 모든 자료 최종 제출하기'}</button></div>
@@ -337,7 +338,7 @@ async function submitApp(){
  }catch(e){console.error(e);setSubmitProgress('제출 실패: '+e.message+' · 실패했을 때는 바로 다시 제출하지 말고 담당 교사에게 접수 상태를 확인하세요.');}
  finally{submitBusy=false;if(submitReceipt)scheduleServerSave();const b=$('submitAppBtn');if(b)b.disabled=false;}
 }
-function render(){clearTimeout(navRefreshTimer);if(!state.projects.some(p=>p.id===activeProjectId))activeProjectId=state.projects[0].id;renderNav();$('stepContent').innerHTML=[step0,step1,step2,step3,step4][step]();}
+function render(){clearTimeout(navRefreshTimer);if(!state.projects.some(p=>p.id===activeProjectId))activeProjectId=state.projects[0].id;renderNav();$('stepContent').innerHTML=[step0,step1,step2,step3,step4][step]();window.dispatchEvent(new Event('einstein:step-rendered'));}
 function go(n){
  n=Math.max(0,Math.min(4,Number(n)||0));
  if(n>step){
