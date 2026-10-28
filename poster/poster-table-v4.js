@@ -109,9 +109,29 @@ function draw(){
   coords.forEach(([cx,cy])=>svg.appendChild(svgEl('circle',{cx,cy,r:3.3,fill:'#218d96',stroke:'#fff','stroke-width':1})));
  }
  area.replaceChildren(svg);
+ const axis=svgEl('text',{x:195,y:151,'text-anchor':'middle','font-size':8,fill:'#557789'},options.xAxis.slice(0,35));svg.appendChild(axis);
+ svg.setAttribute('data-einstein-graph-v4','1');
  const title=$('pGraphTitle');if(title&&!document.querySelector('[data-key="graphTitle"]')?.value.trim())title.textContent='연구 결과 그래프';
  const unit=$('pGraphUnit');if(unit&&document.querySelector('[data-key="graphUnit"]')?.value.trim())unit.textContent=document.querySelector('[data-key="graphUnit"]').value.trim();
 }
+const observedChart=$('pChart');
+if(observedChart){
+ const graphObserver=new MutationObserver(()=>{
+  if(rows.some(r=>r.condition.trim()&&r.value.trim()&&Number.isFinite(+r.value))&&!observedChart.querySelector('svg[data-einstein-graph-v4]'))requestAnimationFrame(draw);
+ });
+ graphObserver.observe(observedChart,{childList:true});
+}
+const graphField=original.closest('.field');
+if(graphField){
+ const label=graphField.querySelector('label');if(label)label.textContent='그래프 데이터 (아래 표에 입력)';
+ const note=graphField.querySelector('.hint');if(note)note.textContent='표에 실제 실험 조건과 측정값을 입력하세요. 입력할 때마다 포스터 그래프가 자동으로 생성됩니다.';
+}
+const introText=document.querySelector('.intro p');
+if(introText)introText.textContent='왼쪽에 연구 내용을 입력하면 오른쪽 A1 세로형 포스터가 자동으로 바뀝니다. 데이터는 표로 입력하여 그래프를 만들 수 있습니다. 완성 후 PDF 또는 PPTX로 저장하세요.';
+const topTitle=document.querySelector('.appbar .right');
+if(topTitle)topTitle.textContent='A1 세로 · 2단 연구포스터';
+const previewMeta=document.querySelector('.preview-head .print-meta');
+if(previewMeta)previewMeta.textContent='A1 · 세로형 · 594 × 841 mm';
 function viewFix(){const width=shell.getBoundingClientRect().width;if(width>0){shell.style.height=(width*1120/792)+'px';poster.style.setProperty('--scale',String(width/792));}}
 window.addEventListener('resize',()=>requestAnimationFrame(viewFix));
 const nativeInput=document.querySelector('[data-key="graphTitle"]');
