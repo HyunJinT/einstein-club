@@ -6,10 +6,12 @@ function card(s,p,title,text,x,y,w,h,fs=19){
  s.addText(title,{x:x+.3,y:y+.18,w:w-.6,h:.45,margin:0,fontSize:20,bold:true,color:'137581',fontFace:'Malgun Gothic'});
  if(text){const density=String(text).length/(w*Math.max(1.5,h-.85));const adaptive=Math.max(15,Math.min(26,Math.min(fs+6,27-density*1.2)));s.addText(text,{x:x+.3,y:y+.78,w:w-.6,h:h-.9,fontSize:adaptive,margin:.06,color:'345366',valign:'top',fit:'shrink',fontFace:'Malgun Gothic'});}
 }
-async function photos(slide,pptx,title,arr,x,y,w,h){
+async function photos(slide,pptx,title,arr,x,y,w,h,requestedSize='auto',kind='result'){
  if(!arr.length)return;
  card(slide,pptx,title,'',x,y,w,h);
  const gap=.14,iw=(w-.60-gap*(arr.length-1))/arr.length;
+  const autoSize=arr.length===1?(kind==='result'?70:85):100;
+  const sizeScale=(requestedSize==='auto'?autoSize:Number(requestedSize)||autoSize)/100;
  const usableY=y+.88,usableH=h-1.16;
  const loadImage=data=>new Promise((resolve,reject)=>{
   const img=new Image();
@@ -22,7 +24,7 @@ async function photos(slide,pptx,title,arr,x,y,w,h){
   const labelH=caption?.28:0,bx=xx+.06,by=usableY+.05,bw=iw-.12,bh=usableH-.08-labelH;
   try{
    const dim=await loadImage(photo.data);
-   const factor=Math.min(bw/dim.w,bh/dim.h);
+   const factor=Math.min(bw*sizeScale/dim.w,bh*sizeScale/dim.h);
    const fitW=dim.w*factor,fitH=dim.h*factor;
    slide.addImage({data:photo.data,x:bx+(bw-fitW)/2,y:by+(bh-fitH)/2,w:fitW,h:fitH});
   }catch(err){
@@ -83,20 +85,20 @@ b.onclick=async()=>{
   card(s,p,'02 연구질문·가설',[detail('연구질문','question'),detail('가설 및 근거','hypothesis')].filter(Boolean).join('\n\n'),.63,7.95,10.85,3.06);
   const methodPic=api.photos.method||[],resultPic=api.photos.result||[],hasData=Boolean(field('graphData').trim());
   const processText=[detail('변인','variables'),detail('재료','materials'),detail('실험 절차','method')].filter(Boolean).join('\n\n');
-  card(s,p,(field('variables').trim()||field('materials').trim())?'03 재료 및 연구 방법':'03 연구 방법',processText,.63,11.28,10.85,methodPic.length?6.13:10.10);
-  if(methodPic.length)await photos(s,p,'실험 과정 사진',methodPic,.63,17.7,10.85,3.96);
+  card(s,p,(field('variables').trim()||field('materials').trim())?'03 재료 및 연구 방법':'03 연구 방법',processText,.63,11.28,10.85,methodPic.length>=2?5.48:(methodPic.length?6.13:10.10));
+  if(methodPic.length)await photos(s,p,'실험 과정 사진',methodPic,.63,methodPic.length>=2?17.04:17.7,10.85,methodPic.length>=2?4.62:3.96,api.photoSizes?.method||'auto','method');
   const summaryText=[detail('연구 개요','abstract'),detail('주요 결과','results')].filter(Boolean).join('\n\n');
   const summaryHeading=field('abstract').trim()?'04 연구 개요·주요 결과':'04 연구 결과';
   if(hasData&&resultPic.length){
     card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,4.15);
     graph(s,p,11.86,8.46,10.9,6.99);
-    await photos(s,p,'실험 결과·관찰 사진',resultPic,11.86,15.72,10.9,5.94);
+    await photos(s,p,'실험 결과 사진',resultPic,11.86,15.72,10.9,5.94,api.photoSizes?.result||'auto','result');
   }else if(hasData){
     card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,5.03);
     graph(s,p,11.86,9.37,10.9,12.29);
   }else if(resultPic.length){
     card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,8.20);
-    await photos(s,p,'실험 결과·관찰 사진',resultPic,11.86,12.56,10.9,9.10);
+    await photos(s,p,'실험 결과 사진',resultPic,11.86,12.56,10.9,9.10,api.photoSizes?.result||'auto','result');
   }else{
     card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,17.62);
   }
