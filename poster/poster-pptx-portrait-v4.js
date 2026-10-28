@@ -97,8 +97,9 @@ b.onclick=async()=>{
     card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,5.03);
     graph(s,p,11.86,9.37,10.9,12.29);
   }else if(resultPic.length){
-    card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,8.20);
-    await photos(s,p,'실험 결과 사진',resultPic,11.86,12.56,10.9,9.10,api.photoSizes?.result||'auto','result');
+    // Mirror the compact result-photo panel shown in the live poster preview.
+    card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,11.15);
+    await photos(s,p,'실험 결과 사진',resultPic,11.86,15.48,10.9,6.18,api.photoSizes?.result||'auto','result');
   }else{
     card(s,p,summaryHeading,summaryText,11.86,4.04,10.9,17.62);
   }
