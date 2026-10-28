@@ -297,7 +297,11 @@ recalculateCaps();
 const observer=new MutationObserver(schedule);observer.observe(poster,{subtree:true,childList:true,characterData:true});
 window.addEventListener('resize',schedule);
 for(const kind of ['method','result'])renderPhotoList(kind);
-function exportReady(){reflow();recalculateCaps();const capsExceeded=Object.entries(limits).filter(([key,cap])=>getFieldValue(key).length>cap).map(([key])=>key);const groupExceeded=sharedOverflow();if(groupExceeded.length){alert('항목 간 공유 분량을 초과했습니다: '+groupExceeded.map(g=>g.fields.join(' + ')).join(', ')+'\n선택 입력 부분을 조금 줄여 주세요.');return false;}if(capsExceeded.length){alert('이전에 저장한 글 중 현재 입력 제한을 초과한 항목이 있습니다: '+capsExceeded.join(', ')+'\n먼저 내용을 간추려 주세요. 기존 문장은 자동 삭제하지 않았습니다.');return false;}if(lastWarning){alert('A1 포스터에 모든 내용을 넣으려면 다음 항목을 줄이세요:\n'+lastWarning+'\n입력한 글은 삭제되지 않습니다.');return false;}return true;}
+function exportReady(){reflow();recalculateCaps();
+ const required={title:'연구제목',researchers:'연구자',background:'연구 배경',question:'큰 연구질문',hypothesis:'가설 및 근거',method:'실험 절차',results:'연구 결과',discussion:'결과 분석·논의',conclusion:'결론'};
+ const missing=Object.entries(required).filter(([k])=>!getFieldValue(k).trim()).map(([,name])=>name);
+ if(missing.length){alert('필수 내용을 먼저 작성하세요:\n'+missing.join(' · ')+'\n변인·재료·초록·사진·그래프·한계·후속 탐구·참고문헌 등은 비워 두어도 됩니다.');return false;}
+const capsExceeded=Object.entries(limits).filter(([key,cap])=>getFieldValue(key).length>cap).map(([key])=>key);const groupExceeded=sharedOverflow();if(groupExceeded.length){alert('항목 간 공유 분량을 초과했습니다: '+groupExceeded.map(g=>g.fields.join(' + ')).join(', ')+'\n선택 입력 부분을 조금 줄여 주세요.');return false;}if(capsExceeded.length){alert('이전에 저장한 글 중 현재 입력 제한을 초과한 항목이 있습니다: '+capsExceeded.join(', ')+'\n먼저 내용을 간추려 주세요. 기존 문장은 자동 삭제하지 않았습니다.');return false;}if(lastWarning){alert('A1 포스터에 모든 내용을 넣으려면 다음 항목을 줄이세요:\n'+lastWarning+'\n입력한 글은 삭제되지 않습니다.');return false;}return true;}
 pdf.onclick=()=>{if(exportReady())setTimeout(()=>window.print(),80);};
 function download(name,body,type){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([body],{type}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),18000);}
 const save=$('saveJson');if(save)save.onclick=()=>{
