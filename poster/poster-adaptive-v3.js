@@ -154,80 +154,116 @@ function fitOne(el,max,min){
  return el.scrollHeight<=el.clientHeight+1;
 }
 
+function setGridRows(node,visible,cssClass){
+ const current=[...node.children];
+ if(current.length!==visible.length||current.some((e,i)=>e.dataset.itemKey!==visible[i].key)){
+  const frag=document.createDocumentFragment();
+  for(const x of visible){
+   const part=document.createElement('div');part.className=cssClass;part.dataset.itemKey=x.key;
+   const strong=document.createElement('strong');strong.textContent=x.label+' · ';
+   const value=document.createElement('span');value.textContent=x.value;part.append(strong,value);frag.appendChild(part);
+  }
+  node.replaceChildren(frag);
+ }else{
+  for(let i=0;i<visible.length;i++){
+   const text=current[i].lastElementChild;
+   if(text.textContent!==visible[i].value)text.textContent=visible[i].value;
+  }
+ }
+ const weights=visible.map(x=>Math.max(1.5,1+Math.ceil((x.value.length+x.label.length)/33)));
+ const cols=weights.map(w=>'minmax(0,'+w+'fr)').join(' ');
+ if(node.style.gridTemplateRows!==cols)node.style.gridTemplateRows=cols;
+}
 function renderCompositeSections(){
- const question=document.querySelector('[data-key="question"]')?.value||'';
- const hypothesis=document.querySelector('[data-key="hypothesis"]')?.value||'';
- const box=$('pQuestionHypothesis');
- if(box){
-   const signature=question+'\x1f'+hypothesis;
-   if(box.dataset.compositeSignature!==signature || box.children.length!==2){
-     const makePart=(label,value)=>{
-       const wrap=document.createElement('div');
-       wrap.className='poster-composite-part';
-       const header=document.createElement('strong');
-       header.textContent=label;
-       const text=document.createElement('span');
-       text.textContent=value || '입력 전';
-       wrap.append(header,text);
-       return wrap;
-     };
-     box.replaceChildren(makePart('연구질문',question),makePart('가설 및 근거',hypothesis));
-     box.dataset.compositeSignature=signature;
-   }
+ const groups=[
+  {id:'pQuestionHypothesis',cls:'poster-composite-part',items:[
+   {key:'question',label:'연구질문',value:getFieldValue('question').trim()},
+   {key:'hypothesis',label:'가설 및 근거',value:getFieldValue('hypothesis').trim()}
+  ]},
+  {id:'pSummary',cls:'poster-summary-part',items:[
+   {key:'abstract',label:'연구 개요',value:getFieldValue('abstract').trim()},
+   {key:'results',label:'주요 결과',value:getFieldValue('results').trim()}
+  ]},
+  {id:'pMethods',cls:'poster-method-part',items:[
+   {key:'variables',label:'변인',value:getFieldValue('variables').trim()},
+   {key:'materials',label:'재료',value:getFieldValue('materials').trim()},
+   {key:'method',label:'실험 절차',value:getFieldValue('method').trim()}
+  ]}
+ ];
+ for(const g of groups){
+  const node=$(g.id);if(!node)continue;
+  const visible=g.items.filter(item=>item.value.length);
+  if(!visible.length)visible.push({key:'empty',label:'',value:'내용을 입력하세요.'});
+  setGridRows(node,visible,g.cls);
  }
-
- const summary=$('pSummary');
- if(summary){
-   const abstract=document.querySelector('[data-key="abstract"]')?.value||'';
-   const results=document.querySelector('[data-key="results"]')?.value||'';
-   const signature=abstract+'\x1f'+results;
-   if(summary.dataset.compositeSignature!==signature || summary.children.length!==2){
-     const frag=document.createDocumentFragment();
-     for(const [label,value] of [['연구 개요',abstract],['주요 결과',results]]){
-       const part=document.createElement('div');part.className='poster-summary-part';
-       const head=document.createElement('strong');head.textContent=label+' · ';
-       part.append(head,document.createTextNode(value||'입력 전'));frag.appendChild(part);
-     }
-     summary.replaceChildren(frag);summary.dataset.compositeSignature=signature;
-   }
+}
+function optionalSectionLayout(){
+ const column1=poster.querySelector('.poster-column:nth-child(1)');
+ const column2=poster.querySelector('.poster-column:nth-child(2)');
+ const column3=poster.querySelector('.poster-column:nth-child(3)');
+ if(!column1||!column2||!column3)return;
+ function display(el,on){
+  if(!el)return;
+  const d=on?'':'none';
+  if(el.style.display!==d)el.style.display=d;
  }
- const methods=$('pMethods');
- if(methods){
-   const vals=['variables','materials','method'].map(k=>document.querySelector('[data-key="'+k+'"]')?.value||'');
-   const signature=vals.join('\x1f');
-   if(methods.dataset.compositeSignature!==signature || methods.children.length!==3){
-     const labels=['변인','재료','실험 절차'];
-     const frag=document.createDocumentFragment();
-     for(let i=0;i<vals.length;i++){
-       const part=document.createElement('div');part.className='poster-method-part';
-       const strong=document.createElement('strong');strong.textContent=labels[i]+' · ';
-       part.append(strong,document.createTextNode(vals[i]||'입력 전'));
-       frag.appendChild(part);
-     }
-     methods.replaceChildren(frag);
-     methods.dataset.compositeSignature=signature;
-   }
+ const methodPhotos=photos.method.length>0,resultPhotos=photos.result.length>0;
+ const graphData=getFieldValue('graphData');
+ const hasGraph=graphData.split(/\r?\n/).some(line=>{
+  const parts=line.split(/[,，\t]/);
+  return parts.length>=2&&parts[0].trim()&&parts[1].trim()&&Number.isFinite(Number(parts[1]));
+ });
+ const methodPhoto=column1.children[3],resultPhoto=column2.children[2],graph=column2.children[1];
+ display(methodPhoto,methodPhotos);
+ display(resultPhoto,resultPhotos);
+ display(graph,hasGraph);
+ setHeight(column1.children[2],methodPhotos?180:290);
+ if(!hasGraph&&!resultPhotos){
+  setHeight(column2.children[0],565);
+ }else if(!hasGraph){
+  setHeight(column2.children[0],210);
+ }else{
+  setHeight(column2.children[0],resultPhotos?150:178);
+  setHeight(graph,resultPhotos?226:390);
  }
+ // The question, analysis and conclusion are required. Optional cards vanish.
+ display(column3.children[1],!!getFieldValue('limitations').trim());
+ display(column3.children[3],!!getFieldValue('followup').trim());
+ const visible=[...column3.children].filter(el=>el.style.display!=='none');
+ const rows=visible.length>2?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)';
+ if(column3.style.gridTemplateRows!==rows)column3.style.gridTemplateRows=rows;
+ visible.forEach((el,i)=>{
+   const span=visible.length%2===1&&i===visible.length-1?'span 2':'auto';
+   if(el.style.gridColumn!==span)el.style.gridColumn=span;
+ });
+ const footer=poster.querySelector('.poster-bottom');
+ const hasCredits=!!(getFieldValue('references').trim()||getFieldValue('contributions').trim());
+ display(footer,hasCredits);
+ // Keep all posters the same 594×841mm, reclaim only the optional footer space.
+ const grid=poster.querySelector('.poster-grid');
+ const height=hasCredits?'930px':'990px';
+ if(grid&&grid.style.height!==height)grid.style.height=height;
 }
 function fitComposite(){
  const bad=[];
  const box=$('pQuestionHypothesis');
  if(box){
    const parts=[...box.querySelectorAll('.poster-composite-part')];
-   for(const part of parts){if(!fitOne(part,12,8))bad.push('연구질문·가설');}
+   for(const part of parts){if(part.getClientRects().length&& !fitOne(part,12,8))bad.push('연구질문·가설');}
  }
  const summary=$('pSummary');
- if(summary){for(const part of summary.querySelectorAll('.poster-summary-part')){if(!fitOne(part,12,8.5))bad.push('연구 개요·주요 결과');}}
+ if(summary){for(const part of summary.querySelectorAll('.poster-summary-part')){if(part.getClientRects().length&& !fitOne(part,12,8.5))bad.push('연구 개요·주요 결과');}}
  const methods=$('pMethods');
  if(methods){
    const parts=[...methods.querySelectorAll('.poster-method-part')];
-   for(const part of parts){if(!fitOne(part,12,8.5))bad.push('실험 방법');}
+   for(const part of parts){if(part.getClientRects().length&& !fitOne(part,12,8.5))bad.push('실험 방법');}
  }
  return bad;
 }
 function analyze(){
  let bad=[];
  for(const el of poster.querySelectorAll('.poster-section .body:not(#pQuestionHypothesis):not(#pMethods):not(#pSummary)')){
+  if(!el.getClientRects().length)continue;
   if(!fitOne(el,14,8.5)){const title=el.closest('.poster-section')?.querySelector('h3')?.textContent||'본문';bad.push(title);}
  }
  bad.push(...fitComposite());
@@ -238,7 +274,7 @@ function analyze(){
 }
 function reflow(){
  if(busy)return;busy=true;try{
-  renderPhotos();renderCompositeSections();const bad=analyze();lastWarning=bad.join(' · ');
+  renderPhotos();renderCompositeSections();optionalSectionLayout();const bad=analyze();lastWarning=bad.join(' · ');
   const status=$('posterFitStatus');
   if(status){
    status.classList.toggle('problem',!!bad.length);
