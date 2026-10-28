@@ -25,8 +25,10 @@ function make(tag,props,children){
  return el;
 }
 const container=make('section',{class:'poster-graph-table','aria-label':'표로 그래프 작성하기'});
-container.innerHTML='<div class="poster-graph-head"><strong>📊 표에 숫자를 넣으면 그래프가 자동으로 완성됩니다</strong><label>그래프 형태 <select id="posterGraphType"><option value="bar">막대그래프 (종류별 비교)</option><option value="line">꺾은선그래프 (순서·농도별 변화)</option></select></label></div><div class="poster-graph-help">표의 <b>왼쪽 칸</b>에는 실험 조건이나 농도처럼 비교할 기준을 쓰고, <b>오른쪽 칸</b>에는 실제 측정값을 <b>숫자만</b> 입력하세요. 측정값의 단위는 위쪽 <b>‘그래프 세로축 단위’</b>에 입력하세요.</div><label style="display:block;margin-top:8px;font-size:12px;font-weight:750">가로축 이름 <input id="posterXAxisLabel" type="text" maxlength="35" placeholder="예: 과산화수소 농도(%)" style="max-width:100%;padding:8px"></label><table><thead><tr><th scope="col" style="width:52%">실험 조건 (가로축)</th><th scope="col">측정값 (숫자)</th><th scope="col" style="width:46px">삭제</th></tr></thead><tbody id="posterGraphRows"></tbody></table><button type="button" class="add-graph-row" id="posterAddGraphRow">+ 조건 한 줄 추가</button><details style="margin-top:12px"><summary style="font-size:12px;font-weight:700;cursor:pointer">입력 예시 보기 (실제 실험값 아님)</summary><div class="mini-table-example">가로축: 과산화수소 농도(%) / 세로축: 효모 생존율(%)<br><b>실험 조건</b> 0% → <b>측정값</b> 95<br><b>실험 조건</b> 0.5% → <b>측정값</b> 72<br><b>실험 조건</b> 1.0% → <b>측정값</b> 38<br>위 숫자는 입력 형식을 보여주는 가상 예시이므로 실제 실험 결과로 사용하면 안 됩니다.</div></details><p class="poster-graph-help">주의: 실험 데이터를 그대로 입력하세요. 반복 측정값의 평균을 사용하는 경우 보고서에 반복 횟수와 데이터의 변동 정도도 기록하세요. 꺾은선그래프는 조건의 순서와 수치적 연속성이 의미 있을 때 선택하세요.</p>';
+container.innerHTML='<div class="poster-graph-head"><strong>📊 표에 숫자를 넣으면 그래프가 자동으로 완성됩니다</strong><label>그래프 형태 <select id="posterGraphType"><option value="bar">막대그래프 (종류별 비교)</option><option value="line">꺾은선그래프 (순서·농도별 변화)</option></select></label></div><div class="poster-graph-help">표의 <b>왼쪽 칸</b>에는 실험 조건이나 농도처럼 비교할 기준을 쓰고, <b>오른쪽 칸</b>에는 실제 측정값을 <b>숫자만</b> 입력하세요. 측정값의 단위는 위쪽 <b>‘그래프 세로축 단위’</b>에 입력하세요.</div><label style="display:block;margin-top:8px;font-size:12px;font-weight:750">가로축 이름 <input id="posterXAxisLabel" type="text" maxlength="35" placeholder="예: 과산화수소 농도(%)" style="max-width:100%;padding:8px"></label><table><thead><tr><th scope="col" style="width:52%">실험 조건 (가로축)</th><th scope="col">측정값 (숫자)</th><th scope="col" style="width:46px">삭제</th></tr></thead><tbody id="posterGraphRows"></tbody></table><button type="button" class="add-graph-row" id="posterAddGraphRow">+ 조건 한 줄 추가</button><details style="margin-top:12px"><summary style="font-size:12px;font-weight:700;cursor:pointer">입력 예시 보기 (실제 실험값 아님)</summary><div class="mini-table-example">가로축: 과산화수소 농도(%) / 세로축: 효모 생존율(%)<br><b>실험 조건</b> 0% → <b>측정값</b> 95<br><b>실험 조건</b> 0.5% → <b>측정값</b> 72<br><b>실험 조건</b> 1.0% → <b>측정값</b> 38<br>위 숫자는 입력 형식을 보여주는 가상 예시이므로 실제 실험 결과로 사용하면 안 됩니다.</div></details><p class="poster-graph-help">주의: 실험 데이터를 그대로 입력하세요. 반복 측정값의 평균을 사용하는 경우 보고서에 반복 횟수와 데이터의 변동 정도도 기록하세요. 꺾은선그래프는 조건의 순서와 수치적 연속성이 의미 있을 때 선택하고, 수치 조건은 작은 값부터 큰 값 순서로 입력하세요.</p>';
 const field=original.closest('.field');if(field){field.appendChild(container);field.style.position='relative';original.style.display='none';}
+$('posterGraphType').dataset.key='graphType';
+$('posterXAxisLabel').dataset.key='graphXAxis';
 $('posterGraphType').value=options.type==='line'?'line':'bar';
 $('posterXAxisLabel').value=options.xAxis;
 function rowsUI(){
@@ -63,7 +65,9 @@ $('posterAddGraphRow').addEventListener('click',()=>{
  rows.push({condition:'',value:''});rowsUI();
  const last=$('posterGraphRows').lastElementChild;last?.querySelector('input')?.focus();
 });
-$('posterGraphType').addEventListener('change',e=>{options.type=e.target.value==='line'?'line':'bar';saveOptions();draw();});
+function onType(e){options.type=e.target.value==='line'?'line':'bar';saveOptions();draw();}
+$('posterGraphType').addEventListener('change',onType);
+$('posterGraphType').addEventListener('input',onType);
 $('posterXAxisLabel').addEventListener('input',e=>{options.xAxis=e.target.value.slice(0,35);saveOptions();draw();});
 original.addEventListener('input',()=>{
  if(setting)return;
@@ -94,8 +98,11 @@ function draw(){
  svg.appendChild(svgEl('line',{x1:L,y1:T,x2:L,y2:T+H,stroke:'#6d8fa1','stroke-width':1}));
  svg.appendChild(svgEl('line',{x1:L,y1:T+H,x2:L+W,y2:T+H,stroke:'#6d8fa1','stroke-width':1}));
  const span=W/points.length,coords=[];
+ const numericX=points.map(p=>{const m=p.condition.trim().match(/^[-+]?\d+(?:\.\d+)?/);return m?Number(m[0]):null;});
+ const useNumericX=options.type==='line'&&numericX.every(Number.isFinite)&&Math.max(...numericX)>Math.min(...numericX);
+ const xMin=useNumericX?Math.min(...numericX):0,xRange=useNumericX?Math.max(...numericX)-xMin:1;
  points.forEach((d,i)=>{
-  const xx=L+span*(i+.5),yy=y(+d.value);coords.push([xx,yy]);
+  const xx=useNumericX?L+11+(numericX[i]-xMin)/xRange*(W-22):L+span*(i+.5),yy=y(+d.value);coords.push([xx,yy]);
   if(options.type==='bar'){
    const w=span*.52;
    svg.appendChild(svgEl('rect',{x:xx-w/2,y:Math.min(yy,y(0)),width:w,height:Math.max(1,Math.abs(yy-y(0))),rx:2,fill:i%2?'#60b5ad':'#27818b'}));
