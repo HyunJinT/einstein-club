@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 const poster=$('posterCanvas'), pdf=$('savePdf'), pptx=$('savePptx');
 if(!poster||!pdf||!pptx)return;
 const K='einstein_poster_photos_v3',MAX=3;
-const limits={title:48,researchers:105,group:20,abstract:72,background:105,question:55,hypothesis:80,variables:55,materials:40,method:115,results:90,graphTitle:48,graphData:300,graphUnit:24,discussion:130,limitations:95,conclusion:105,followup:100,references:68,contributions:68};
+const limits={title:48,researchers:105,group:20,abstract:72,background:105,question:55,hypothesis:80,variables:55,materials:40,method:115,results:90,graphTitle:48,graphData:500,graphUnit:24,discussion:130,limitations:95,conclusion:105,followup:100,references:48,contributions:48};
 const photos={method:[],result:[]};
 try{const z=JSON.parse(localStorage.getItem(K)||'{}');for(const k of ['method','result'])if(Array.isArray(z[k]))photos[k]=z[k].slice(0,MAX);}catch(e){}
 let busy=false,lastWarning='',paintQueued=false,sequence=0;
