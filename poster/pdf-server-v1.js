@@ -95,7 +95,7 @@ async function postToGas(data){
   const cleanup=()=>{window.removeEventListener('message',receive);clearTimeout(timeout);form.remove();iframe.remove();};
   const receive=e=>{
    if(e.source!==iframe.contentWindow)return;
-   if(!['https://script.googleusercontent.com','https://script.google.com'].includes(e.origin))return;
+   if(!['https://script.googleusercontent.com','https://script.google.com','null'].includes(e.origin))return; // iframe nonce + source must also match
    const p=e.data;if(!p||p.kind!=='einsteinPosterUploadV15'||p.nonce!==nonce)return;
    if(settled)return;settled=true;cleanup();
    if(p.ok)resolve(p);else reject(Error(p.error||'학교 서버 업로드가 거부되었습니다.'));
