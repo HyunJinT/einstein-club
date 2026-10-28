@@ -67,3 +67,12 @@
 #pQuestionHypothesis,#pSummary,#pMethods{align-content:stretch;min-height:0}
 .poster-method-part,.poster-summary-part,.poster-composite-part{min-height:0;min-width:0;overflow:hidden;overflow-wrap:anywhere;word-break:break-word}
 .poster-section[style*="display: none"]{display:none!important}
+/* Photo size controls: keep uncropped images and make single-photo cards calmer. */
+.poster-photo-grid .poster-photo-item{width:var(--photo-percent,100%);height:var(--photo-percent,100%);justify-self:center;align-self:center;max-width:100%;max-height:100%}
+.poster-photo-grid .poster-photo-item img{flex:1 1 auto;min-height:0}
+.poster-column:first-child .poster-section:nth-child(4) .photo-box,
+.poster-column:nth-child(2) .poster-section:nth-child(3) .photo-box{flex:1 1 auto;height:100%;min-height:0}
+.photo-display-size{display:flex;align-items:center;gap:10px;margin:6px 0 9px}
+.photo-display-size label{display:block;font-size:12px;font-weight:750;color:#314b61;margin:0}
+.photo-display-size select{flex:1;min-width:0;max-width:190px;border:1px solid #cedde7;border-radius:8px;background:#fff;color:#203a50;font-size:12px;padding:7px 9px}
+
