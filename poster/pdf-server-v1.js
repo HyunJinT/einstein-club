@@ -95,14 +95,28 @@ async function postToGas(data,action='uploadEinsteinPosterV15'){
   let settled=false;
   const cleanup=()=>{window.removeEventListener('message',receive);clearTimeout(timeout);form.remove();iframe.remove();};
   const receive=e=>{
-   if(e.source!==iframe.contentWindow)return;
-   if(!['https://script.googleusercontent.com','https://script.google.com','null'].includes(e.origin))return; // iframe nonce + source must also match
+   // Apps Script HTMLService nests its response in a Google sandbox iframe.
+   // In that case event.source is the *inner* frame, not iframe.contentWindow.
+   // Authenticate the response using its unpredictable per-request nonce and trusted origin.
    const p=e.data;if(!p||p.kind!=='einsteinPosterUploadV15'||p.nonce!==nonce)return;
+   let trusted=e.origin==='null'; // Google sandbox may produce an opaque origin.
+   if(!trusted){
+     try{
+       const origin=new URL(e.origin);
+       const host=origin.hostname.toLowerCase();
+       trusted=origin.protocol==='https:'&&(
+         host==='script.google.com'||
+         host==='script.googleusercontent.com'||
+         /^[a-z0-9-]+-script\.googleusercontent\.com$/.test(host)
+       );
+     }catch(_){trusted=false;}
+   }
+   if(!trusted)return;
    if(settled)return;settled=true;cleanup();
    if(p.ok)resolve(p);else reject(Error(p.error||'학교 서버 업로드가 거부되었습니다.'));
   };
-  const timeouts={pingEinsteinPosterV16:14000,pingEinsteinPosterV15:14000,beginEinsteinPosterV16:35000,chunkEinsteinPosterV16:55000,finishEinsteinPosterV16:100000,statusEinsteinPosterV16:28000};
-  const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error('서버 응답 시간 초과 ('+action+')'));}},timeouts[action]||45000);
+  const timeouts={pingEinsteinPosterV16:35000,pingEinsteinPosterV15:35000,beginEinsteinPosterV16:50000,chunkEinsteinPosterV16:60000,finishEinsteinPosterV16:100000,statusEinsteinPosterV16:35000};
+  const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error(action==='pingEinsteinPosterV16'?'서버 연결 확인 응답이 없습니다. 비밀번호 검사 전 단계이므로 비밀번호 오류가 아닙니다. 앱 배포와 브라우저의 iframe 차단 설정을 확인해 주세요.':'서버 처리 확인이 지연되고 있습니다 ('+action+').'));}},timeouts[action]||45000);
   window.addEventListener('message',receive);
   const payload={action,nonce,...data};
   for(const [key,v] of Object.entries(payload)){
