@@ -128,6 +128,22 @@ function renderCompositeSections(){
      box.dataset.compositeSignature=signature;
    }
  }
+
+ const summary=$('pSummary');
+ if(summary){
+   const abstract=document.querySelector('[data-key="abstract"]')?.value||'';
+   const results=document.querySelector('[data-key="results"]')?.value||'';
+   const signature=abstract+'\x1f'+results;
+   if(summary.dataset.compositeSignature!==signature || summary.children.length!==2){
+     const frag=document.createDocumentFragment();
+     for(const [label,value] of [['연구 개요',abstract],['주요 결과',results]]){
+       const part=document.createElement('div');part.className='poster-summary-part';
+       const head=document.createElement('strong');head.textContent=label+' · ';
+       part.append(head,document.createTextNode(value||'입력 전'));frag.appendChild(part);
+     }
+     summary.replaceChildren(frag);summary.dataset.compositeSignature=signature;
+   }
+ }
  const methods=$('pMethods');
  if(methods){
    const vals=['variables','materials','method'].map(k=>document.querySelector('[data-key="'+k+'"]')?.value||'');
@@ -153,6 +169,8 @@ function fitComposite(){
    const parts=[...box.querySelectorAll('.poster-composite-part')];
    for(const part of parts){if(!fitOne(part,12,8.5))bad.push('연구질문·가설');}
  }
+ const summary=$('pSummary');
+ if(summary){for(const part of summary.querySelectorAll('.poster-summary-part')){if(!fitOne(part,12,8.5))bad.push('연구 개요·주요 결과');}}
  const methods=$('pMethods');
  if(methods){
    const parts=[...methods.querySelectorAll('.poster-method-part')];
@@ -162,7 +180,7 @@ function fitComposite(){
 }
 function analyze(){
  let bad=[];
- for(const el of poster.querySelectorAll('.poster-section .body:not(#pQuestionHypothesis):not(#pMethods)')){
+ for(const el of poster.querySelectorAll('.poster-section .body:not(#pQuestionHypothesis):not(#pMethods):not(#pSummary)')){
   if(!fitOne(el,14,9.5)){const title=el.closest('.poster-section')?.querySelector('h3')?.textContent||'본문';bad.push(title);}
  }
  bad.push(...fitComposite());
