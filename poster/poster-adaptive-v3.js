@@ -1,8 +1,8 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const poster=$('posterCanvas'), pdf=$('savePdf'), pptx=$('savePptx');
-if(!poster||!pdf||!pptx)return;
+const poster=$('posterCanvas'), pdf=$('savePdf');
+if(!poster||!pdf)return;
 const K='einstein_poster_photos_v3',MAX=3;
 const photoSizes={method:'auto',result:'auto'};
 const validPhotoSizes=['auto','70','85','100'];
