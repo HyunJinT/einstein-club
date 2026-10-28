@@ -22,6 +22,7 @@ code.secret{background:#f5f8fb;border:1px solid #dce7ef;padding:3px 5px;border-r
 <details class="resetBlock"><summary>기존 코드 복원 불가 학생 · 1회 갱신 / 개별 코드 재발급</summary><p class="hint">과거 서버에서 해시값만 저장한 코드는 복원할 수 없습니다. 아래 버튼은 코드를 분실한 학생에게 <strong>새 코드</strong>를 발급합니다. 기존 코드는 무효화되며, 이미 업로드 중이거나 완료한 학생은 갱신되지 않습니다.</p>
 <div class="toolbar"><button id="resetLegacy">복원 불가 학생만 일괄 갱신</button></div>
 <label for="resetIds">특정 학생만 재발급할 때 학번 입력</label><textarea id="resetIds" placeholder="20000&#10;20001" style="min-height:70px"></textarea><button id="resetCodes">선택한 학생 코드 재발급</button></details></section>
+<section class="card"><h2>학생 비밀번호 초기화</h2><p class="hint">학생이 비밀번호를 잊은 경우에만 초기화하세요. <strong>기존 제출코드·작성 기록·첨부파일은 삭제되지 않습니다.</strong> 초기화 후 학생은 처음 이용 화면에서 기존 개별 제출코드로 새 비밀번호를 설정할 수 있습니다.</p><label for="studentPasswordResetId">초기화할 학생 학번</label><input id="studentPasswordResetId" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10000"><button type="button" id="studentPasswordResetBtn">해당 학생 비밀번호 초기화</button><div id="studentPasswordResetFeedback" class="hint" role="status"></div></section>
 <section class="card"><h2>제출 현황</h2><p class="hint">실제 접수 완료된 자료만 표시됩니다.</p><div id="counts">-</div><button id="refresh">제출현황 새로고침</button><input id="search" placeholder="학번·이름·주제 검색" style="margin-top:10px"></section></div><section id="list"></section></div>
 </main>
 <script>
@@ -248,6 +249,18 @@ $('exportXlsx').onclick=async()=>{
   a.href=url;a.download='아인슈타인_학생별_제출코드_'+new Date().toISOString().slice(0,10)+'.xlsx';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }catch(e){alert('Excel 다운로드 실패: '+e.message);}finally{setBusy(b,false);}
+};
+$('studentPasswordResetBtn').onclick=async function(){
+ const id=$('studentPasswordResetId').value.trim(),button=this;
+ if(!/^\d{5}$/.test(id))return alert('학번 5자리를 입력하세요.');
+ if(!confirm(id+' 학생의 비밀번호를 초기화하시겠습니까? 기존 제출코드와 작성 기록은 유지됩니다.'))return;
+ button.disabled=true;$('studentPasswordResetFeedback').textContent='초기화 요청 중…';
+ try{
+  const result=await call('resetEinsteinStudentPasswordV14',code,id);
+  $('studentPasswordResetFeedback').textContent=result.studentId+' 학생의 비밀번호를 초기화했습니다. 기존 개별코드로 다시 등록할 수 있습니다.';
+  $('studentPasswordResetId').value='';
+ }catch(e){$('studentPasswordResetFeedback').textContent='초기화 실패: '+e.message;}
+ finally{button.disabled=false;}
 };
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('issued').value);alert('복사했습니다.');}catch{ $('issued').select();document.execCommand('copy');}};
 $('search').oninput=render;
