@@ -13,6 +13,7 @@ let accessCode='', uploadFiles={report:[],poster:[]}, submitBusy=false, submitRe
 let verifiedStudent=null;
 let serverRevision=0,saveTimer=null,saveInFlight=false,saveAgain=false,changeCounter=0,saveError=false;
 let lastReceipt='',lastFiles=[],serverEditAllowed=true,lastServerSavedAt='',editingAfterSubmit=false;
+let confirmedSharedPosterIds=[];
 function statusText(message,isError){
  const el=$('serverSaveStatus');if(!el)return;
  el.textContent=message;el.style.color=isError?'#a53435':'#24646c';
@@ -257,9 +258,22 @@ async function openSubmittedUpload(url){
  }
 }
 
+window.addEventListener('einstein:shared-posters-updated',function(e){
+ const ids=(Array.isArray(e.detail)?e.detail:[]).filter(x=>x&&x.confirmed).map(x=>String(x.posterId)).sort();
+ if(ids.join('|')===confirmedSharedPosterIds.join('|'))return;
+ confirmedSharedPosterIds=ids;
+ if(verifiedStudent&&step===4&&!submitBusy)render();
+});
+window.addEventListener('einstein:shared-poster-synced',function(e){
+ const result=e.detail;
+ if(result&&Array.isArray(result.submittedFiles)){
+  lastFiles=result.submittedFiles;
+  if(verifiedStudent&&step===4&&!submitBusy)render();
+ }
+});
 function submitPanel(){
  const leader=state.position==='모둠 조장';
- const fileList=(kind)=>uploadFiles[kind].map((f,i)=>`<div class="submission-file"><span>📎 ${esc(f.name)}</span><span>${(f.size/1048576).toFixed(1)} MB</span><button type="button" class="existing-file-remove" data-remove-new="${kind}:${i}" title="추가 파일 빼기">×</button></div>`).join('')||'<div class="hint">선택한 파일이 없습니다.</div>';
+ const fileList=(kind)=>uploadFiles[kind].map((f,i)=>`<div class="submission-file"><span>📎 ${esc(f.name)}</span><span>${(f.size/1048576).toFixed(1)} MB</span><button type="button" class="existing-file-remove" data-remove-new="${kind}:${i}" title="추가 파일 빼기">×</button></div>`).join('')||(kind==='poster'&&confirmedSharedPosterIds.length?'<div class="highlight-box" style="margin:8px 0">✅ 서버에 등록된 모둠 포스터 '+confirmedSharedPosterIds.length+'개가 자동 연결되어 있습니다. 추가 파일 선택은 필요하지 않습니다.</div>':'<div class="hint">추가로 선택한 파일이 없습니다.</div>');
  if(submitReceipt || (lastReceipt&&!editingAfterSubmit)){
   const receipt=submitReceipt||{};
   const reports=lastFiles.filter(f=>f.kind==='report').length;
@@ -273,8 +287,7 @@ function submitPanel(){
  <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 인증한 코드로 제출합니다.${lastReceipt?`<br>기존 접수번호: <code>${esc(lastReceipt)}</code> · 이번에는 수정본을 제출합니다.`:""}</div>
 
  ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>${lastFiles.some(f=>f.kind==='report')?`<div class="existing-upload-group"><strong>이미 제출한 보고서</strong><p class="hint">파일을 열어 확인하거나 ×로 다음 수정 제출에서 제외할 수 있습니다.</p>${submittedFileCards('report')}</div>`:'' }`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
- <div id="einsteinSharedPosterMount" style="margin:14px 0"></div>
- ${field('모둠별 탐구포스터 (직접 파일 첨부)',`<div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">모둠에서 포스터를 제작한다면 전용 제작 앱에서 연구제목·연구자·가설·방법·결과를 입력한 뒤 PDF로 저장하거나 서버에 바로 업로드하세요.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div><input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>이미 제출한 포스터</strong>${submittedFileCards('poster')}</div>`:'' }`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
+ ${field('모둠별 탐구포스터',`<div id="einsteinSharedPosterMount" style="margin:14px 0"></div><div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">대표 학생이 포스터를 서버에 등록했다면 아래 ‘내 포스터가 맞아요’를 누르세요. 모둠별 탐구포스터에 자동 첨부되므로 파일을 다시 선택할 필요가 없습니다.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div><input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div>${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>이미 제출한 포스터</strong>${submittedFileCards('poster')}</div>`:'' }`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
  <div class="section-actions"><button class="btn primary" id="submitAppBtn" ${!IN_GAS||submitBusy?'disabled':''}>${submitBusy?'서버에 제출 중…':'✓ 모든 자료 최종 제출하기'}</button></div>
  <div id="submitProgress" class="hint" role="status" aria-live="polite"></div>
@@ -305,7 +318,7 @@ async function submitApp(){
  if(!validForPdf())return;
  if(!accessCode.trim()){notify('교사가 발급한 제출코드를 입력하세요.');$('submitAccessCode')?.focus();return;}
  if(uploadFiles.report.length<1&&!lastFiles.some(f=>f.kind==='report'&&!excludedSubmittedUrls().includes(f.url))){notify('개인 최종보고서를 1개 이상 첨부하세요.');return;}
- if(state.position==='모둠 조장'&&uploadFiles.poster.length<1&&!lastFiles.some(f=>f.kind==='poster'&&!excludedSubmittedUrls().includes(f.url))){notify('조장은 탐구포스터 1개를 첨부해야 합니다.');return;}
+ if(state.position==='모둠 조장'&&uploadFiles.poster.length<1&&confirmedSharedPosterIds.length<1&&!lastFiles.some(f=>f.kind==='poster'&&!excludedSubmittedUrls().includes(f.url))){notify('조장은 탐구포스터 1개를 첨부해야 합니다.');return;}
  const all=[...uploadFiles.report,...uploadFiles.poster];
  const kept=lastFiles.filter(f=>!excludedSubmittedUrls().includes(f.url));
  if(kept.filter(f=>f.kind==='report').length+uploadFiles.report.length>10 || kept.filter(f=>f.kind==='poster').length+uploadFiles.poster.length>5 || kept.reduce((sum,f)=>sum+Number(f.size||0),0)+all.reduce((sum,f)=>sum+f.size,0)>40*1048576){notify('기존 파일과 새 파일의 합계 제한을 초과했습니다. 보고서 10개, 포스터 5개, 총 40MB까지 가능합니다.');return;}
