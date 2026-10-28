@@ -101,7 +101,7 @@ async function postToGas(data,action='uploadEinsteinPosterV15'){
    if(settled)return;settled=true;cleanup();
    if(p.ok)resolve(p);else reject(Error(p.error||'학교 서버 업로드가 거부되었습니다.'));
   };
-  const timeouts={pingEinsteinPosterV15:14000,beginEinsteinPosterV16:35000,chunkEinsteinPosterV16:55000,finishEinsteinPosterV16:100000,statusEinsteinPosterV16:28000};
+  const timeouts={pingEinsteinPosterV16:14000,pingEinsteinPosterV15:14000,beginEinsteinPosterV16:35000,chunkEinsteinPosterV16:55000,finishEinsteinPosterV16:100000,statusEinsteinPosterV16:28000};
   const timeout=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(Error('서버 응답 시간 초과 ('+action+')'));}},timeouts[action]||45000);
   window.addEventListener('message',receive);
   const payload={action,nonce,...data};
@@ -131,7 +131,7 @@ serverButton.addEventListener('click',async e=>{
  loading(true,'학교 서버 연결 확인 중…');
  try{
   progress('학교 서버의 포스터 업로드 기능을 확인 중입니다…');
-  await postToGas({},'pingEinsteinPosterV15');
+  await postToGas({},'pingEinsteinPosterV16');
   serverButton.textContent='고화질 PDF 생성 중…';
   progress('A1 세로형 포스터를 PDF로 제작 중입니다…');
   const blob=await makePdf();if(!blob)return;
