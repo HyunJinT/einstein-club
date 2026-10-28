@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content="2026학년도 아인슈타인 과학동아리 활동 기록 및 보고서 직접 제출" />
 <title>아인슈타인 | 2026 동아리 활동 기록 · 직접 제출</title>
-<link rel="stylesheet" href="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-responsive-v14.css">
+<link rel="stylesheet" href="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-responsive-auth-v15.css">
 </head>
 <body>
 <!-- student-ui-inline-v2-20261028: evidence selections expand in place -->
@@ -21,12 +21,35 @@
   <header class="topbar"><div class="eyebrow">EINSTEIN SCIENCE CLUB · 2026</div><div class="top-actions"><button type="button" class="btn" id="draftSaveBtn">↧ 지금 저장</button><button type="button" class="btn" id="draftLoadBtn">↥ 서버에서 불러오기</button><button type="button" class="btn" id="backupBtn" title="다른 기기에서도 불러올 수 있는 JSON 백업 파일">백업 파일</button><input type="file" id="jsonImport" accept=".json,application/json" hidden></div></header>
   <section class="hero"><div class="hero-tag">ONE YEAR · ONE SCIENTIFIC JOURNEY</div><h1>나의 탐구가 남긴 흔적</h1><p>아인슈타인 동아리에서 시도하고, 관찰하고, 수정하고, 성장했던 경험을 사실에 근거하여 기록합니다.</p><svg class="hero-atom" viewBox="0 0 160 160" fill="none" aria-hidden="true"><circle cx="80" cy="80" r="8" fill="white"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3" transform="rotate(60 80 80)"/><ellipse cx="80" cy="80" rx="65" ry="24" stroke="white" stroke-width="3" transform="rotate(120 80 80)"/></svg></section>
   <section id="studentLoginGate" class="student-login-card">
-    <h2>개별 제출코드로 시작하기</h2>
-    <p class="code-instructions">선생님이 발급한 <strong>나만의 제출코드</strong>를 입력하세요. 올바른 코드라면 등록된 학번·이름이 자동으로 표시됩니다.</p>
-    <label for="studentLoginCode" style="display:block;margin-bottom:8px;font-weight:750">학생 개별 제출코드</label>
-    <div class="student-login-controls"><div class="student-login-code-wrap"><input type="password" id="studentLoginCode" placeholder="개별 제출코드 입력" autocomplete="off" spellcheck="false"/><button type="button" class="toggle-code" id="studentShowCode" aria-controls="studentLoginCode" aria-pressed="false" aria-label="제출코드 보기">👁 보기</button></div><button type="button" id="studentLoginBtn">코드 확인 · 시작</button></div>
+    <h2>아인슈타인 학생 로그인</h2>
+    <p class="code-instructions">처음 이용할 때는 선생님이 발급한 <strong>개별 제출코드</strong>로 본인 확인 후 비밀번호를 설정합니다. 이후에는 <strong>학번 + 본인이 정한 비밀번호</strong>만 입력하면 어느 기기에서나 이어서 작성할 수 있습니다.</p>
+    <div class="student-auth-tabs" role="group" aria-label="로그인 방식 선택">
+      <button type="button" id="studentFirstTab" class="student-auth-tab active" aria-pressed="true">처음 이용 · 제출코드</button>
+      <button type="button" id="studentReturnTab" class="student-auth-tab" aria-pressed="false">다시 로그인 · 비밀번호</button>
+    </div>
+    <div id="studentFirstLogin">
+      <label for="studentLoginCode" class="student-auth-label">학생 개별 제출코드</label>
+      <div class="student-login-controls"><div class="student-login-code-wrap"><input type="password" id="studentLoginCode" placeholder="개별 제출코드 입력" autocomplete="off" spellcheck="false"/><button type="button" class="toggle-code" id="studentShowCode" aria-controls="studentLoginCode" aria-pressed="false" aria-label="제출코드 보기">👁 보기</button></div><button type="button" id="studentLoginBtn">코드 확인</button></div>
+      <div id="studentPasswordSetup" class="student-password-setup" hidden>
+        <strong id="studentVerifiedName"></strong>
+        <p class="hint">처음 사용할 비밀번호를 설정하세요. 이후 학교·집·휴대폰 어디서나 학번과 비밀번호로 로그인합니다.</p>
+        <label for="studentNewPassword">새 비밀번호 (8자 이상, 문자 + 숫자)</label>
+        <div class="password-entry"><input type="password" id="studentNewPassword" autocomplete="new-password" placeholder="8자 이상 문자와 숫자"/><button type="button" id="studentShowNewPassword" class="password-view-button">보기</button></div>
+        <label for="studentConfirmPassword">비밀번호 다시 입력</label>
+        <input type="password" id="studentConfirmPassword" autocomplete="new-password" placeholder="동일한 비밀번호 재입력"/>
+        <button type="button" id="studentSetPasswordBtn" class="student-primary-auth">비밀번호 설정하고 시작하기</button>
+      </div>
+    </div>
+    <div id="studentReturningLogin" hidden>
+      <label for="studentLoginId" class="student-auth-label">학번 (5자리)</label>
+      <input type="text" inputmode="numeric" autocomplete="username" maxlength="5" pattern="[0-9]*" id="studentLoginId" placeholder="예: 10000"/>
+      <label for="studentLoginPassword" class="student-auth-label">내 비밀번호</label>
+      <div class="password-entry"><input type="password" id="studentLoginPassword" autocomplete="current-password" placeholder="내가 설정한 비밀번호"/><button type="button" id="studentShowLoginPassword" class="password-view-button">보기</button></div>
+      <button type="button" id="studentPasswordLoginBtn" class="student-primary-auth">학번·비밀번호로 로그인</button>
+      <p class="student-login-note">비밀번호를 잊었다면 담당 교사에게 초기화를 요청하세요. 기존 작성 기록과 제출자료는 삭제되지 않습니다.</p>
+    </div>
     <p class="student-login-feedback" id="studentLoginFeedback" role="status" aria-live="polite"></p>
-    <p class="student-login-note">학번과 이름은 서버의 등록 명단에서 확인합니다. 코드가 없거나 틀리면 담당 교사에게 문의하세요.<br>작성한 내용은 입력 후 잠시 지나면 교사용 Google Drive에 자동저장됩니다. <strong>같은 코드로 다른 기기에서 이어 작성</strong>할 수 있습니다. 여러 창에서 동시에 작성하지 마세요. 최종 제출 후에도 12월 6일 23:59까지 수정·재제출할 수 있습니다.</p>
+    <p class="student-login-note">비밀번호는 다른 학생과 공유하지 마세요. 작성 내용은 서버 자동저장 후 다른 컴퓨터에서도 불러올 수 있습니다. <strong>12월 6일 23:59</strong>까지 수정·제출할 수 있습니다.</p>
   </section>
   <section id="studentDeadlineNotice" class="student-login-card student-deadline-card" hidden aria-live="polite" role="status">
     <div class="deadline-mark" aria-hidden="true">!</div>
@@ -44,7 +67,7 @@
 </div>
 <div id="printRoot" class="print-root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-login-deadline-v13.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
+<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-password-auth-v14.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-diagnostics.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-main-v12.js?v=20261028r4" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 </body>
