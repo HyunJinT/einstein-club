@@ -45,6 +45,18 @@ window.__einsteinPosterCapsV7={limits,sharedGroups,effectiveCap,sharedOverflow,r
 
 const photos={method:[],result:[]};
 try{const z=JSON.parse(localStorage.getItem(K)||'{}');for(const k of ['method','result']){if(Array.isArray(z[k]))photos[k]=z[k].slice(0,MAX);if(validPhotoSizes.includes(z._sizes?.[k]))photoSizes[k]=z._sizes[k];}}catch(e){}
+// Filled sections start expanded after reload/import; empty sections start collapsed.
+const editSections=[...document.querySelectorAll('#editor details.section')];
+function hasSectionContent(section){
+ return [...section.querySelectorAll('[data-key]')].some(el=>String(el.value||'').trim())||
+   (!!section.querySelector('#methodImage')&&photos.method.length>0)||
+   (!!section.querySelector('#resultImage')&&photos.result.length>0);
+}
+function syncSectionsFromContent(){editSections.forEach(section=>{section.open=!!hasSectionContent(section);});}
+syncSectionsFromContent();
+editSections.forEach(section=>section.addEventListener('input',event=>{
+ if(event.target.matches('[data-key]')&&String(event.target.value||'').trim())section.open=true;
+}));
 let busy=false,lastWarning='',paintQueued=false,sequence=0;
 function pickPhotos(k){return photos[k]||[];}
 function collect(){let x={};document.querySelectorAll('[data-key]').forEach(el=>x[el.dataset.key]=el.value||'');return x;}
@@ -87,12 +99,7 @@ for(const [kind,id,,listId] of imageInputs){
  input.multiple=true;input.accept='image/png,image/jpeg,image/webp';
  let list=$(listId);if(!list){list=document.createElement('div');list.className='photo-editor-list';list.id=listId;input.after(list);}
  const title=input.closest('.field')?.querySelector('label');if(title)title.textContent=(kind==='method'?'실험 과정 사진':'실험 결과 사진')+' (최대 3장)';
- const hint=document.createElement('p');hint.className='hint';hint.textContent='사진을 추가하면 자동 배열됩니다. 위·아래 버튼으로 순서를 바꾸고 30자 이내 설명을 적으세요. 사진 1장당 최대 3MB(자동 압축).';list.before(hint);
-  const sizeControl=document.createElement('div');sizeControl.className='photo-display-size';
-  sizeControl.innerHTML='<label for="'+id+'Size">포스터 사진 표시 크기</label><select id="'+id+'Size" aria-label="'+(kind==='method'?'실험 과정':'실험 결과')+' 사진 크기"><option value="auto">자동 (권장)</option><option value="70">작게 (70%)</option><option value="85">보통 (85%)</option><option value="100">크게 (100%)</option></select>';
-  list.before(sizeControl);
-  const sizeSelect=sizeControl.querySelector('select');sizeSelect.value=photoSizes[kind];
-  sizeSelect.addEventListener('change',()=>{photoSizes[kind]=sizeSelect.value;persist();schedule();});
+ const hint=document.createElement('p');hint.className='hint';hint.textContent='사진은 원본 비율을 고려해 1px 간격으로 꽉 차게 배치됩니다. 비율은 유지하며 가장자리 일부가 잘릴 수 있습니다. 사진 1장당 최대 3MB.';list.before(hint);
  input.addEventListener('change',async e=>{
   e.preventDefault();e.stopImmediatePropagation();
   const current=pickPhotos(kind),files=[...input.files||[]],available=Math.max(0,MAX-current.length);
@@ -101,7 +108,7 @@ for(const [kind,id,,listId] of imageInputs){
    if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>3*1024*1024){alert('PNG/JPG/WebP 이미지이며 원본 3MB 이하여야 합니다: '+file.name);continue;}
    try{current.push({data:await compress(file),caption:''});}catch(err){alert('사진을 열 수 없습니다: '+file.name);}
   }
-  input.value='';persist();renderPhotoList(kind);schedule();
+  input.value='';persist();renderPhotoList(kind);if(current.length)input.closest('details.section').open=true;schedule();
  },true);
  list.addEventListener('input',e=>{const cap=e.target.closest('[data-photo-caption]');if(!cap)return;const p=pickPhotos(kind)[Number(cap.dataset.photoCaption)];if(p){p.caption=cap.value.slice(0,30);persist();schedule();}});
  list.addEventListener('click',e=>{
@@ -139,19 +146,27 @@ function renderPhotos(){
   // Replace the older single-photo rendering when its contents change.
   if(arr.length){
    if(box.dataset.photosV3!==signature||!box.querySelector('.poster-photo-grid')){
-    const grid=document.createElement('div');grid.className='poster-photo-grid';grid.style.setProperty('--picture-count',String(arr.length));grid.dataset.count=String(arr.length);
+    const grid=document.createElement('div');grid.className='poster-photo-grid';
+    grid.style.setProperty('--picture-count',String(arr.length));grid.dataset.count=String(arr.length);
+    const updateColumns=()=>{
+     const imgs=[...grid.querySelectorAll('img')];
+     if(imgs.length!==arr.length||imgs.some(img=>!img.naturalWidth||!img.naturalHeight))return;
+     const columns=imgs.map(img=>{
+      const ratio=img.naturalWidth/img.naturalHeight;
+      return 'minmax(0,'+Math.min(2.6,Math.max(.65,ratio)).toFixed(3)+'fr)';
+     }).join(' ');
+     if(grid.style.getPropertyValue('--tile-columns')!==columns)grid.style.setProperty('--tile-columns',columns);
+    };
     for(const p of arr){
      const item=document.createElement('div');item.className='poster-photo-item';
-     const img=document.createElement('img');img.src=p.data;img.alt=p.caption||'실험 사진';item.appendChild(img);
+     const img=document.createElement('img');img.alt=p.caption||'실험 사진';
+     img.addEventListener('load',updateColumns,{once:true});img.src=p.data;item.appendChild(img);
      if(p.caption){const caption=document.createElement('small');caption.textContent=p.caption;item.appendChild(caption);}
      grid.appendChild(item);
     }
     box.replaceChildren(grid);box.dataset.photosV3=signature;
+    updateColumns();
    }
-   const grid=box.querySelector('.poster-photo-grid');
-   const autoSize=arr.length===1?(kind==='result'?70:85):100;
-   const photoSize=photoSizes[kind]==='auto'?autoSize:Number(photoSizes[kind]);
-   if(grid&&grid.style.getPropertyValue('--photo-percent')!==photoSize+'%')grid.style.setProperty('--photo-percent',photoSize+'%');
   }else{
    if(box.querySelector('.poster-photo-grid')){const text=document.createElement('span');text.textContent=(kind==='method'?'실험 과정 사진':'실험 결과 사진')+' (선택)';box.replaceChildren(text);}
    box.dataset.photosV3='';
@@ -337,7 +352,7 @@ const importEl=$('loadJsonFile');if(importEl)importEl.addEventListener('change',
    const old=(obj.images||{})[kind+'Image'];if(!photos[kind].length&&typeof old==='string'&&old.startsWith('data:image/'))photos[kind]=[{data:old,caption:''}];
    renderPhotoList(kind);
   }
-  persist();schedule();
+  syncSectionsFromContent();persist();schedule();
  }catch(err){alert('작업 불러오기 실패: '+err.message);}finally{importEl.value='';}
 },true);
 window.__einsteinPosterV3={collect,photos,photoSizes,reflow,exportReady,download};
