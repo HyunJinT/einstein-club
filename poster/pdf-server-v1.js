@@ -190,7 +190,18 @@ serverButton.addEventListener('click',async e=>{
   if(!result?.posterId)throw Error('서버가 포스터 등록번호를 반환하지 않았습니다.');
   progress('✅ 서버 등록 완료! 포스터 번호: '+result.posterId+' · 연구자 '+team.map(m=>m.studentId).join(', ')+'에게 연결되었습니다.');
   alert('학교 서버에 고화질 PDF가 등록됐습니다. 연구자 '+team.length+'명이 학생용 앱에서 확인할 수 있습니다.');
- }catch(err){console.error(err);progress('서버 업로드 실패: '+err.message,true);alert('서버 업로드가 완료되지 않았습니다.\n'+err.message+'\nApps Script 포스터 업로드 기능 배포 여부를 확인하세요.');}
+ }catch(err){
+   console.error(err);
+   const message=String(err?.message||err);
+   const badLogin=/학번 또는 비밀번호|비밀번호가 올바르지|로그인 시도가 많아|비밀번호.*차단|학번과 비밀번호를 확인/.test(message);
+   if(badLogin){
+     progress('학생 인증 실패: '+message,true);
+     alert('학생 인증에 실패했습니다.\n'+message+'\n학번과 활동기록 앱 비밀번호를 다시 확인해 주세요.');
+   }else{
+     progress('서버 업로드 실패: '+message,true);
+     alert('서버 업로드가 완료되지 않았습니다.\n'+message+'\nApps Script 포스터 업로드 기능 배포 여부를 확인하세요.');
+   }
+ }
  finally{login.password='';loading(false);}
 },true);
 })();
