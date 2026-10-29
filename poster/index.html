@@ -71,7 +71,7 @@
 </header>
 <div class="workspace">
  <aside class="editor" id="editor">
-  <div class="intro"><div class="eyebrow">POSTER MAKER · 2026</div><h1>연구를 포스터로 완성하세요</h1><p>왼쪽에 연구 내용을 입력하면 오른쪽에 A1 세로형 포스터가 자동으로 완성됩니다. 완성 후 상단 메뉴에서 PDF를 저장하거나 모둠 대표가 서버에 등록할 수 있습니다.</p></div>
+  <div class="intro"><div class="eyebrow">POSTER MAKER · 2026</div><h1>연구를 포스터로 완성하세요</h1><p><strong>모둠 대표 학생 한 명만</strong> 이 제작실에서 포스터를 완성하면 됩니다. 왼쪽에 연구 내용을 입력해 완성한 뒤, 상단의 <strong>☁ 서버에 업로드하기</strong>를 눌러 등록하세요. 다른 모둠원은 동아리 활동 기록 앱에서 자기 포스터를 확인하고 최종 제출하면 됩니다.</p></div>
   <div id="einsteinPosterUploadStatus" class="upload-status" role="status" aria-live="polite" hidden></div>
   <details class="section" open><summary><span class="number">01</span> 연구 기본 정보</summary><div class="section-body">
    <div class="field"><label for="title">연구제목 *</label><input id="title" data-key="title" placeholder="예: 과산화수소 농도가 효모 생존에 미치는 영향" maxlength="48"></div>
@@ -111,7 +111,7 @@
    <div class="field"><label>참고문헌</label><textarea data-key="references" maxlength="48" rows="3" placeholder="저자(연도), 제목, 출처 또는 URL. 생성형 AI 사용 시 활용 범위를 기재"></textarea></div>
    <div class="field"><label>연구자별 실제 역할</label><textarea data-key="contributions" maxlength="48" rows="3" placeholder="20111 김가영: 실험 설계·데이터 분석\n20112 홍길동: 반복 실험·사진 기록"></textarea></div>
   </div></details>
-  <div class="editnote"><strong>제작·제출 안내</strong><br>• 연구포스터는 모둠별 1개를 제작하면 됩니다. 포스터 제작이 필요 없는 학생은 이 앱을 이용하지 않아도 됩니다.<br>• 입력 내용은 이 브라우저에 임시저장됩니다. 다른 컴퓨터에서 이어서 작업하려면 <strong>작업 백업</strong> 파일을 옮겨 불러오세요.<br>• PDF 버튼은 인쇄 창 없이 A1 세로형 고화질 PDF를 내려받습니다. ‘서버에 업로드하기’는 학생 인증 후 학교 서버의 저장 완료 응답을 확인합니다.<br>• 서버에 등록된 모둠 포스터는 연구자 각자의 <strong>동아리 활동 기록 앱</strong>에서 '내 모둠 연구포스터'로 확인할 수 있습니다. 개인 보고서 제출은 별도로 진행합니다.</div>
+  <div class="editnote"><strong>제작·제출 안내</strong><br>• 모둠 대표 1명만 포스터 1개를 만들고 서버에 올리면 됩니다. 연구자 목록에 <strong>함께 참여한 학생들의 학번과 이름을 정확하게 입력</strong>하세요. 다른 학생들은 포스터 제작실을 이용하거나 PDF를 다시 업로드할 필요가 없습니다.<br>• 입력 내용은 이 브라우저에 임시저장됩니다. 다른 컴퓨터에서 이어서 작업하려면 <strong>작업 백업</strong> 파일을 옮겨 불러오세요.<br>• PDF 버튼은 인쇄 창 없이 A1 세로형 고화질 PDF를 내려받습니다. ‘서버에 업로드하기’는 학생 인증 후 학교 서버의 저장 완료 응답을 확인합니다.<br>• 대표가 서버 등록 완료 응답을 확인하면 제작 작업은 끝입니다. 연구자 각자는 <strong>동아리 활동 기록 앱</strong> 마지막 단계에서 포스터를 확인·연결하고, <strong>개인 최종보고서 1개 이상</strong>을 첨부한 뒤 접수번호가 나올 때까지 최종 제출합니다.</div>
  </aside>
  <div class="preview-area"><div class="preview-head"><div><h2>포스터 미리보기</h2><p>작성 중인 내용을 그대로 반영합니다. 색상과 구조는 기본 양식으로 고정되어 있어요.</p></div></div>
   <div class="poster-frame"><div class="poster-shell" id="posterShell"><section class="poster" id="posterCanvas">
