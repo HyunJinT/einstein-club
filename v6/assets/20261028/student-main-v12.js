@@ -287,8 +287,8 @@ function submitPanel(){
  <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 인증한 코드로 제출합니다.${lastReceipt?`<br>기존 접수번호: <code>${esc(lastReceipt)}</code> · 이번에는 수정본을 제출합니다.`:""}</div>
 
  ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>${lastFiles.some(f=>f.kind==='report')?`<div class="existing-upload-group"><strong>이미 제출한 보고서</strong><p class="hint">파일을 열어 확인하거나 ×로 다음 수정 제출에서 제외할 수 있습니다.</p>${submittedFileCards('report')}</div>`:'' }`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
- ${field('모둠별 탐구포스터',`<div id="einsteinSharedPosterMount" style="margin:14px 0"></div><div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">대표 학생이 포스터를 서버에 등록했다면 아래 ‘내 포스터가 맞아요’를 누르세요. 모둠별 탐구포스터에 자동 첨부되므로 파일을 다시 선택할 필요가 없습니다.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div>
-${confirmedSharedPosterIds.length&&!lastFiles.some(f=>f.kind==='poster')?`<div class="highlight-box" style="margin:8px 0;background:#fff8e8;border:1px solid #efd8a6">확인한 모둠 포스터 ${confirmedSharedPosterIds.length}개가 있습니다. 아직 '제출된 첨부파일'에 표시되지 않는다면 위에서 <strong>모둠별 탐구포스터에 다시 연결</strong>을 눌러주세요. 서버 등록 완료 응답이 있어야 첨부가 확정됩니다.</div>`:''}
+ ${field('모둠별 탐구포스터',`<div id="einsteinSharedPosterMount" style="margin:14px 0"></div><div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">대표 학생이 포스터를 등록했다면 아래 ‘내 포스터가 맞아요’를 누르세요. 이 단계에서는 팝업 없이 본인 확인을 저장하고 자동 연결을 시도합니다. 최종 제출할 때 첨부 여부를 다시 확인합니다.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div>
+${confirmedSharedPosterIds.length&&!lastFiles.some(f=>f.kind==='poster')?`<div class="highlight-box" style="margin:8px 0;background:#fff8e8;border:1px solid #efd8a6">확인한 모둠 포스터 ${confirmedSharedPosterIds.length}개가 있습니다. <strong>모든 자료 최종 제출하기</strong>를 누르면 서버에서 포스터 자동 첨부를 확인합니다. 서버 업데이트가 필요한 경우에는 이 마지막 단계에서만 안내합니다.</div>`:''}
 ${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>✅ 실제 서버 제출 목록에 등록된 포스터</strong>${submittedFileCards('poster')}</div>`:''}
 <details class="manual-poster-upload" style="margin-top:11px;border:1px solid #d8e7ec;border-radius:10px;padding:10px 12px" ${uploadFiles.poster.length?'open':''}><summary style="cursor:pointer;font-weight:700;color:#236979">＋ 다른 포스터를 직접 첨부하기 (선택)</summary><p class="hint">이미 제작 앱에서 등록·연결된 포스터는 다시 선택할 필요가 없습니다.</p><input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div></details>`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
@@ -358,7 +358,16 @@ async function submitApp(){
   // Server maintains earlier file links; relogin will refresh metadata.
   safeRemove(STORAGE_KEY);
   render();notify('접수되었습니다. 마감 전까지 수정해 다시 제출할 수 있습니다.');
- }catch(e){console.error(e);setSubmitProgress('제출 실패: '+e.message+' · 실패했을 때는 바로 다시 제출하지 말고 담당 교사에게 접수 상태를 확인하세요.');}
+ }catch(e){
+  console.error(e);
+  const message=String(e?.message||e);
+  setSubmitProgress('제출 실패: '+message+' · 실패했을 때는 바로 다시 제출하지 말고 담당 교사에게 접수 상태를 확인하세요.');
+  // 상단 팝업은 '최종 제출하기' 과정에서 V18 자동 첨부가 불가능할 때만 표시
+  if(confirmedSharedPosterIds.length &&
+    /Script function not found|not found|찾을 수 없|is not a function|beginEinsteinSubmissionV18/i.test(message)){
+    window.alert('모둠별 탐구포스터 자동 첨부 서버가 아직 준비되지 않았습니다.\\n\\n담당 교사에게 V18 서버의 새 버전 배포를 요청해 주세요.\\n기존 포스터 PDF와 개인 보고서는 삭제되지 않았습니다.');
+  }
+ }
  finally{submitBusy=false;if(submitReceipt)scheduleServerSave();const b=$('submitAppBtn');if(b)b.disabled=false;}
 }
 function render(){clearTimeout(navRefreshTimer);if(!state.projects.some(p=>p.id===activeProjectId))activeProjectId=state.projects[0].id;renderNav();$('stepContent').innerHTML=[step0,step1,step2,step3,step4][step]();window.dispatchEvent(new Event('einstein:step-rendered'));}
