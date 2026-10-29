@@ -9,7 +9,7 @@
 *{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:wait;opacity:.55}
 .appbar{min-height:70px;height:auto;background:#162e49;color:white;display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:10;box-shadow:0 3px 15px #18324817}
 .appbar .mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(130deg,#36adbe,#1f8d86);font-size:24px}
-.appbar .heading{display:flex;flex-direction:column;gap:3px}.appbar strong{font-size:15px}.appbar small{color:#b7d8df;font-size:11px}.appbar .top-actions{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:7px}.appbar .top-actions .btn{font-size:11px;min-height:34px;padding:7px 10px;border-radius:8px;white-space:nowrap}.appbar .top-actions .btn.primary{background:#1a929b;border-color:#1a929b;color:#fff}.appbar .top-actions .btn.dark{background:#244b68;border-color:#496c82;color:#fff}.appbar .top-actions .btn.soft{background:#eaf5f7;border-color:#d1e6e9;color:#184d61}.upload-status{border:1px solid #c9e3e1;background:#f1faf8;padding:10px 12px;margin:0 0 14px;border-radius:10px;font-size:12px;line-height:1.6;color:#22616a;overflow-wrap:anywhere}.upload-status[hidden]{display:none!important}
+.appbar .heading{display:flex;flex-direction:column;gap:3px}.appbar strong{font-size:15px}.appbar small{color:#b7d8df;font-size:11px}.appbar .top-actions{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:7px}.appbar .top-actions .btn{font-size:11px;min-height:34px;padding:7px 10px;border-radius:8px;white-space:nowrap}.appbar .top-actions .btn.primary{background:#1a929b;border-color:#1a929b;color:#fff}.appbar .top-actions .btn.dark{background:#244b68;border-color:#496c82;color:#fff}.appbar .top-actions .btn.soft{background:#eaf5f7;border-color:#d1e6e9;color:#184d61}.appbar .top-actions .btn.danger{background:#d93643;border:1px solid #d93643;color:#fff;font-weight:850}.appbar .top-actions .btn.danger:hover{background:#b92231;border-color:#b92231}.appbar .top-actions .btn.danger:focus-visible{outline:3px solid #ffb6bd;outline-offset:2px}.upload-status{border:1px solid #c9e3e1;background:#f1faf8;padding:10px 12px;margin:0 0 14px;border-radius:10px;font-size:12px;line-height:1.6;color:#22616a;overflow-wrap:anywhere}.upload-status[hidden]{display:none!important}
 .workspace{display:grid;grid-template-columns:minmax(360px,435px) minmax(0,1fr);min-height:calc(100vh - 66px)}
 .editor{background:#fff;border-right:1px solid #dae6ee;padding:20px 19px 80px;max-height:calc(100vh - 66px);overflow-y:auto}
 .intro{padding:19px;border-radius:15px;background:#eaf7f5;border:1px solid #c3e4e1;margin-bottom:18px}
@@ -65,6 +65,7 @@
   <button class="btn dark" id="saveJson" type="button">⇩ 작업 백업</button>
   <button class="btn soft" id="loadJson" type="button">⇧ 작업 불러오기</button>
   <a class="btn soft" href="https://script.google.com/macros/s/AKfycbwcgV5NXm75aETWnzJpGCtLfihfb4i4mQGfB_0Ext5s4Zq2quWzHoRl8TqIv38LVGMWuA/exec" target="_blank" rel="noopener noreferrer" style="text-decoration:none">↗ 동아리 활동 기록 앱 열기</a>
+  <button class="btn danger" id="resetPoster" type="button" title="현재 포스터 작성 내용 전체 초기화">↺ 초기화</button>
   <input type="file" id="loadJsonFile" accept=".json,application/json" hidden>
  </nav>
 </header>
@@ -156,6 +157,18 @@ function init(){try{model=JSON.parse(localStorage.getItem(STORAGE)||'{}')||{};im
  $('methodImage').addEventListener('change',e=>importPhoto(e,'methodImage'));$('resultImage').addEventListener('change',e=>importPhoto(e,'resultImage'));
  $('saveJson').onclick=saveJson;$('loadJson').onclick=()=>$('loadJsonFile').click();$('loadJsonFile').addEventListener('change',loadJson);
  $('savePdf').onclick=()=>{render();toast('인쇄 창에서 대상을 PDF로 저장으로 선택하세요.');setTimeout(()=>window.print(),80)};
+ $('resetPoster').addEventListener('click',()=>{
+   const confirmed=window.confirm('초기화하시겠습니까?\n\n모든 데이터가 삭제됩니다.\n현재 브라우저의 작성 내용, 사진, 그래프 설정은 복구할 수 없습니다.\n(이미 서버에 제출한 포스터와 다운로드한 백업 파일은 삭제되지 않습니다.)');
+   if(!confirmed)return;
+   clearTimeout(timer);
+   try{
+     ['einstein_poster_draft_v1','einstein_poster_photos_v3','einstein_poster_graph_options_v4'].forEach(key=>localStorage.removeItem(key));
+   }catch(error){
+     alert('초기화 중 저장 데이터를 삭제하지 못했습니다. 브라우저 저장소 권한을 확인해 주세요.');
+     return;
+   }
+   window.location.reload();
+ });
  window.addEventListener('resize',resizePoster);render();resizePoster();}
 function changed(){clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(STORAGE,JSON.stringify({...model,images:Object.fromEntries(Object.entries(images).filter(([k,v])=>v&&v.length<800000))}));}catch(e){}},450);render();}
 function resizePoster(){const shell=$('posterShell');let w=shell.getBoundingClientRect().width;shell.style.height=(w*792/1120)+'px';$('posterCanvas').style.setProperty('--scale',String(w/1120));}
