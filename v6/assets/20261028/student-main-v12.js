@@ -365,7 +365,7 @@ async function submitApp(){
   // 상단 팝업은 '최종 제출하기' 과정에서 V18 자동 첨부가 불가능할 때만 표시
   if(confirmedSharedPosterIds.length &&
     /Script function not found|not found|찾을 수 없|is not a function|beginEinsteinSubmissionV18/i.test(message)){
-    window.alert('모둠별 탐구포스터 자동 첨부 서버가 아직 준비되지 않았습니다.\\n\\n담당 교사에게 V18 서버의 새 버전 배포를 요청해 주세요.\\n기존 포스터 PDF와 개인 보고서는 삭제되지 않았습니다.');
+    window.alert('모둠별 탐구포스터 자동 첨부 서버가 아직 준비되지 않았습니다.\n\n담당 교사에게 V18 서버의 새 버전 배포를 요청해 주세요.\n기존 포스터 PDF와 개인 보고서는 삭제되지 않았습니다.');
   }
  }
  finally{submitBusy=false;if(submitReceipt)scheduleServerSave();const b=$('submitAppBtn');if(b)b.disabled=false;}
