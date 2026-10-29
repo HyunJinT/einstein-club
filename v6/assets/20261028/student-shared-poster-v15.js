@@ -6,7 +6,13 @@ function call(name,...args){
  return new Promise((resolve,reject)=>{
   if(typeof google==='undefined'||!google.script?.run){reject(Error('학생용 Apps Script에서 접속해 주세요.'));return;}
   const req=google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(Error(e?.message||String(e))));
-  req[name](...args);
+  if(typeof req[name]!=='function'){
+    reject(Error(name==='confirmAndAttachEinsteinPosterV18'
+      ? '자동 첨부 서버 기능(V18)이 현재 웹앱 배포에 없습니다. Apps Script에서 EinsteinSharedPosterLinkV18.gs 파일을 추가하고 기존 배포를 새 버전으로 업데이트해 주세요.'
+      : '서버에 필요한 함수('+name+')가 배포되지 않았습니다. 담당 교사에게 알려주세요.'));
+    return;
+  }
+  try{req[name](...args);}catch(e){reject(Error(e?.message||String(e)));}
  });
 }
 function box(){
@@ -81,7 +87,7 @@ document.addEventListener('click',async e=>{
   const el=byId('einsteinLinkedPostersV15');
   if(el){const t=document.createElement('p');t.setAttribute('role','status');t.style.cssText='color:#187268;font-size:12px;font-weight:700';t.textContent='✅ '+(result.message||'자동 첨부 상태가 저장되었습니다.');el.prepend(t);}
  }
- catch(err){alert('모둠별 탐구포스터 자동 첨부 실패: '+err.message+'\n서버 추가 코드 V18 배포 여부를 확인해 주세요.');}
+ catch(err){alert('모둠별 탐구포스터 자동 첨부 실패\n\n'+err.message+'\n\n포스터 PDF 원본과 기존 보고서는 그대로 보존됩니다.');}
  finally{b.disabled=false;}
 });
 window.addEventListener('einstein:step-rendered',()=>{if(!student)return;box();if(byId('einsteinSharedPosterMount'))refresh();});
