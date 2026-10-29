@@ -14,6 +14,7 @@ let verifiedStudent=null;
 let serverRevision=0,saveTimer=null,saveInFlight=false,saveAgain=false,changeCounter=0,saveError=false;
 let lastReceipt='',lastFiles=[],serverEditAllowed=true,lastServerSavedAt='',editingAfterSubmit=false;
 let confirmedSharedPosterIds=[];
+let confirmedSharedPosterCardsData=[];
 function statusText(message,isError){
  const el=$('serverSaveStatus');if(!el)return;
  el.textContent=message;el.style.color=isError?'#a53435':'#24646c';
@@ -259,11 +260,23 @@ async function openSubmittedUpload(url){
 }
 
 window.addEventListener('einstein:shared-posters-updated',function(e){
- const ids=(Array.isArray(e.detail)?e.detail:[]).filter(x=>x&&x.confirmed).map(x=>String(x.posterId)).sort();
- if(ids.join('|')===confirmedSharedPosterIds.join('|'))return;
- confirmedSharedPosterIds=ids;
+ const data=(Array.isArray(e.detail)?e.detail:[])
+   .filter(x=>x&&x.confirmed)
+   .map(x=>({id:String(x.posterId||''),title:String(x.title||'모둠 연구포스터')}));
+ const newKey=JSON.stringify(data);
+ const oldKey=JSON.stringify(confirmedSharedPosterCardsData);
+ if(newKey===oldKey)return;
+ confirmedSharedPosterCardsData=data;
+ confirmedSharedPosterIds=data.map(x=>x.id).sort();
  if(verifiedStudent&&step===4&&!submitBusy)render();
 });
+function confirmedSharedPosterPreviewCards(){
+ // 이 목록은 접수된 제출파일이 아니라 서버에 등록되고 본인확인된 포스터입니다.
+ // 실제 접수된 파일은 lastFiles에 존재할 때만 '제출됨'으로 표시합니다.
+ return confirmedSharedPosterCardsData.map(x=>
+  '<div class="existing-upload"><span class="existing-file-open" style="cursor:default;pointer-events:none;text-align:left">📎 [모둠포스터] '+esc(x.title)+'</span><span class="hint" style="font-weight:700;color:#995c18">본인 확인됨 · 첨부 확인 전</span></div>'
+ ).join('');
+}
 window.addEventListener('einstein:shared-poster-synced',function(e){
  const result=e.detail;
  if(result&&Array.isArray(result.submittedFiles)){
@@ -287,10 +300,12 @@ function submitPanel(){
  <div class="highlight-box">✓ 인증된 학생: <strong>${esc(state.studentId)} ${esc(state.name)}</strong><br>첫 화면에서 인증한 코드로 제출합니다.${lastReceipt?`<br>기존 접수번호: <code>${esc(lastReceipt)}</code> · 이번에는 수정본을 제출합니다.`:""}</div>
 
  ${field('개인 최종보고서',`<input type="file" id="reportFiles" class="text-input" multiple accept=".pdf,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg"/><div id="selectedReports">${fileList('report')}</div>${lastFiles.some(f=>f.kind==='report')?`<div class="existing-upload-group"><strong>이미 제출한 보고서</strong><p class="hint">파일을 열어 확인하거나 ×로 다음 수정 제출에서 제외할 수 있습니다.</p>${submittedFileCards('report')}</div>`:'' }`,{required:true,hint:'학생 개인별 1개 이상, 최대 10개 / 파일당 15MB 이하. PDF 활동 기록은 선택적으로 함께 첨부할 수 있습니다.'})}
- ${field('모둠별 탐구포스터',`<div id="einsteinSharedPosterMount" style="margin:14px 0"></div><div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">대표 학생이 포스터를 등록했다면 아래 ‘내 포스터가 맞아요’를 누르세요. 이 단계에서는 팝업 없이 본인 확인을 저장하고 자동 연결을 시도합니다. 최종 제출할 때 첨부 여부를 다시 확인합니다.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div>
-${confirmedSharedPosterIds.length&&!lastFiles.some(f=>f.kind==='poster')?`<div class="highlight-box" style="margin:8px 0;background:#fff8e8;border:1px solid #efd8a6">확인한 모둠 포스터 ${confirmedSharedPosterIds.length}개가 있습니다. <strong>모든 자료 최종 제출하기</strong>를 누르면 서버에서 포스터 자동 첨부를 확인합니다. 서버 업데이트가 필요한 경우에는 이 마지막 단계에서만 안내합니다.</div>`:''}
-${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>✅ 실제 서버 제출 목록에 등록된 포스터</strong>${submittedFileCards('poster')}</div>`:''}
-<details class="manual-poster-upload" style="margin-top:11px;border:1px solid #d8e7ec;border-radius:10px;padding:10px 12px" ${uploadFiles.poster.length?'open':''}><summary style="cursor:pointer;font-weight:700;color:#236979">＋ 다른 포스터를 직접 첨부하기 (선택)</summary><p class="hint">이미 제작 앱에서 등록·연결된 포스터는 다시 선택할 필요가 없습니다.</p><input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div></details>`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
+ ${field('모둠별 탐구포스터',`
+ ${lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>✅ 이미 제출된 포스터 첨부파일</strong><p class="hint">개인 최종보고서와 동일하게 실제 서버 제출 목록에 등록된 파일입니다. 파일명을 눌러 열어볼 수 있습니다.</p>${submittedFileCards('poster')}</div>`:''}
+ ${confirmedSharedPosterIds.length&&!lastFiles.some(f=>f.kind==='poster')?`<div class="existing-upload-group"><strong>📎 확인한 모둠 연구포스터 · 최종 제출 전</strong><p class="hint">아래 파일은 본인 확인을 마친 포스터이며 <strong>아직 서버의 최종 제출 첨부파일 목록에 등록된 것은 아닙니다.</strong> 포스터 영역에서 '내 제출 서류에 포함하기'를 누르거나 모든 자료 최종 제출 시 연결됩니다. 접수번호와 제출된 첨부파일 목록이 표시되어야 제출 완료입니다.</p>${confirmedSharedPosterPreviewCards()}</div>`:''}
+ <div id="einsteinSharedPosterMount" style="margin:14px 0"></div>
+ <div class="info-box" style="margin:0 0 12px;padding:12px;background:#f3faf9;border:1px solid #cde7e5;border-radius:10px"><strong>소논문형 연구포스터 제작 도우미</strong><p class="hint" style="margin:6px 0">대표가 등록한 모둠 포스터를 확인하고 <strong>내 제출 서류에 포함하기</strong>를 누르세요. 연결에 성공하면 위에 실제 서버 첨부파일이 표시됩니다. 최종 제출 전이라면 '본인 확인됨'으로만 표시합니다.</p><a href="https://hyunjint.github.io/einstein-club/poster/" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-weight:750;color:#137a87;text-decoration:underline;padding:7px 0">↗ 아인슈타인 포스터 제작 앱 열기</a></div>
+ <details class="manual-poster-upload" style="margin-top:11px;border:1px solid #d8e7ec;border-radius:10px;padding:10px 12px" ${uploadFiles.poster.length?'open':''}><summary style="cursor:pointer;font-weight:700;color:#236979">＋ 다른 포스터를 직접 첨부하기 (선택)</summary><p class="hint">이미 제작 앱에서 등록하고 확인한 포스터는 중복으로 선택할 필요가 없습니다.</p><input type="file" id="posterFiles" class="text-input" multiple accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg"/><div id="selectedPosters">${fileList('poster')}</div></details>`,{required:leader,hint:leader?'조장 필수: 포스터 1개 이상, 최대 5개까지 보관할 수 있습니다.':'조장이 아니면 선택 제출할 수 있습니다.'})}
  <div class="hint">한 번에 최대 40MB까지 제출하도록 제한했습니다. 큰 파일은 PDF로 압축하여 제출하세요. 학교 계정·교사 관리 환경에서만 사용하세요.</div>
  <div class="section-actions"><button class="btn primary" id="submitAppBtn" ${!IN_GAS||submitBusy?'disabled':''}>${submitBusy?'서버에 제출 중…':'✓ 모든 자료 최종 제출하기'}</button></div>
  <div id="submitProgress" class="hint" role="status" aria-live="polite"></div>
