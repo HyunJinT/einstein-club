@@ -42,7 +42,7 @@ async function refresh(){
   window.dispatchEvent(new CustomEvent('einstein:shared-posters-updated',{detail:list}));
   if(!list.length){el.innerHTML='<strong>🔬 서버에 자동 등록된 모둠 포스터</strong><p style="font-size:12px;line-height:1.7;color:#55707c">아직 연결된 포스터가 없습니다. 대표가 서버 등록을 마쳤다면 잠시 후 다시 확인해 주세요.</p><button type="button" data-poster-refresh style="padding:7px 10px;border:1px solid #bbdcdc;border-radius:8px;background:#fff;color:#296b70">다시 확인</button>';return;}
   el.style.display='block';
-  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>🔬 내 모둠 연구포스터</strong><button type="button" data-poster-refresh style="padding:7px 10px;border:1px solid #bbdcdc;border-radius:8px;background:#fff;color:#296b70">다시 확인</button></div><p style="font-size:12px;color:#55707c">모둠 대표가 등록한 포스터입니다. 파일을 읽고 내 포스터가 맞는지 선택하세요. 개인 최종보고서 제출은 별도로 해야 합니다.</p>'+list.map(x=>'<div style="background:white;border:1px solid #d5e6ea;border-radius:11px;padding:12px;margin:9px 0" data-poster-id="'+escapeText(x.posterId)+'"><strong>'+escapeText(x.title)+'</strong><p style="font-size:12px;color:#5d7582;line-height:1.6;margin:6px 0">연구자: '+x.members.map(m=>escapeText(m.studentId)+' '+escapeText(m.name)).join(', ')+'</p><p style="font-size:11px;color:#5d7582;margin:6px 0">확인 상태: '+(x.confirmed?'✅ 내 포스터 확인 완료':x.rejected?'❌ 잘못 연결됨':'확인 전')+'</p><div style="display:flex;gap:7px;flex-wrap:wrap"><button type="button" data-poster-open="'+escapeText(x.posterId)+'" style="background:#286980;color:white;border:0;border-radius:8px;padding:9px 11px">PDF 열어보기</button><button type="button" data-poster-yes="'+escapeText(x.posterId)+'" style="background:#17837c;color:white;border:0;border-radius:8px;padding:9px 11px">'+(x.confirmed?'모둠별 탐구포스터에 다시 연결':'내 포스터가 맞아요 · 자동 첨부')+'</button><button type="button" data-poster-no="'+escapeText(x.posterId)+'" style="background:#eff3f5;color:#546777;border:1px solid #ccdbe3;border-radius:8px;padding:9px 11px">제 것이 아니에요</button></div></div>').join('');
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>🔬 내 모둠 연구포스터</strong><button type="button" data-poster-refresh style="padding:7px 10px;border:1px solid #bbdcdc;border-radius:8px;background:#fff;color:#296b70">다시 확인</button></div><p style="font-size:12px;color:#55707c">모둠 대표가 서버에 등록한 포스터입니다. PDF를 확인한 다음 내 제출 서류에 포함하세요. <strong>모든 자료 최종 제출하기</strong>까지 완료해야 최종 접수됩니다.</p>'+list.map(x=>'<div style="background:white;border:1px solid #d5e6ea;border-radius:11px;padding:12px;margin:9px 0" data-poster-id="'+escapeText(x.posterId)+'"><strong>'+escapeText(x.title)+'</strong><p style="font-size:12px;color:#5d7582;line-height:1.6;margin:6px 0">연구자: '+x.members.map(m=>escapeText(m.studentId)+' '+escapeText(m.name)).join(', ')+'</p><p style="font-size:11px;color:#5d7582;margin:6px 0">확인 상태: '+(x.confirmed?'✅ 내 포스터 확인 완료 · 최종 제출/첨부 여부는 아래 목록 확인':x.rejected?'❌ 내 포스터가 아님':'⏳ 확인 전')+'</p><div style="display:flex;gap:7px;flex-wrap:wrap"><button type="button" data-poster-open="'+escapeText(x.posterId)+'" style="background:#286980;color:white;border:0;border-radius:8px;padding:9px 11px">PDF 열어보기</button><button type="button" data-poster-yes="'+escapeText(x.posterId)+'" style="background:#17837c;color:white;border:0;border-radius:8px;padding:9px 11px">'+(x.confirmed?'📎 내 제출 서류에 포함하기':'내 포스터가 맞아요 · 제출서류에 포함')+'</button><button type="button" data-poster-no="'+escapeText(x.posterId)+'" style="background:#eff3f5;color:#546777;border:1px solid #ccdbe3;border-radius:8px;padding:9px 11px">제 것이 아니에요</button></div></div>').join('');
  }catch(err){
   note('포스터 조회 오류: '+err.message+' · 기존 개인 보고서 및 활동기록에는 영향이 없습니다.');
  }finally{busy=false;}
@@ -81,15 +81,15 @@ document.addEventListener('click',async e=>{
  // 최종 제출 과정에서만 자동 첨부 서버 미배포 안내를 보여 줍니다.
  b.disabled=true;
  try{
-  let result,attached=false;
-  const hasV18=typeof google!=='undefined' &&
-    typeof google.script?.run?.confirmAndAttachEinsteinPosterV18==='function';
-  if(hasV18){
+  let result,attached=false,legacyOnly=false;
+  try{
    result=await call('confirmAndAttachEinsteinPosterV18',student.studentId,student.code,id,value);
    attached=!!result?.ok;
-  }else{
-   // V18 배포 이전에도 연구자 본인 확인은 기존 V15 서버에 안전하게 저장합니다.
+  }catch(err){
+   // V18이 실제 웹앱에 배포되지 않았을 때에는 V15 본인 확인만 수행하고 첨부 완료로 표시하지 않음.
+   if(!/Script function not found|not found|찾을 수 없|is not a function|배포되지|confirmAndAttachEinsteinPosterV18/i.test(String(err?.message||err)))throw err;
    result=await call('confirmEinsteinSharedPosterV15',student.studentId,student.code,id,value);
+   legacyOnly=true;
   }
   if(!result?.ok)throw Error('포스터 확인 상태를 서버에 저장하지 못했습니다.');
   if(attached)window.dispatchEvent(new CustomEvent('einstein:shared-poster-synced',{detail:result}));
@@ -101,9 +101,11 @@ document.addEventListener('click',async e=>{
    t.style.cssText='color:#187268;font-size:12px;font-weight:700;line-height:1.6;margin:8px 0';
    t.textContent=value
      ? (attached&&result.attachedToSubmission
-        ? '✅ 내 포스터 확인 및 기존 제출 자료 연결 완료'
-        : '✅ 내 포스터 확인 완료 · 최종 제출 단계에서 첨부 여부를 확인합니다.')
-     : '✅ 내 포스터가 아닌 것으로 표시했습니다. 제출 자료 연결 상태는 최종 제출 단계에서 확인하세요.';
+        ? '✅ 기존 제출 서류에 포스터 연결 완료 · 아래 📎 제출된 첨부파일을 확인하세요.'
+        : legacyOnly
+          ? '✅ 내 포스터 확인 완료 · 자동 연결 서버(V18)가 미배포되어 첨부 완료 전입니다. 최종 제출 단계에서 안내됩니다.'
+          : '✅ 내 포스터 확인 완료 · 📎 최종 제출 예정 파일에 표시됩니다. 모든 자료 최종 제출하기를 눌러 접수하세요.')
+     : '✅ 내 포스터가 아니라고 표시했습니다. 기존 첨부파일이 있다면 수정 제출 시에도 제외 여부를 확인하세요.';
    el.prepend(t);
   }
  }
