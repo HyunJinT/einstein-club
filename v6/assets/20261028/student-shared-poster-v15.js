@@ -76,18 +76,48 @@ document.addEventListener('click',async e=>{
  if(b.dataset.posterOpen){await openPdf(b.dataset.posterOpen,b);return;}
  const id=b.dataset.posterYes||b.dataset.posterNo;
  if(!id)return;
- const value=!!b.dataset.posterYes;
- if(!confirm(value?'이 연구포스터를 모둠별 탐구포스터에 자동으로 연결할까요?':'내 포스터가 아니라는 내용을 교사에게 표시하고 자동 연결을 해제할까요?'))return;
+ const value=b.hasAttribute('data-poster-yes');
+ // 학생 포스터 확인 시에는 큰 브라우저 팝업을 사용하지 않습니다.
+ // 최종 제출 과정에서만 자동 첨부 서버 미배포 안내를 보여 줍니다.
  b.disabled=true;
  try{
-  const result=await call('confirmAndAttachEinsteinPosterV18',student.studentId,student.code,id,value);
-  if(!result?.ok)throw Error('학교 서버가 자동 첨부 완료를 확인하지 않았습니다.');
-  window.dispatchEvent(new CustomEvent('einstein:shared-poster-synced',{detail:result}));
+  let result,attached=false;
+  const hasV18=typeof google!=='undefined' &&
+    typeof google.script?.run?.confirmAndAttachEinsteinPosterV18==='function';
+  if(hasV18){
+   result=await call('confirmAndAttachEinsteinPosterV18',student.studentId,student.code,id,value);
+   attached=!!result?.ok;
+  }else{
+   // V18 배포 이전에도 연구자 본인 확인은 기존 V15 서버에 안전하게 저장합니다.
+   result=await call('confirmEinsteinSharedPosterV15',student.studentId,student.code,id,value);
+  }
+  if(!result?.ok)throw Error('포스터 확인 상태를 서버에 저장하지 못했습니다.');
+  if(attached)window.dispatchEvent(new CustomEvent('einstein:shared-poster-synced',{detail:result}));
   await refresh();
   const el=byId('einsteinLinkedPostersV15');
-  if(el){const t=document.createElement('p');t.setAttribute('role','status');t.style.cssText='color:#187268;font-size:12px;font-weight:700';t.textContent='✅ '+(result.message||'자동 첨부 상태가 저장되었습니다.');el.prepend(t);}
+  if(el){
+   const t=document.createElement('p');
+   t.setAttribute('role','status');
+   t.style.cssText='color:#187268;font-size:12px;font-weight:700;line-height:1.6;margin:8px 0';
+   t.textContent=value
+     ? (attached&&result.attachedToSubmission
+        ? '✅ 내 포스터 확인 및 기존 제출 자료 연결 완료'
+        : '✅ 내 포스터 확인 완료 · 최종 제출 단계에서 첨부 여부를 확인합니다.')
+     : '✅ 내 포스터가 아닌 것으로 표시했습니다. 제출 자료 연결 상태는 최종 제출 단계에서 확인하세요.';
+   el.prepend(t);
+  }
  }
- catch(err){alert('모둠별 탐구포스터 자동 첨부 실패\n\n'+err.message+'\n\n포스터 PDF 원본과 기존 보고서는 그대로 보존됩니다.');}
+ catch(err){
+  // 일반 확인 단계에서는 상단 alert 대신 포스터 영역 안에만 오류 표시
+  const el=byId('einsteinLinkedPostersV15');
+  if(el){
+   const t=document.createElement('p');
+   t.setAttribute('role','alert');
+   t.style.cssText='color:#9b401d;font-size:12px;font-weight:700;line-height:1.6;margin:8px 0';
+   t.textContent='포스터 확인 상태를 저장하지 못했습니다: '+err.message;
+   el.prepend(t);
+  }
+ }
  finally{b.disabled=false;}
 });
 window.addEventListener('einstein:step-rendered',()=>{if(!student)return;box();if(byId('einsteinSharedPosterMount'))refresh();});
