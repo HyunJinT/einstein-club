@@ -279,3 +279,47 @@ body.student-view-desktop .main{max-width:1060px}
  body.student-view-tablet .nav-wrap,body.student-view-desktop .nav-wrap{display:flex;flex-wrap:nowrap;overflow-x:auto;grid-template-columns:none;scroll-snap-type:x proximity}
  body.student-view-tablet .nav-step,body.student-view-tablet .nav-step:last-child,body.student-view-desktop .nav-step,body.student-view-desktop .nav-step:last-child{width:auto;min-width:115px;grid-column:auto}
 }
+
+
+/* 2026-10-30: Real mobile viewport (not a miniature phone mockup). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+@media screen and (max-width: 740px) {
+  html, body { max-width: 100%; }
+  body.student-view-phone { margin: 0; padding: 0; background: #f7fbfe; }
+  body.student-view-phone .app {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh;
+    margin: 0 !important;
+    box-shadow: none;
+  }
+  body.student-view-phone .main {
+    width: 100%;
+    max-width: none;
+    padding: 14px 14px max(46px, env(safe-area-inset-bottom, 0px));
+  }
+  body.student-view-phone .sidebar { width: 100%; max-width: none; }
+  body.student-view-phone .student-login-card {
+    width: 100%;
+    max-width: none;
+    margin: 14px 0 24px;
+    padding: 21px 16px;
+  }
+  body.student-view-phone .student-login-card p,
+  body.student-view-phone .student-login-note,
+  body.student-view-phone .student-login-card .hint {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  body.student-view-phone .student-auth-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.student-view-phone .student-auth-tab { min-height: 48px; font-size: 13px; }
+  body.student-view-phone .student-login-controls input,
+  body.student-view-phone #studentReturningLogin input,
+  body.student-view-phone #studentPasswordSetup input {
+    font-size: 16px !important;
+    min-height: 50px;
+  }
+  body.student-view-phone .student-login-controls > button,
+  body.student-view-phone .student-primary-auth { min-height: 50px; font-size: 15px; }
+}
