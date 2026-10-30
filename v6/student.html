@@ -3,10 +3,19 @@
 <head>
 <base target="_top">
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script>
+/* Google Apps Script HtmlService may discard static viewport meta tags.
+   Re-apply it in the page as a fallback; Code.gs should also call addMetaTag. */
+(function(){
+  var m=document.querySelector('meta[name="viewport"]');
+  if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}
+  m.setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');
+})();
+</script>
 <meta name="description" content="2026학년도 아인슈타인 과학동아리 활동 기록 및 보고서 직접 제출" />
 <title>아인슈타인 | 2026 동아리 활동 기록 · 직접 제출</title>
-<link rel="stylesheet" href="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-screen-mode-v16.css">
+<link rel="stylesheet" href="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-screen-mode-v16.css?v=mobile-20261030">
 </head>
 <body>
 <!-- student-ui-inline-v2-20261028: evidence selections expand in place -->
