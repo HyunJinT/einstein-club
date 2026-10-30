@@ -1,6 +1,6 @@
 /**
  * 2026 은행고등학교 아인슈타인 동아리 방과후 실험 신청
- * 학생: 학번 + 이름만 입력 (비밀번호/개별코드 없음)
+ * 학생: 학번 + 이름만 입력 / 교사: 서버 보관 PIN으로 인증
  * 저장소: 설치 시 자동 생성되는 Google 스프레드시트
  * 날짜별 마감: 실험 전날 23:59:59, 한국 시간
  * 배포: Google Apps Script 웹 앱 (소유자 계정으로 실행)
@@ -8,7 +8,6 @@
  * 학생 식별 정보만 입력하므로 본인 인증은 되지 않습니다.
  * 학생에게 다른 사람의 신청 내용을 조회/변경하는 기능을 제공하지 않습니다.
  */
-const ADMIN_SETUP_PASSWORD = '여기에_12자이상의_새로운_교사용_비밀번호';
 const APP_TZ = 'Asia/Seoul';
 const ALLOWED_SLOTS = [
   ['2026-11-02','11월 2일(월) 방과후'],
@@ -25,17 +24,34 @@ const SLOT_HEADERS = ['실험일자','표시명','신청가능','안내사항'];
 const IDX = {id:0,date:1,repId:2,repName:3,members:4,plan:5,buy:6,stock:7,
   decision:8,note:9,created:10,updated:11};
 
-/** 최초 1회 실행: 시트 생성 + 교사용 비밀번호 저장 */
-function setupApp() {
-  const password = String(ADMIN_SETUP_PASSWORD || '').trim();
-  if (password.length < 12 || password.indexOf('여기에_') === 0) {
-    throw new Error('ADMIN_SETUP_PASSWORD를 개인용 12자 이상 비밀번호로 변경하세요.');
-  }
-  const props = PropertiesService.getScriptProperties();
-  if (props.getProperty('LAB_DB_ID')) throw new Error('이미 설치된 상태입니다. 기존 데이터를 보호하기 위해 재설치하지 않습니다.');
-  const ss = SpreadsheetApp.create('2026 아인슈타인 동아리 방과후 실험 신청 관리');
+/**
+ * 교사용 PIN은 PUBLIC 코드에 기록하지 않습니다.
+ * Apps Script > 프로젝트 설정 > 스크립트 속성에 LAB_ADMIN_INITIAL_PIN을 추가한 뒤
+ * 처음 설치면 setupApp_(), 이미 설치된 프로젝트면 configureAdminPin_()을
+ * Apps Script 편집기에서 직접 실행하세요.
+ * 이 함수들은 이름이 _로 끝나 브라우저에서 호출할 수 없습니다.
+ */
+function configureAdminPin_() {
+  const props=PropertiesService.getScriptProperties();
+  const pin=String(props.getProperty('LAB_ADMIN_INITIAL_PIN')||'');
+  if(!/^\d{4}$/.test(pin))throw new Error('프로젝트 설정 > 스크립트 속성에 LAB_ADMIN_INITIAL_PIN (숫자 4자리)을 먼저 입력하세요.');
+  const salt=Utilities.getUuid();
+  props.setProperties({LAB_ADMIN_SALT:salt,LAB_ADMIN_HASH:hash_(salt+':'+pin)});
+  props.deleteProperty('LAB_ADMIN_INITIAL_PIN');
+  props.deleteProperty('LAB_ADMIN_AUTH_FAILS');
+  props.deleteProperty('LAB_ADMIN_AUTH_WINDOW');
+  return '교사 PIN 설정 완료. 초기 입력 속성은 삭제되었습니다.';
+}
+
+/** 최초 설치 1회: 관리용 시트 생성 및 PIN 설정 */
+function setupApp_() {
+  const props=PropertiesService.getScriptProperties();
+  if(props.getProperty('LAB_DB_ID'))throw new Error('이미 설치된 상태입니다. 기존 저장 데이터를 유지합니다.');
+  if(!/^\d{4}$/.test(String(props.getProperty('LAB_ADMIN_INITIAL_PIN')||'')))
+    throw new Error('스크립트 속성 LAB_ADMIN_INITIAL_PIN에 4자리 PIN을 먼저 저장하세요.');
+  const ss=SpreadsheetApp.create('2026 아인슈타인 동아리 방과후 실험 신청 관리');
   ss.setSpreadsheetTimeZone(APP_TZ);
-  const sh = ss.getSheets()[0];
+  const sh=ss.getSheets()[0];
   sh.setName('신청목록');
   sh.getRange(1,1,1,APPLICATION_HEADERS.length).setValues([APPLICATION_HEADERS]);
   sh.getRange('B:D').setNumberFormat('@');
@@ -43,36 +59,23 @@ function setupApp() {
   sh.setFrozenRows(1);
   sh.setColumnWidths(1,4,135);
   sh.setColumnWidths(5,4,350);
-  const slots = ss.insertSheet('예약일정');
+  const slots=ss.insertSheet('예약일정');
   slots.getRange('A:A').setNumberFormat('@');
   slots.getRange(1,1,1,4).setValues([SLOT_HEADERS]);
   slots.getRange(2,3,ALLOWED_SLOTS.length,1).insertCheckboxes();
   slots.getRange(2,1,ALLOWED_SLOTS.length,4).setValues(ALLOWED_SLOTS.map(s=>[s[0],s[1],true,'']));
   slots.getRange(1,1,1,4).setBackground('#193956').setFontColor('white').setFontWeight('bold');
   slots.setColumnWidth(2,240);slots.setColumnWidth(4,400);slots.setFrozenRows(1);
-  const salt=Utilities.getUuid();
-  props.setProperties({LAB_DB_ID:ss.getId(),LAB_ADMIN_SALT:salt,LAB_ADMIN_HASH:hash_(salt+':'+password)});
+  props.setProperty('LAB_DB_ID',ss.getId());
+  configureAdminPin_();
   Logger.log('관리 스프레드시트: '+ss.getUrl());
-  Logger.log('다음 단계: 배포 > 새 배포 > 웹 앱');
+  Logger.log('웹 앱은 학생용/교사용이 동일한 주소입니다.');
   return ss.getUrl();
 }
 
-/** 교사용 비밀번호를 변경해야 할 때 실행 */
-function changeAdminPassword() {
-  const password = String(ADMIN_SETUP_PASSWORD || '').trim();
-  if (password.length < 12 || password.indexOf('여기에_') === 0) throw new Error('12자 이상의 새 비밀번호를 입력하세요.');
-  const props=PropertiesService.getScriptProperties();
-  if (!props.getProperty('LAB_DB_ID')) throw new Error('setupApp()을 먼저 실행하세요.');
-  const salt=Utilities.getUuid();
-  props.setProperties({LAB_ADMIN_SALT:salt,LAB_ADMIN_HASH:hash_(salt+':'+password)});
-  return '교사용 비밀번호 변경 완료';
-}
-
-function doGet(e) {
-  const tpl=HtmlService.createTemplateFromFile('Index');
-  tpl.initialPage=e && e.parameter && e.parameter.page==='teacher'?'teacher':'student';
-  tpl.applicationUrl=ScriptApp.getService().getUrl() || '';
-  return tpl.evaluate().setTitle('아인슈타인 | 방과후 실험 신청')
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('아인슈타인 | 방과후 실험 신청')
     .addMetaTag('viewport','width=device-width, initial-scale=1');
 }
 
@@ -104,11 +107,21 @@ function submitApplication(raw) {
   });
 }
 
-/** 교사용 데이터는 암호 검증 후에만 반환 */
-function teacherLogin(password) {admin_(password);return teacherData_();}
-function teacherRefresh(password) {admin_(password);return teacherData_();}
-function teacherSetSlot(password,date,enabled,note) {
-  admin_(password);requireDate_(date);
+/** 최초 로그인 PIN만 전송. 이후에는 30분간 유효한 임시 토큰만 사용합니다. */
+function teacherLogin(pin) {
+  verifyAdminPin_(pin);
+  const session=Utilities.getUuid()+Utilities.getUuid();
+  CacheService.getScriptCache().put('LAB_TEACHER_SESSION_'+session,'authorized',1800);
+  return {session:session,data:teacherData_()};
+}
+function teacherRefresh(session) {requireTeacherSession_(session);return teacherData_();}
+function teacherLogout(session) {
+  if(/^[a-f0-9-]{72}$/i.test(String(session||'')))
+    CacheService.getScriptCache().remove('LAB_TEACHER_SESSION_'+session);
+  return {ok:true};
+}
+function teacherSetSlot(session,date,enabled,note) {
+  requireTeacherSession_(session);requireDate_(date);
   return lock_(()=>{
     const sh=db_().getSheetByName('예약일정');
     const vals=sh.getRange(2,1,ALLOWED_SLOTS.length,4).getDisplayValues();
@@ -118,8 +131,8 @@ function teacherSetSlot(password,date,enabled,note) {
     return teacherData_();
   });
 }
-function teacherUpdateApplication(password,id,decision,note,statusChanges) {
-  admin_(password);
+function teacherUpdateApplication(session,id,decision,note,statusChanges) {
+  requireTeacherSession_(session);
   if(!['WAITING','APPROVED','NEEDS_EDIT','REJECTED'].includes(decision)) throw new Error('승인 상태가 올바르지 않습니다.');
   return lock_(()=>{
     const sh=db_().getSheetByName('신청목록'),all=rows_(sh);
@@ -225,12 +238,36 @@ function rows_(sh) {
   const last=sh.getLastRow();
   return last>1?sh.getRange(2,1,last-1,APPLICATION_HEADERS.length).getValues():[];
 }
-function admin_(password) {
-  const p=PropertiesService.getScriptProperties(),salt=p.getProperty('LAB_ADMIN_SALT');
-  if(!salt)throw new Error('관리자 초기 설치가 완료되지 않았습니다.');
-  if(!password||hash_(salt+':'+String(password))!==p.getProperty('LAB_ADMIN_HASH'))
-    throw new Error('교사용 비밀번호가 일치하지 않습니다.');
+/** PIN 전체 공유 실패 카운터: 5회 실패 시 20분 제한. 비밀 값은 코드에 없음. */
+function verifyAdminPin_(pin) {
+  const lock=LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const props=PropertiesService.getScriptProperties();
+    const salt=props.getProperty('LAB_ADMIN_SALT');
+    const saved=props.getProperty('LAB_ADMIN_HASH');
+    if(!salt||!saved)throw new Error('관리자 PIN 설정이 필요합니다.');
+    const now=Date.now();
+    let windowStart=Number(props.getProperty('LAB_ADMIN_AUTH_WINDOW')||0);
+    let fails=Number(props.getProperty('LAB_ADMIN_AUTH_FAILS')||0);
+    if(!windowStart||now-windowStart>1200000) {windowStart=now;fails=0;}
+    if(fails>=5)throw new Error('로그인 시도 횟수를 초과했습니다. 20분 뒤 다시 시도하세요.');
+    const candidate=String(pin||'');
+    if(!/^\d{4}$/.test(candidate)||hash_(salt+':'+candidate)!==saved) {
+      props.setProperties({LAB_ADMIN_AUTH_WINDOW:String(windowStart),LAB_ADMIN_AUTH_FAILS:String(fails+1)});
+      throw new Error(fails+1>=5?'로그인 시도 횟수를 초과했습니다. 20분 뒤 다시 시도하세요.':'교사용 비밀번호가 일치하지 않습니다.');
+    }
+    props.deleteProperty('LAB_ADMIN_AUTH_WINDOW');
+    props.deleteProperty('LAB_ADMIN_AUTH_FAILS');
+  } finally {lock.releaseLock();}
 }
+function requireTeacherSession_(session) {
+  const token=String(session||'');
+  if(!/^[a-f0-9-]{72}$/i.test(token) ||
+     CacheService.getScriptCache().get('LAB_TEACHER_SESSION_'+token)!=='authorized')
+    throw new Error('교사용 로그인 유효시간이 지났습니다. 다시 로그인하세요.');
+}
+
 function hash_(value) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(value),Utilities.Charset.UTF_8)
     .map(x=>('0'+(x<0?x+256:x).toString(16)).slice(-2)).join('');
