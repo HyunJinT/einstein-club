@@ -43,6 +43,14 @@ function configureAdminPin_() {
   return '교사 PIN 설정 완료. 초기 입력 속성은 삭제되었습니다.';
 }
 
+/**
+ * 처음 설치할 때 Apps Script 편집기의 함수 목록에서 installApp을 선택해 실행합니다.
+ * 설치 이후에는 LAB_DB_ID가 존재하므로 다시 실행해도 신청 데이터는 변경되지 않습니다.
+ */
+function installApp() {
+  return setupApp_();
+}
+
 /** 최초 설치 1회: 관리용 시트 생성 및 PIN 설정 */
 function setupApp_() {
   const props=PropertiesService.getScriptProperties();
