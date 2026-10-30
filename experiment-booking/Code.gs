@@ -82,7 +82,7 @@ function setupApp_() {
 }
 
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('아인슈타인 | 방과후 실험 신청')
     .addMetaTag('viewport','width=device-width, initial-scale=1');
 }
