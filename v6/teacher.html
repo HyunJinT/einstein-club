@@ -73,6 +73,16 @@ header h1{font-size:25px;letter-spacing:-.025em}
  .codes-overview{border:0;box-shadow:none}
  #codesTable th{position:static}
 }
+
+/* 2026-10-30: password reset shortcut for each registered student */
+#codesTable th:nth-child(1){width:11%}
+#codesTable th:nth-child(2){width:14%}
+#codesTable th:nth-child(3){width:10%}
+#codesTable th:nth-child(4){width:29%}
+#codesTable th:nth-child(5){width:21%}
+#codesTable th:nth-child(6){width:15%}
+#codesTable button.student-row-password-reset{background:#fff4ea;color:#865019;border:1px solid #e9c7a9;font-size:12px;padding:6px 10px;margin:0;white-space:nowrap}
+#codesTable button.student-row-password-reset:hover{background:#ffe6cd}
 </style></head><body><header><small style="color:#92c9ce">2026 EINSTEIN SCIENCE CLUB</small><h1>교사용 · 동아리 특기사항 근거 확인</h1><div style="color:#d1e5eb">학생이 실제로 제출한 자료에서 주요 탐구 근거만 발췌합니다. 자동으로 생기부 문장을 생성하지 않습니다.</div></header>
 <main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">개인 PC를 등록한 뒤에는 숫자 PIN으로 빠르게 로그인할 수 있습니다. 새 기기를 처음 등록할 때만 64자리 접근코드가 필요합니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간, 개인 PC에서만)</label><p class="hint">공용 컴퓨터에서는 선택하지 마세요. 로그인 중인 탭을 닫거나 직접 로그아웃하면 다시 인증해야 합니다.</p><p id="alert"></p></section>
 <div id="privateArea" hidden><div style="text-align:right;margin-bottom:4px"><button id="logout" type="button">교사 로그아웃</button></div><div class="grid"><section class="card"><h2>학생별 제출코드 발급</h2><p class="hint">한 줄에 학생 1명씩 입력합니다. 형식: <code>20000,홍길동,조장</code> 또는 <code>20001,김영희</code><br>이미 발급된 학생을 다시 입력해도 같은 코드를 조회합니다. 기존 데이터에는 일회성 갱신이 필요할 수 있습니다.</p><textarea id="rosterInput" placeholder="20000,홍길동,조장&#10;20001,김영희"></textarea><button id="issue">제출코드 발급</button><p class="hint">코드는 교사용 서버에 보관됩니다. 발급 버튼을 다시 눌러도 기존 코드는 변경되지 않습니다.</p><textarea id="issued" readonly placeholder="조회 또는 발급한 학생별 코드" style="min-height:100px"></textarea><button id="copy">화면 목록 복사</button>
@@ -82,7 +92,7 @@ header h1{font-size:25px;letter-spacing:-.025em}
 <label for="resetIds">특정 학생만 재발급할 때 학번 입력</label><textarea id="resetIds" placeholder="20000&#10;20001" style="min-height:70px"></textarea><button id="resetCodes">선택한 학생 코드 재발급</button></details></section>
 <section class="card"><h2>학생 비밀번호 초기화</h2><p class="hint">학생이 비밀번호를 잊은 경우에만 초기화하세요. <strong>기존 제출코드·작성 기록·첨부파일은 삭제되지 않습니다.</strong> 초기화 후 학생은 처음 이용 화면에서 기존 개별 제출코드로 새 비밀번호를 설정할 수 있습니다.</p><label for="studentPasswordResetId">초기화할 학생 학번</label><input id="studentPasswordResetId" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10000"><button type="button" id="studentPasswordResetBtn">해당 학생 비밀번호 초기화</button><div id="studentPasswordResetFeedback" class="hint" role="status"></div></section>
 <section class="card"><h2>제출 현황</h2><p class="hint">실제 접수 완료된 자료만 표시됩니다.</p><div id="counts">-</div><button id="refresh">제출현황 새로고침</button><input id="search" placeholder="학번·이름·주제 검색" style="margin-top:10px"></section></div><section class="card codes-overview" aria-labelledby="allCodesTitle"><div class="codes-heading"><div><h2 id="allCodesTitle">학생별 학번 · 이름 · 개별 제출코드</h2><p class="hint">등록된 학생 전체를 노트북·데스크톱 너비에 맞춰 표시합니다. 코드 표는 별도 스크롤 없이 아래로 모두 펼쳐집니다.</p></div></div><div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
-<div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th></tr></thead><tbody id="codeRows"></tbody></table></div></section><section id="list"></section></div>
+<div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th><th>비밀번호 관리</th></tr></thead><tbody id="codeRows"></tbody></table></div></section><section id="list"></section></div>
 </main>
 <script>
 (function(){'use strict';const $=x=>document.getElementById(x),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const connected=typeof google!=='undefined'&&!!google.script?.run;let code='',all=[],tokens=[];
@@ -245,7 +255,7 @@ function showTokens(rows){
  $('issued').value=tokenText(tokens);
  const missing=tokens.filter(x=>!x.code);
  $('codeCount').textContent='등록 학생 '+tokens.length+'명 · 조회 가능 '+(tokens.length-missing.length)+'명 · 기존 코드 복원 불가 '+missing.length+'명';
- $('codesTable').querySelector('tbody').innerHTML=tokens.map(x=>`<tr><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${x.leader?'조장':'일반'}</td><td>${x.code?`<code class="secret">${esc(x.code)}</code>`:'<span class="status-warning">코드 1회 갱신 필요</span>'}</td><td class="${x.needsReset?'status-warning':''}">${esc(x.status)}</td></tr>`).join('');
+ $('codesTable').querySelector('tbody').innerHTML=tokens.map(x=>`<tr><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${x.leader?'조장':'일반'}</td><td>${x.code?`<code class="secret">${esc(x.code)}</code>`:'<span class="status-warning">코드 1회 갱신 필요</span>'}</td><td class="${x.needsReset?'status-warning':''}">${esc(x.status)}</td><td><button type="button" class="student-row-password-reset" data-student-id="${esc(x.id)}" title="${esc(x.name)} 학생 비밀번호만 초기화">비번 초기화</button></td></tr>`).join('');
 }
 async function reloadTokens(){showTokens(await call('listEinsteinCodesV8',code));}
 function setBusy(button,working){button.disabled=working;button.setAttribute('aria-busy',working?'true':'false');}
@@ -309,6 +319,27 @@ $('exportXlsx').onclick=async()=>{
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }catch(e){alert('Excel 다운로드 실패: '+e.message);}finally{setBusy(b,false);}
 };
+
+/* Per-student password reset: administrator only, existing code/data untouched. */
+$('codesTable').addEventListener('click',async function(event){
+  const button=event.target.closest('button.student-row-password-reset');
+  if(!button||button.disabled||!code)return;
+  const id=String(button.dataset.studentId||'').trim();
+  const student=tokens.find(x=>String(x.id)===id);
+  if(!student||!/^\\d{5}$/.test(id))return alert('등록된 학생을 확인하세요.');
+  if(!confirm(id+' '+student.name+' 학생의 비밀번호만 초기화하시겠습니까?\\n기존 제출코드, 작성 기록, 보고서, 포스터는 유지됩니다.'))return;
+  button.disabled=true;
+  button.textContent='처리 중…';
+  try{
+    await call('resetEinsteinStudentPasswordV14',code,id);
+    button.textContent='초기화 완료';
+    $('studentPasswordResetFeedback').textContent=id+' '+student.name+' 학생 비밀번호 초기화 완료. 학생은 기존 개별 제출코드로 새 비밀번호를 설정할 수 있습니다.';
+    alert(id+' '+student.name+' 학생 비밀번호를 초기화했습니다. 기록과 파일은 유지됩니다.');
+  }catch(e){
+    button.textContent='비번 초기화';
+    alert('초기화 실패: '+e.message);
+  }finally{button.disabled=false;}
+});
 $('studentPasswordResetBtn').onclick=async function(){
  const id=$('studentPasswordResetId').value.trim(),button=this;
  if(!/^\d{5}$/.test(id))return alert('학번 5자리를 입력하세요.');
