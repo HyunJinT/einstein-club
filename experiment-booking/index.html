@@ -25,15 +25,16 @@
 <section id="loginPanel" class="card"><h2 class="section-title">대표학생 정보 입력</h2><p class="lead">개별코드나 비밀번호 없이 대표학생의 학번과 이름으로 신청을 시작합니다.</p>
 <div class="grid2"><div class="field"><label for="repId">대표학생 학번 <span class="req">*</span></label><input class="input" id="repId" maxlength="5" inputmode="numeric" autocomplete="off" placeholder="예: 20000"></div><div class="field"><label for="repName">대표학생 이름 <span class="req">*</span></label><input class="input" id="repName" maxlength="50" autocomplete="name" placeholder="이름 입력"></div></div>
 <div class="note warn">학번·이름 입력은 신청자 구분용이며 본인 인증은 아닙니다. 다른 사람의 정보를 사용해 신청하지 마세요. 제출 후 수정이 필요하면 담당 선생님께 문의하세요.</div>
-<div class="login-actions"><button type="button" id="loginBtn" class="btn primary">실험 신청 시작하기 →</button></div></section>
+<div class="login-actions"><button type="button" id="loginBtn" class="btn primary">실험 신청 시작하기 →</button> <button type="button" id="jumpToResults" class="btn soft">신청 결과 보기</button></div></section>
 <div id="studentFlow" hidden><div class="progress" aria-label="신청 단계"><div class="step-item on" data-nav-step="0"><span class="step-circle">1</span><span>날짜</span></div><div class="progress-line"></div><div class="step-item" data-nav-step="1"><span class="step-circle">2</span><span>참석 학생</span></div><div class="progress-line"></div><div class="step-item" data-nav-step="2"><span class="step-circle">3</span><span>실험 주제</span></div><div class="progress-line"></div><div class="step-item" data-nav-step="3"><span class="step-circle">4</span><span>구입 준비물</span></div><div class="progress-line"></div><div class="step-item" data-nav-step="4"><span class="step-circle">5</span><span>과학실 준비물</span></div></div>
 <div id="draftStatus" class="note" role="status" aria-live="polite" style="margin:14px 0">작성 내용은 이 기기의 브라우저에 자동 저장됩니다. 다른 기기에서는 이어쓸 수 없습니다. 공용 기기에서는 사용 후 기록을 삭제하세요.</div><div style="text-align:right;margin-top:-8px;margin-bottom:12px"><button type="button" class="btn small" id="clearMyDrafts">이 기기의 임시저장 기록 삭제</button></div><section class="card" data-student-step="0"><h2 class="section-title">01. 실험 날짜 선택</h2><p class="lead">원하는 날짜를 선택하세요. 여러 날짜에 참여한다면 날짜마다 신청서를 따로 제출해야 합니다.</p><div id="slotCards" class="slots"><div class="empty"><span class="spinner"></span> 신청 가능한 날짜를 확인하고 있습니다.</div></div><div class="actions"><button class="btn" id="changeRep">← 대표학생 정보 수정</button><div class="right"><button class="btn primary next" data-next="1">다음: 참석 학생 →</button></div></div></section>
 <section class="card" data-student-step="1" hidden><h2 class="section-title">02. 참석할 학생 명단</h2><p class="lead">대표학생은 자동으로 포함됩니다. 함께 실험할 학생들을 추가하세요.</p><div id="repChip" class="rep-chip"></div><div class="heading-row"><h3>추가 참석 학생</h3><button class="btn small soft" id="addMember" type="button">＋ 참석 학생 행 추가</button></div><div id="memberRows" class="list"></div><p class="fine">대표학생 외 참석 학생이 없다면 추가하지 않아도 됩니다.</p><div class="actions"><button class="btn prev" data-prev="0">← 이전</button><div class="right"><button class="btn primary next" data-next="2">다음: 실험 주제 →</button></div></div></section>
 <section class="card" data-student-step="2" hidden><h2 class="section-title">03. 그날 할 실험 주제</h2><p class="lead">실험 당일 실제로 수행할 내용을 간략하게 적어 주세요.</p><div class="field"><label for="expTitle">실험 주제 <span class="req">*</span></label><input id="expTitle" class="input" maxlength="200" placeholder="예: 온도에 따른 카탈레이스 활성 비교"></div><div class="field"><label for="expPurpose">탐구 목적 · 확인하고 싶은 질문 <span class="req">*</span></label><textarea id="expPurpose" class="textarea" maxlength="1800" placeholder="어떤 현상을 비교하거나 확인하려는 실험인가요?"></textarea></div><div class="field"><label for="expMethod">실험 방법 · 진행 계획 <span class="req">*</span></label><textarea id="expMethod" class="textarea" maxlength="4000" placeholder="실험 조건, 주요 절차와 측정할 내용을 간략하게 작성하세요."></textarea></div><div class="field"><label for="expDuration">예상 소요시간 (분) <span class="req">*</span></label><input id="expDuration" class="input" type="number" min="1" max="600" step="1" inputmode="numeric" placeholder="예: 90"><p class="fine">실험 준비부터 진행·정리까지 예상되는 전체 시간을 분 단위로 입력하세요.</p></div><div class="field"><label for="expSafety">안전 유의사항 (선택)</label><textarea id="expSafety" class="textarea" maxlength="1600" style="min-height:75px" placeholder="사용 시약이나 기구의 주의사항 등을 적어 주세요."></textarea></div><div class="actions"><button class="btn prev" data-prev="1">← 이전</button><div class="right"><button class="btn primary next" data-next="3">다음: 구입 준비물 →</button></div></div></section>
 <section class="card" data-student-step="3" hidden><h2 class="section-title">04. 구입할 준비물</h2><p class="lead">학교에서 추가로 구입해야 하는 품목만 입력하세요. <b>G마켓 상품 링크는 필수</b>입니다.</p><div class="heading-row"><h3>구매 요청 목록</h3><button class="btn small soft" type="button" id="addBuy">＋ 구입 준비물 행 추가</button></div><div id="buyRows" class="list"></div><div id="buyEmpty" class="no-items">구입할 준비물이 없다면 이대로 다음 단계로 이동하세요.</div><div class="total" id="buyTotal">구매 예상금액 <strong>0원</strong><div class="fine">수량 × 단가 기준 · 배송비 제외</div></div><div class="actions"><button class="btn prev" data-prev="2">← 이전</button><div class="right"><button class="btn primary next" data-next="4">다음: 과학실 준비물 →</button></div></div></section>
 <section class="card" data-student-step="4" hidden><h2 class="section-title">05. 과학실에 구비된 준비물</h2><p class="lead">과학실에 이미 있는 시약·기구 등 실험에 사용할 준비물을 입력하세요. 정확한 재고 여부는 교사가 최종 확인합니다.</p><div class="heading-row"><h3>과학실에서 사용할 품목</h3><button class="btn small soft" type="button" id="addStock">＋ 과학실 준비물 행 추가</button></div><div id="stockRows" class="list"></div><div id="stockEmpty" class="no-items">추가로 사용할 과학실 준비물이 없으면 비워 두어도 됩니다.</div><div id="finalReview" class="review"></div><div class="note warn">신청 마감: 실험 전날 <b>23:59</b>. 최종 제출 이후 학생이 직접 수정할 수 없습니다. 제출 내용 변경은 담당 선생님께 요청하세요.</div><div class="actions"><button class="btn prev" data-prev="3">← 이전</button><div class="right"><button type="button" id="submitBtn" class="btn primary">✓ 최종 제출하기</button></div></div></section></div>
-<section id="donePanel" class="card" hidden><div class="success-page"><div class="success-icon">✓</div><h2>실험 신청이 접수되었습니다</h2><p id="doneMessage"></p><div class="note">신청은 교사 확인 후 진행됩니다. 다른 실험 날짜도 신청하려면 아래 버튼을 누르세요.</div><button id="anotherDate" class="btn primary">＋ 다른 날짜도 신청하기</button></div></section>
+<section id="donePanel" class="card" hidden><div class="success-page"><div class="success-icon">✓</div><h2>실험 신청이 접수되었습니다</h2><p id="doneMessage"></p><div class="note">신청은 교사 확인 후 진행됩니다. 다른 실험 날짜도 신청하려면 아래 버튼을 누르세요.</div><button id="anotherDate" class="btn primary">＋ 다른 날짜도 신청하기</button> <button id="afterSubmitResults" class="btn soft">신청 결과 보기</button></div></section>
 </div>
+<section id="studentResultPanel" class="card"><h2 class="section-title">신청 결과 보기</h2><p class="lead">대표학생과 참석 명단에 등록된 학생은 학번·이름으로 실험 진행 결과와 선생님의 안내를 확인할 수 있습니다.</p><form id="lookupForm"><div class="grid2"><div class="field"><label for="lookupId">학번 (5자리)</label><input class="input" id="lookupId" maxlength="5" inputmode="numeric" placeholder="예: 20000" required></div><div class="field"><label for="lookupName">이름</label><input class="input" id="lookupName" maxlength="50" placeholder="이름 입력" required></div></div><div class="actions"><button type="submit" id="lookupBtn" class="btn primary">신청 결과 조회하기</button></div></form><div id="lookupResults" aria-live="polite" style="margin-top:15px"></div><p class="fine">학번·이름만으로 조회하는 방식은 본인 인증이 아니므로 교사 코멘트에 민감한 개인정보를 입력하지 마세요.</p></section>
 <div id="teacherView" hidden>
 <section id="teacherLoginPanel" class="card"><h2 class="section-title">교사용 관리 로그인</h2><p class="lead">교사용 데이터는 지정된 Google 계정으로만 확인할 수 있습니다. 학생은 Google 로그인 없이 신청할 수 있습니다.</p><form id="teacherLoginForm"><div class="actions" style="justify-content:flex-end"><button class="btn primary" type="submit">Google 계정으로 교사용 로그인</button></div></form></section>
 <div id="teacherDashboard" hidden><section class="card"><div class="heading-row"><h2 class="section-title" style="margin:0">실험 신청 현황</h2><div class="teacher-tools"><button class="btn small soft" id="teacherRefresh">↻ 새로고침</button><button class="btn small" id="teacherCsv">CSV 내보내기</button><button class="btn small red" id="teacherLogout">로그아웃</button></div></div><div id="metrics" class="metric-row"></div><div class="teacher-tools"><select class="select" id="filterDate" aria-label="실험 날짜 필터"><option value="">모든 실험 날짜</option></select><input class="input" id="filterQuery" aria-label="대표학생 검색" placeholder="학번·이름·실험 주제 검색"></div><div id="applications" class="application-list"></div></section><section class="card"><h2 class="section-title">날짜별 신청 관리</h2><p class="lead">지정된 6개 날짜만 신청을 받으며, 교사가 날짜별 접수를 미리 닫을 수 있습니다.</p><div id="teacherSlots"></div></section><section class="card" id="recordDetail" hidden><div id="recordDetailContent"></div></section></div>
@@ -43,7 +44,7 @@
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const money=v=>(Number(v)||0).toLocaleString('ko-KR')+'원';
-const DEC={WAITING:'교사 확인 전',APPROVED:'실험 승인',NEEDS_EDIT:'보완 필요',REJECTED:'실험 불가'};
+const DEC={WAITING:'교사 확인 전',APPROVED:'실험 가능',DATE_UNAVAILABLE:'이날 실험 불가능',NEEDS_EDIT:'보완 필요',REJECTED:'실험 불가'};
 const BUY_STATUS={NEEDED:'구매 필요',ORDERED:'주문 완료',PURCHASED:'구입 완료'};
 let role='student';
 let config=null,rep=null,selectedDate='',step=0,busy=false,teacherSession='',teacherData=null,selectedRecord=null;
@@ -114,6 +115,40 @@ async function readTeacher(ctx){
  }));
  return {now:kstTime(),slots:await readSlots(ctx),records};
 }
+
+async function sha256Hex(value){
+ const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));
+ return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function attendees(record){
+ const list=Array.isArray(record.members)?record.members:Object.values(record.members||{});
+ const found=new Map();
+ for(const p of [record.rep,...list]){
+   const id=String(p?.id||'').trim(),name=String(p?.name||'').trim();
+   if(/^\d{5}$/.test(id)&&name)found.set(id+':'+name,{id,name});
+ }
+ return [...found.values()];
+}
+async function personResultKey(id,name){return sha256Hex('einsteinBooking2026:lookup:v1:'+id+':'+name.trim())}
+async function bookingResultKey(id){return sha256Hex('einsteinBooking2026:booking:v1:'+id)}
+function focusStudentResults(){
+ if(role!=='student')switchRole('student');
+ if(rep){$('lookupId').value=rep.id;$('lookupName').value=rep.name;}
+ $('studentResultPanel').scrollIntoView({behavior:'smooth',block:'start'});
+ $('lookupId').focus({preventScroll:true});
+}
+async function lookupStudentResults(e){
+ e.preventDefault();
+ const id=text('lookupId'),name=text('lookupName'),target=$('lookupResults'),btn=$('lookupBtn');
+ if(!/^\d{5}$/.test(id)||!name){target.innerHTML='<div class="alert">학번 5자리와 이름을 정확히 입력하세요.</div>';return;}
+ btn.disabled=true;btn.textContent='조회 중…';
+ try{
+  const items=await api('lookupResults',id,name);
+  target.innerHTML=items.length?items.map(x=>`<div class="entry" style="margin-bottom:10px"><div class="heading-row" style="margin:0 0 9px"><strong>${esc(dateText(x.date))}</strong><span class="pill ${x.decision==='REJECTED'||x.decision==='DATE_UNAVAILABLE'?'reject':x.decision==='WAITING'?'wait':''}">${esc(DEC[x.decision]||'교사 확인 전')}</span></div><p style="margin:4px 0"><b>실험 주제:</b> ${esc(x.title||'실험')}</p><p style="margin:8px 0 0;white-space:pre-wrap"><b>선생님 안내:</b> ${esc(x.note||'아직 등록된 코멘트가 없습니다.')}</p><p class="fine" style="margin:7px 0 0">확인 시각: ${esc(x.updated||'미확인')}</p></div>`).join(''):'<div class="empty">조회 가능한 신청 결과가 없습니다. 선생님이 검토한 뒤 확인하거나, 참석 명단의 학번·이름이 맞는지 확인하세요.</div>';
+ }catch(error){target.innerHTML='<div class="alert">'+esc(error?.message||'결과 조회에 실패했습니다.')+'</div>'}
+ finally{btn.disabled=false;btn.textContent='신청 결과 조회하기'}
+}
+
 function isFirebasePermissionDenied(error){
  const details=String(error?.code||'')+' '+String(error?.message||error||'');
  return /permission[\s_-]*denied/i.test(details);
@@ -123,6 +158,14 @@ async function api(method,...args){
  try{ctx=await firebaseReady();}catch(e){throw new Error('Firebase 연결 실패: '+String(e?.message||e));}
  try{
    if(method==='publicConfig')return {now:kstTime(),slots:await readSlots(ctx)};
+   if(method==='lookupResults'){
+     await requireStudent(ctx);
+     const id=String(args[0]||'').trim(),name=String(args[1]||'').trim();
+     if(!/^\d{5}$/.test(id)||!name||name.length>50)throw new Error('학번·이름을 확인하세요.');
+     const key=await personResultKey(id,name);
+     const snap=await ctx.get(ctx.ref(ctx.db,BASE+'/results/'+key));
+     return Object.values(snap.val()||{}).filter(v=>v&&DATES.some(d=>d[0]===v.date)).sort((a,b)=>a.date.localeCompare(b.date));
+   }
    if(method==='submitApplication'){
      await requireStudent(ctx);
      // 기존 전체 공개 Firebase 규칙에서는 학생 제출을 허용하지 않습니다.
@@ -168,19 +211,44 @@ async function api(method,...args){
      await ctx.set(ctx.ref(ctx.db,BASE+'/slots/'+date),{enabled:!!enabled,note:String(note||'').slice(0,500)});
      return readTeacher(ctx);
    }
+
    if(method==='teacherUpdateApplication'){
-     const [session,id,decision,note,statusChanges]=args;
-     if(!['WAITING','APPROVED','NEEDS_EDIT','REJECTED'].includes(decision))throw new Error('올바르지 않은 상태입니다.');
+     const [session,id,decision,rawNote,statusChanges]=args;
+     if(!['WAITING','APPROVED','DATE_UNAVAILABLE','NEEDS_EDIT','REJECTED'].includes(decision))throw new Error('올바르지 않은 결과 상태입니다.');
+     const note=String(rawNote||'').trim().slice(0,1500);
+     if(['DATE_UNAVAILABLE','NEEDS_EDIT','REJECTED'].includes(decision)&&!note)throw new Error('불가 또는 보완 요청에는 학생에게 보일 사유를 적어 주세요.');
      const [date,studentId]=String(id||'').split('_');
-     if(!DATES.some(x=>x[0]===date)||!/^\d{5}$/.test(studentId))throw new Error('신청 정보를 찾을 수 없습니다.');
-     const recordRef=ctx.ref(ctx.db,BASE+'/applications/'+date+'/'+studentId);
-     const original=(await ctx.get(recordRef)).val();
+     if(!DATES.some(x=>x[0]===date)||!/^\d{5}$/.test(studentId))throw new Error('신청서를 찾을 수 없습니다.');
+     const original=(await ctx.get(ctx.ref(ctx.db,BASE+'/applications/'+date+'/'+studentId))).val();
      if(!original)throw new Error('신청서를 찾을 수 없습니다.');
      const changes=new Map((statusChanges||[]).map(x=>[x.id,x.status]));
-     const buy=(original.buy||[]).map(x=>({
-       ...x,status:['NEEDED','ORDERED','PURCHASED'].includes(changes.get(x.id))?changes.get(x.id):x.status
-     }));
-     await ctx.update(recordRef,{decision,note:String(note||'').slice(0,1500),buy,updated:kstTime()});
+     const previousBuy=Array.isArray(original.buy)?original.buy:Object.values(original.buy||{});
+     const buy=previousBuy.map(x=>({...x,status:['NEEDED','ORDERED','PURCHASED'].includes(changes.get(x.id))?changes.get(x.id):x.status}));
+     const updated=kstTime(),edits={
+       ['applications/'+date+'/'+studentId+'/decision']:decision,
+       ['applications/'+date+'/'+studentId+'/note']:note,
+       ['applications/'+date+'/'+studentId+'/updated']:updated,
+       ['applications/'+date+'/'+studentId+'/buy']:buy.length?buy:null
+     };
+     const resultKey=await bookingResultKey(String(original.id||id));
+     const result={date,title:String(original.plan?.title||'실험').slice(0,200),decision,note,updated};
+     for(const person of attendees(original)){
+       const key=await personResultKey(person.id,person.name);
+       edits['results/'+key+'/'+resultKey]=result;
+     }
+     await ctx.update(ctx.ref(ctx.db,BASE),edits);
+     return readTeacher(ctx);
+   }
+   if(method==='teacherDeleteApplication'){
+     const [session,id]=args;
+     const [date,studentId]=String(id||'').split('_');
+     if(!DATES.some(x=>x[0]===date)||!/^\d{5}$/.test(studentId))throw new Error('삭제할 신청서를 찾을 수 없습니다.');
+     const original=(await ctx.get(ctx.ref(ctx.db,BASE+'/applications/'+date+'/'+studentId))).val();
+     if(!original)throw new Error('이미 삭제되었거나 존재하지 않는 신청서입니다.');
+     const edits={['applications/'+date+'/'+studentId]:null};
+     const key=await bookingResultKey(String(original.id||id));
+     for(const p of attendees(original))edits['results/'+await personResultKey(p.id,p.name)+'/'+key]=null;
+     await ctx.update(ctx.ref(ctx.db,BASE),edits);
      return readTeacher(ctx);
    }
    throw new Error('지원하지 않는 요청입니다.');
@@ -303,15 +371,28 @@ function teacherRender(){if(!teacherData)return;teacherMetrics();const select=$(
 function teacherRenderSlots(){$('teacherSlots').innerHTML=teacherData.slots.map(s=>`<div class="teacher-slot" data-slot="${esc(s.date)}"><strong class="fine" style="color:#365267">${esc(s.label)}</strong><label><input type="checkbox" class="t-enabled" ${s.enabled?'checked':''}> 신청 허용</label><input class="input t-note" maxlength="500" placeholder="날짜별 안내사항 (선택)" value="${esc(s.note)}"><button class="btn small soft" data-save-slot="${esc(s.date)}">저장</button></div>`).join('');}
 function teacherRenderApplications(){const d=$('filterDate').value,q=$('filterQuery').value.trim().toLowerCase();const items=teacherData.records.filter(r=>(!d||r.date===d)&&(!q||[r.rep.id,r.rep.name,r.plan.title,r.date].join(' ').toLowerCase().includes(q))).sort((a,b)=>a.date.localeCompare(b.date)||a.rep.id.localeCompare(b.rep.id));$('applications').innerHTML=items.length?items.map(r=>`<button type="button" class="application-row" data-record="${esc(r.id)}"><div><strong>${esc(r.rep.id)} ${esc(r.rep.name)} · ${esc(r.plan.title)}</strong><small>${esc(dateText(r.date))} · 예상 ${Number.isFinite(Number(r.plan.durationMinutes))&&Number(r.plan.durationMinutes)>0?esc(r.plan.durationMinutes)+'분':'미입력'} · 참석 ${(r.members||[]).length+1}명 · 구입 ${(r.buy||[]).length}개 · 과학실 ${(r.stock||[]).length}개</small></div><span class="pill ${r.decision==='WAITING'?'wait':r.decision==='REJECTED'?'reject':''}">${esc(DEC[r.decision]||'확인 전')}</span></button>`).join(''):'<div class="empty">조회된 신청서가 없습니다.</div>';}
 function staticTable(items,stock){if(!items.length)return '<div class="empty">해당 준비물 없음</div>';if(stock)return `<div class="tablewrap"><table class="table"><thead><tr><th>품목명</th><th>종류·규격</th><th>수량</th></tr></thead><tbody>${items.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.qty)}</td></tr>`).join('')}</tbody></table></div>`;return `<div class="tablewrap"><table class="table"><thead><tr><th>품목명</th><th>종류·규격</th><th>수량</th><th>단가</th><th>합계</th><th>G마켓</th><th>구매상태</th></tr></thead><tbody>${items.map(x=>`<tr data-buy-id="${esc(x.id)}"><td><strong>${esc(x.name)}</strong></td><td>${esc(x.type)}</td><td>${esc(x.qty)}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)}</td><td><a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">상품보기</a></td><td><select class="t-buy-status">${Object.entries(BUY_STATUS).map(([k,v])=>`<option value="${k}" ${x.status===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>`;}
-function showRecord(id){const r=teacherData.records.find(x=>x.id===id);if(!r)return;selectedRecord=id;$('recordDetail').hidden=false;$('recordDetailContent').innerHTML=`<div class="heading-row"><h2 class="section-title" style="margin:0">신청서 상세</h2><button class="btn small" id="closeDetail">닫기</button></div><div class="details-grid"><div class="info-item"><strong>실험 날짜</strong>${esc(dateText(r.date))}</div><div class="info-item"><strong>대표학생</strong>${esc(r.rep.id)} ${esc(r.rep.name)}</div><div class="info-item"><strong>참석 학생 명단 (${(r.members||[]).length+1}명)</strong>${esc([r.rep,...r.members].map(x=>x.id+' '+x.name).join(' / '))}</div><div class="info-item"><strong>신청 시각</strong>${esc(r.created)}</div><div class="info-item full"><strong>실험 주제</strong>${esc(r.plan.title)}</div><div class="info-item full"><strong>탐구 목적</strong>${esc(r.plan.purpose)}</div><div class="info-item full"><strong>실험 방법</strong>${esc(r.plan.method)}</div><div class="info-item"><strong>예상 소요시간</strong>${Number.isFinite(Number(r.plan.durationMinutes))&&Number(r.plan.durationMinutes)>0?esc(r.plan.durationMinutes)+"분":"미입력"}</div>${r.plan.safety?`<div class="info-item full"><strong>안전 유의사항</strong>${esc(r.plan.safety)}</div>`:''}</div><div class="mini-sep"></div><div class="heading-row"><h3>구입할 준비물 (${r.buy.length}개)</h3><b class="fine">예상 구입 비용 ${money(r.buy.reduce((n,x)=>n+x.qty*x.price,0))}</b></div>${staticTable(r.buy,false)}<div class="mini-sep"></div><h3>과학실에 구비된 준비물 (${r.stock.length}개)</h3>${staticTable(r.stock,true)}<div class="mini-sep"></div><div class="grid2"><div class="field"><label>실험 진행 확인</label><select class="select" id="t-decision">${Object.entries(DEC).map(([k,v])=>`<option value="${k}" ${r.decision===k?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>교사 메모</label><textarea class="textarea" id="t-note" style="min-height:80px" placeholder="준비물 구매 및 확인 사항">${esc(r.note)}</textarea></div></div><div class="actions" style="justify-content:flex-end"><button class="btn primary" id="saveTeacherRecord">확인 사항 저장</button></div>`;
-$('closeDetail').addEventListener('click',()=>{$('recordDetail').hidden=true;selectedRecord=null;});$('saveTeacherRecord').addEventListener('click',saveTeacherRecord);$('recordDetail').scrollIntoView({behavior:'smooth',block:'start'});}
+function showRecord(id){const r=teacherData.records.find(x=>x.id===id);if(!r)return;selectedRecord=id;$('recordDetail').hidden=false;$('recordDetailContent').innerHTML=`<div class="heading-row"><h2 class="section-title" style="margin:0">신청서 상세</h2><button class="btn small" id="closeDetail">닫기</button></div><div class="details-grid"><div class="info-item"><strong>실험 날짜</strong>${esc(dateText(r.date))}</div><div class="info-item"><strong>대표학생</strong>${esc(r.rep.id)} ${esc(r.rep.name)}</div><div class="info-item"><strong>참석 학생 명단 (${(r.members||[]).length+1}명)</strong>${esc([r.rep,...r.members].map(x=>x.id+' '+x.name).join(' / '))}</div><div class="info-item"><strong>신청 시각</strong>${esc(r.created)}</div><div class="info-item full"><strong>실험 주제</strong>${esc(r.plan.title)}</div><div class="info-item full"><strong>탐구 목적</strong>${esc(r.plan.purpose)}</div><div class="info-item full"><strong>실험 방법</strong>${esc(r.plan.method)}</div><div class="info-item"><strong>예상 소요시간</strong>${Number.isFinite(Number(r.plan.durationMinutes))&&Number(r.plan.durationMinutes)>0?esc(r.plan.durationMinutes)+"분":"미입력"}</div>${r.plan.safety?`<div class="info-item full"><strong>안전 유의사항</strong>${esc(r.plan.safety)}</div>`:''}</div><div class="mini-sep"></div><div class="heading-row"><h3>구입할 준비물 (${r.buy.length}개)</h3><b class="fine">예상 구입 비용 ${money(r.buy.reduce((n,x)=>n+x.qty*x.price,0))}</b></div>${staticTable(r.buy,false)}<div class="mini-sep"></div><h3>과학실에 구비된 준비물 (${r.stock.length}개)</h3>${staticTable(r.stock,true)}<div class="mini-sep"></div><div class="grid2"><div class="field"><label>실험 진행 확인</label><select class="select" id="t-decision">${Object.entries(DEC).map(([k,v])=>`<option value="${k}" ${r.decision===k?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>교사 메모</label><textarea class="textarea" id="t-note" style="min-height:80px" placeholder="준비물 구매 및 확인 사항">${esc(r.note)}</textarea></div></div><div class="actions" style="justify-content:space-between;gap:10px;flex-wrap:wrap"><button class="btn red" id="deleteTeacherRecord" type="button">신청서 삭제</button><button class="btn primary" id="saveTeacherRecord" type="button">결과·코멘트 저장 및 학생에게 공개</button></div>`;
+$('closeDetail').addEventListener('click',()=>{$('recordDetail').hidden=true;selectedRecord=null;});$('saveTeacherRecord').addEventListener('click',saveTeacherRecord);$('deleteTeacherRecord').addEventListener('click',deleteTeacherRecord);$('recordDetail').scrollIntoView({behavior:'smooth',block:'start'});}
 async function teacherLogin(e){e.preventDefault();try{const result=await call('teacherLogin');teacherSession=result.session;teacherData=result.data;$('teacherLoginPanel').hidden=true;$('teacherDashboard').hidden=false;teacherRender();clearNotice();}catch(e){teacherSession='';notice(e.message);}}
 async function teacherRefresh(){try{teacherData=await call('teacherRefresh',teacherSession);teacherRender();notice('최신 신청 현황을 불러왔습니다.',true);}catch(e){notice(e.message);}}
 async function saveTeacherSlot(date){try{const row=document.querySelector(`[data-slot="${date}"]`);const enabled=row.querySelector('.t-enabled').checked,note=row.querySelector('.t-note').value;teacherData=await call('teacherSetSlot',teacherSession,date,enabled,note);teacherRender();notice('해당 날짜의 신청 설정을 저장했습니다.',true);}catch(e){notice(e.message);}}
-async function saveTeacherRecord(){try{const id=selectedRecord,decision=$('t-decision').value,note=$('t-note').value;const statusChanges=Array.from($('recordDetail').querySelectorAll('[data-buy-id]')).map(el=>({id:el.dataset.buyId,status:el.querySelector('.t-buy-status').value}));teacherData=await call('teacherUpdateApplication',teacherSession,id,decision,note,statusChanges);teacherRender();notice('교사 확인 사항 및 구매 상태를 저장했습니다.',true);}catch(e){notice(e.message);}}
+async function deleteTeacherRecord(){
+ if(!teacherData||!selectedRecord)return;
+ const r=teacherData.records.find(x=>x.id===selectedRecord);if(!r)return;
+ if(!confirm('이 신청서를 삭제할까요?\n'+r.date+' · '+r.rep.id+' '+r.rep.name+'\n학생에게 공개된 결과·코멘트도 삭제됩니다.'))return;
+ if(!confirm('마지막 확인: 삭제한 신청서는 복구할 수 없습니다. 정말 삭제하시겠습니까?'))return;
+ const btn=$('deleteTeacherRecord');btn.disabled=true;btn.textContent='삭제 중…';
+ try{
+   teacherData=await call('teacherDeleteApplication',teacherSession,r.id);
+   selectedRecord=null;$('recordDetail').hidden=true;teacherRender();
+   notice('신청서와 학생 결과가 함께 삭제되었습니다.',true);
+ }catch(e){notice(e.message)}
+ finally{if($('deleteTeacherRecord')){$('deleteTeacherRecord').disabled=false;$('deleteTeacherRecord').textContent='신청서 삭제';}}
+}
+async function saveTeacherRecord(){try{const id=selectedRecord,decision=$('t-decision').value,note=$('t-note').value;const statusChanges=Array.from($('recordDetail').querySelectorAll('[data-buy-id]')).map(el=>({id:el.dataset.buyId,status:el.querySelector('.t-buy-status').value}));teacherData=await call('teacherUpdateApplication',teacherSession,id,decision,note,statusChanges);teacherRender();notice('실험 결과·코멘트를 참석 학생들에게 공개하고 구매 상태를 저장했습니다.',true);}catch(e){notice(e.message);}}
 function csvCell(v){let s=String(v??'');if(/^[\s]*[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
 function downloadCsv(){if(!teacherData)return;const out=[['실험날짜','대표학번','대표학생','참석 학생 명단','실험주제','탐구목적','실험방법','예상소요시간(분)','교사확인상태','교사메모','준비물분류','품목명','종류규격','수량','단가(원)','합계(원)','G마켓링크','구매상태']];teacherData.records.forEach(r=>{const attendees=[r.rep,...r.members].map(x=>x.id+' '+x.name).join(' / ');const base=[r.date,r.rep.id,r.rep.name,attendees,r.plan.title,r.plan.purpose,r.plan.method,r.plan.durationMinutes??'',DEC[r.decision],r.note];[...r.buy.map(x=>[...base,'구입 필요',x.name,x.type,x.qty,x.price,x.qty*x.price,x.link,BUY_STATUS[x.status]]),...r.stock.map(x=>[...base,'과학실 보유',x.name,x.type,x.qty,'','','',''])].forEach(row=>out.push(row));if(!r.buy.length&&!r.stock.length)out.push([...base,'','','','','','','','']);});const csv='\ufeff'+out.map(row=>row.map(csvCell).join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=url;a.download='2026_아인슈타인_실험신청_준비물.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);}
-function bind(){setLinks();$('studentLink').addEventListener('click',()=>switchRole('student'));$('teacherLink').addEventListener('click',()=>switchRole('teacher'));$('loginBtn').addEventListener('click',login);$('repName').addEventListener('keydown',e=>{if(e.key==='Enter')login();});$('changeRep').addEventListener('click',()=>{$('studentFlow').hidden=true;$('loginPanel').hidden=false;clearNotice();});$('addMember').addEventListener('click',addMember);$('addBuy').addEventListener('click',addBuy);$('addStock').addEventListener('click',addStock);document.querySelectorAll('.next').forEach(btn=>btn.addEventListener('click',()=>nextStep(Number(btn.dataset.next))));document.querySelectorAll('.prev').forEach(btn=>btn.addEventListener('click',()=>showStep(Number(btn.dataset.prev))));$('submitBtn').addEventListener('click',submit);$('anotherDate').addEventListener('click',resetForNext);$('teacherLoginForm').addEventListener('submit',teacherLogin);$('teacherRefresh').addEventListener('click',teacherRefresh);$('teacherCsv').addEventListener('click',downloadCsv);$('teacherLogout').addEventListener('click',()=>{clearTeacherSession();clearNotice();});$('filterDate').addEventListener('change',teacherRenderApplications);$('filterQuery').addEventListener('input',teacherRenderApplications);$('applications').addEventListener('click',e=>{const btn=e.target.closest('[data-record]');if(btn)showRecord(btn.dataset.record);});$('teacherSlots').addEventListener('click',e=>{const btn=e.target.closest('[data-save-slot]');if(btn)saveTeacherSlot(btn.dataset.saveSlot);});$('clearMyDrafts').addEventListener('click',clearMyDrafts);$('studentFlow').addEventListener('input',saveDraft);$('studentFlow').addEventListener('change',saveDraft);restoreLastRepresentative();if(role==='student')loadSlots();}
+function bind(){setLinks();$('jumpToResults').addEventListener('click',focusStudentResults);$('afterSubmitResults').addEventListener('click',focusStudentResults);$('lookupForm').addEventListener('submit',lookupStudentResults);$('studentLink').addEventListener('click',()=>switchRole('student'));$('teacherLink').addEventListener('click',()=>switchRole('teacher'));$('loginBtn').addEventListener('click',login);$('repName').addEventListener('keydown',e=>{if(e.key==='Enter')login();});$('changeRep').addEventListener('click',()=>{$('studentFlow').hidden=true;$('loginPanel').hidden=false;clearNotice();});$('addMember').addEventListener('click',addMember);$('addBuy').addEventListener('click',addBuy);$('addStock').addEventListener('click',addStock);document.querySelectorAll('.next').forEach(btn=>btn.addEventListener('click',()=>nextStep(Number(btn.dataset.next))));document.querySelectorAll('.prev').forEach(btn=>btn.addEventListener('click',()=>showStep(Number(btn.dataset.prev))));$('submitBtn').addEventListener('click',submit);$('anotherDate').addEventListener('click',resetForNext);$('teacherLoginForm').addEventListener('submit',teacherLogin);$('teacherRefresh').addEventListener('click',teacherRefresh);$('teacherCsv').addEventListener('click',downloadCsv);$('teacherLogout').addEventListener('click',()=>{clearTeacherSession();clearNotice();});$('filterDate').addEventListener('change',teacherRenderApplications);$('filterQuery').addEventListener('input',teacherRenderApplications);$('applications').addEventListener('click',e=>{const btn=e.target.closest('[data-record]');if(btn)showRecord(btn.dataset.record);});$('teacherSlots').addEventListener('click',e=>{const btn=e.target.closest('[data-save-slot]');if(btn)saveTeacherSlot(btn.dataset.saveSlot);});$('clearMyDrafts').addEventListener('click',clearMyDrafts);$('studentFlow').addEventListener('input',saveDraft);$('studentFlow').addEventListener('change',saveDraft);restoreLastRepresentative();if(role==='student')loadSlots();}
 bind();
 </script>
 </body>
