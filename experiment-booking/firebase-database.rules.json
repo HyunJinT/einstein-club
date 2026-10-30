@@ -26,6 +26,15 @@
             ".validate": "newData.hasChildren(['id','date','rep','plan','decision','note','created','updated']) && newData.child('id').isString() && newData.child('id').val() === $date + '_' + $repId && newData.child('date').val() === $date && newData.child('rep/id').isString() && newData.child('rep/id').val() === $repId && newData.child('rep/name').isString() && newData.child('rep/name').val().length > 0 && newData.child('rep/name').val().length <= 50 && newData.child('plan/title').isString() && newData.child('plan/title').val().length > 0 && newData.child('plan/title').val().length <= 200 && newData.child('plan/purpose').isString() && newData.child('plan/purpose').val().length > 0 && newData.child('plan/purpose').val().length <= 1800 && newData.child('plan/method').isString() && newData.child('plan/method').val().length > 0 && newData.child('plan/method').val().length <= 4000 && newData.child('plan/durationMinutes').isNumber() && newData.child('plan/durationMinutes').val() >= 1 && newData.child('plan/durationMinutes').val() <= 600 && newData.child('decision').isString() && (newData.child('decision').val() === 'WAITING' || (auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com')) && newData.child('note').isString() && newData.child('note').val().length <= 1500 && newData.child('created').isString() && newData.child('updated').isString()"
           }
         }
+      },
+      "results": {
+        "$personKey": {
+          ".read": "auth != null && $personKey.matches(/^[a-f0-9]{64}$/)",
+          "$resultKey": {
+            ".write": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+            ".validate": "newData.hasChildren(['date','title','decision','note','updated']) && newData.child('date').isString() && newData.child('title').isString() && newData.child('title').val().length <= 200 && newData.child('decision').isString() && newData.child('note').isString() && newData.child('note').val().length <= 1500 && newData.child('updated').isString()"
+          }
+        }
       }
     }
   }
