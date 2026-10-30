@@ -326,8 +326,8 @@ $('codesTable').addEventListener('click',async function(event){
   if(!button||button.disabled||!code)return;
   const id=String(button.dataset.studentId||'').trim();
   const student=tokens.find(x=>String(x.id)===id);
-  if(!student||!/^\\d{5}$/.test(id))return alert('등록된 학생을 확인하세요.');
-  if(!confirm(id+' '+student.name+' 학생의 비밀번호만 초기화하시겠습니까?\\n기존 제출코드, 작성 기록, 보고서, 포스터는 유지됩니다.'))return;
+  if(!student||!/^\d{5}$/.test(id))return alert('등록된 학생을 확인하세요.');
+  if(!confirm(id+' '+student.name+' 학생의 비밀번호만 초기화하시겠습니까?\n기존 제출코드, 작성 기록, 보고서, 포스터는 유지됩니다.'))return;
   button.disabled=true;
   button.textContent='처리 중…';
   try{
