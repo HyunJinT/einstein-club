@@ -106,7 +106,11 @@ async function readTeacher(ctx){
  const applications=await ctx.get(ctx.ref(ctx.db,BASE+'/applications'));
  const tree=applications.val()||{},records=[];
  Object.values(tree).forEach(group=>Object.values(group||{}).forEach(v=>{
-   if(v&&v.rep&&v.plan)records.push(v);
+   if(v&&v.rep&&v.plan)records.push({
+     ...v,members:Array.isArray(v.members)?v.members:Object.values(v.members||{}),
+     buy:Array.isArray(v.buy)?v.buy:Object.values(v.buy||{}),
+     stock:Array.isArray(v.stock)?v.stock:Object.values(v.stock||{})
+   });
  }));
  return {now:kstTime(),slots:await readSlots(ctx),records};
 }
@@ -117,6 +121,14 @@ async function api(method,...args){
    if(method==='publicConfig')return {now:kstTime(),slots:await readSlots(ctx)};
    if(method==='submitApplication'){
      await requireStudent(ctx);
+     // 기존 전체 공개 Firebase 규칙에서는 학생 제출을 허용하지 않습니다.
+     // 이 경로에 대한 학생의 읽기가 거부되어야 안전한 설정입니다.
+     try{
+       await ctx.get(ctx.ref(ctx.db,BASE+'/applications'));
+       throw new Error('Firebase 보안 규칙이 아직 전체 공개 상태입니다. 신청 저장을 중단했습니다. 교사가 새 규칙을 설정해야 합니다.');
+     }catch(e){
+       if(e.code!=='PERMISSION_DENIED')throw e;
+     }
      const item=args[0],date=String(item?.date||''),id=String(item?.rep?.id||'');
      if(!DATES.some(d=>d[0]===date)||!/^\d{5}$/.test(id))throw new Error('날짜와 대표학생 학번을 확인하세요.');
      if(!((await readSlots(ctx)).find(s=>s.date===date)?.open))throw new Error('신청 마감일이 지났습니다.');
