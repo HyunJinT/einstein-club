@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "classes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "controls": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "einsteinBooking2026": {
+      ".read": "auth != null && auth.uid === 'PUT_TEACHER_UID_HERE' && auth.token.firebase.sign_in_provider === 'google.com'",
+      "slots": {
+        ".read": true,
+        "$date": {
+          ".write": "auth != null && auth.uid === 'PUT_TEACHER_UID_HERE' && auth.token.firebase.sign_in_provider === 'google.com'",
+          ".validate": "newData.hasChildren(['enabled', 'note']) && newData.child('enabled').isBoolean() && newData.child('note').isString() && newData.child('note').val().length <= 500"
+        }
+      },
+      "applications": {
+        "$date": {
+          "$repId": {
+            ".write": "(auth != null && auth.uid === 'PUT_TEACHER_UID_HERE' && auth.token.firebase.sign_in_provider === 'google.com') || (auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.exists() && $repId.matches(/^[0-9]{5}$/) && newData.child('rep/id').val() === $repId && newData.child('date').val() === $date && newData.child('decision').val() === 'WAITING' && newData.child('note').val() === '' && root.child('einsteinBooking2026/slots').child($date).child('enabled').val() !== false && (($date === '2026-11-02' && now < 1793545200000) || ($date === '2026-11-04' && now < 1793718000000) || ($date === '2026-11-05' && now < 1793804400000) || ($date === '2026-11-06' && now < 1793890800000) || ($date === '2026-11-09' && now < 1794150000000) || ($date === '2026-11-10' && now < 1794236400000)))",
+            ".validate": "newData.hasChildren(['id','date','rep','members','plan','buy','stock','decision','note','created','updated']) && newData.child('id').val() === $date + '_' + $repId && newData.child('date').val() === $date && newData.child('rep/id').val() === $repId && newData.child('rep/name').isString() && newData.child('rep/name').val().length <= 50 && newData.child('plan/title').isString() && newData.child('plan/purpose').isString() && newData.child('plan/method').isString() && newData.child('decision').isString() && newData.child('note').isString()"
+          }
+        }
+      }
+    }
+  }
+}
