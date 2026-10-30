@@ -35,7 +35,7 @@
 <section id="donePanel" class="card" hidden><div class="success-page"><div class="success-icon">✓</div><h2>실험 신청이 접수되었습니다</h2><p id="doneMessage"></p><div class="note">신청은 교사 확인 후 진행됩니다. 다른 실험 날짜도 신청하려면 아래 버튼을 누르세요.</div><button id="anotherDate" class="btn primary">＋ 다른 날짜도 신청하기</button></div></section>
 </div>
 <div id="teacherView" hidden>
-<section id="teacherLoginPanel" class="card"><h2 class="section-title">교사용 관리 로그인</h2><p class="lead">설정한 영문+숫자의 비밀번호를 눌러주세요.</p><form id="teacherLoginForm"><div class="field"><label for="teacherPasswordInput">교사용 비밀번호</label><input class="input" type="password" id="teacherPasswordInput" autocomplete="off" required placeholder="설정한 영문+숫자 비밀번호"></div><div class="actions" style="justify-content:flex-end"><button class="btn primary" type="submit">관리 화면 열기</button></div></form></section>
+<section id="teacherLoginPanel" class="card"><h2 class="section-title">교사용 관리 로그인</h2><p class="lead">교사용 데이터는 지정된 Google 계정으로만 확인할 수 있습니다. 학생은 Google 로그인 없이 신청할 수 있습니다.</p><form id="teacherLoginForm"><div class="actions" style="justify-content:flex-end"><button class="btn primary" type="submit">Google 계정으로 교사용 로그인</button></div></form></section>
 <div id="teacherDashboard" hidden><section class="card"><div class="heading-row"><h2 class="section-title" style="margin:0">실험 신청 현황</h2><div class="teacher-tools"><button class="btn small soft" id="teacherRefresh">↻ 새로고침</button><button class="btn small" id="teacherCsv">CSV 내보내기</button><button class="btn small red" id="teacherLogout">로그아웃</button></div></div><div id="metrics" class="metric-row"></div><div class="teacher-tools"><select class="select" id="filterDate" aria-label="실험 날짜 필터"><option value="">모든 실험 날짜</option></select><input class="input" id="filterQuery" aria-label="대표학생 검색" placeholder="학번·이름·실험 주제 검색"></div><div id="applications" class="application-list"></div></section><section class="card"><h2 class="section-title">날짜별 신청 관리</h2><p class="lead">지정된 6개 날짜만 신청을 받으며, 교사가 날짜별 접수를 미리 닫을 수 있습니다.</p><div id="teacherSlots"></div></section><section class="card" id="recordDetail" hidden><div id="recordDetailContent"></div></section></div>
 </div><p class="footer">2026 은행고등학교 · 아인슈타인 과학동아리 · 한국 시간 기준</p></main>
 <script>
@@ -47,18 +47,131 @@ const DEC={WAITING:'교사 확인 전',APPROVED:'실험 승인',NEEDS_EDIT:'보�
 const BUY_STATUS={NEEDED:'구매 필요',ORDERED:'주문 완료',PURCHASED:'구입 완료'};
 let role='student';
 let config=null,rep=null,selectedDate='',step=0,busy=false,teacherSession='',teacherData=null,selectedRecord=null;
-// Cloudflare Worker 설치 후 이 주소만 변경합니다. 실제 PIN은 여기에 넣지 않습니다.
-const API_URL = 'https://YOUR-WORKER.workers.dev';
+// 기존 효모 가상 실험실(yeast-lab)의 Firebase 웹 프로젝트를 재사용합니다.
+// 공개 Firebase 앱 설정은 비밀번호가 아닙니다. 실제 권한은 Firebase Rules에서 검사합니다.
+const FIREBASE_CONFIG={
+ apiKey:"AIzaSyBCwY1NAGzbOqHRjCEjogKPQ4dcF3lRTWM",
+ authDomain:"yeast-lab.firebaseapp.com",
+ databaseURL:"https://yeast-lab-default-rtdb.firebaseio.com",
+ projectId:"yeast-lab",
+ storageBucket:"yeast-lab.firebasestorage.app",
+ messagingSenderId:"108753928170",
+ appId:"1:108753928170:web:b9c5b73a57b14a0ce2bc93"
+};
+const BASE="einsteinBooking2026";
+const DATES=[
+ ["2026-11-02","11월 2일(월) 방과후"],["2026-11-04","11월 4일(수) 방과후"],
+ ["2026-11-05","11월 5일(목) 방과후"],["2026-11-06","11월 6일(금) 방과후"],
+ ["2026-11-09","11월 9일(월) 방과후"],["2026-11-10","11월 10일(화) 방과후"]
+];
+let firebasePromise=null;
+function firebaseReady(){
+ if(!firebasePromise) firebasePromise=(async()=>{
+   const [appLib,authLib,dbLib]=await Promise.all([
+     import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"),
+     import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"),
+     import("https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js")
+   ]);
+   const app=appLib.initializeApp(FIREBASE_CONFIG);
+   const auth=authLib.getAuth(app);
+   await auth.authStateReady();
+   return {...authLib,...dbLib,db:dbLib.getDatabase(app),auth};
+ })();
+ return firebasePromise;
+}
+function kstTime(){
+ return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',
+ hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());
+}
+function prevDay(date){
+ const day=new Date(Date.parse(date+'T00:00:00+09:00')-86400000);
+ return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(day);
+}
+async function requireStudent(ctx){
+ if(!ctx.auth.currentUser?.isAnonymous){
+   if(ctx.auth.currentUser)await ctx.signOut(ctx.auth);
+   await ctx.signInAnonymously(ctx.auth);
+ }
+}
+async function readSlots(ctx){
+ const snap=await ctx.get(ctx.ref(ctx.db,BASE+'/slots'));
+ const settings=snap.val()||{},at=kstTime();
+ return DATES.map(([date,label])=>{
+   const conf=settings[date]||{},enabled=conf.enabled!==false;
+   return {date,label,enabled,note:String(conf.note||''),deadline:prevDay(date)+' 23:59',
+     open:enabled&&at<date+' 00:00:00'};
+ });
+}
+async function readTeacher(ctx){
+ const applications=await ctx.get(ctx.ref(ctx.db,BASE+'/applications'));
+ const tree=applications.val()||{},records=[];
+ Object.values(tree).forEach(group=>Object.values(group||{}).forEach(v=>{
+   if(v&&v.rep&&v.plan)records.push(v);
+ }));
+ return {now:kstTime(),slots:await readSlots(ctx),records};
+}
 async function api(method,...args){
-  if(API_URL.includes('YOUR-WORKER'))throw new Error('교사가 아직 실험 신청 서버 주소를 연결하지 않았습니다.');
-  let response;
-  try{
-    response=await fetch(API_URL.replace(/\/$/,'')+'/api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({method,args}),cache:'no-store'});
-  }catch(err){throw new Error('신청 서버에 연결하지 못했습니다. 인터넷 연결 또는 서버 주소를 확인하세요.');}
-  let result;
-  try{result=await response.json();}catch(e){throw new Error('신청 서버의 응답을 읽지 못했습니다.');}
-  if(!response.ok||!result.ok)throw new Error(result.error||'신청 처리 중 오류가 발생했습니다.');
-  return result.data;
+ let ctx;
+ try{ctx=await firebaseReady();}catch(e){throw new Error('Firebase 연결 실패: '+String(e?.message||e));}
+ try{
+   if(method==='publicConfig')return {now:kstTime(),slots:await readSlots(ctx)};
+   if(method==='submitApplication'){
+     await requireStudent(ctx);
+     const item=args[0],date=String(item?.date||''),id=String(item?.rep?.id||'');
+     if(!DATES.some(d=>d[0]===date)||!/^\d{5}$/.test(id))throw new Error('날짜와 대표학생 학번을 확인하세요.');
+     if(!((await readSlots(ctx)).find(s=>s.date===date)?.open))throw new Error('신청 마감일이 지났습니다.');
+     const timestamp=kstTime(),uid=date+'_'+id;
+     const buy=(item.buy||[]).map(x=>({...x,id:crypto.randomUUID(),status:'NEEDED',
+       qty:Number(x.qty),price:Number(x.price)}));
+     const stock=(item.stock||[]).map(x=>({...x,qty:Number(x.qty)}));
+     const data={id:uid,date,rep:item.rep,members:item.members||[],plan:item.plan,
+       buy,stock,decision:'WAITING',note:'',created:timestamp,updated:timestamp};
+     try{await ctx.set(ctx.ref(ctx.db,BASE+'/applications/'+date+'/'+id),data)}
+     catch(e){if(e.code==='PERMISSION_DENIED')throw new Error('이미 신청했거나 신청 기한이 지났습니다. 신청 정보를 확인하세요.');throw e;}
+     return {ok:true,date,rep:item.rep,submittedAt:timestamp,message:'신청이 정상 접수되었습니다.'};
+   }
+   if(method==='teacherLogin'){
+     const provider=new ctx.GoogleAuthProvider();
+     const result=await ctx.signInWithPopup(ctx.auth,provider);
+     let data;
+     try{data=await readTeacher(ctx)}
+     catch(e){
+       if(e.code==='PERMISSION_DENIED')throw new Error('Google 로그인은 되었으나 교사 권한 등록이 필요합니다. Firebase Authentication 사용자 목록에서 UID를 확인하세요. 현재 로그인 UID: '+result.user.uid);
+       throw e;
+     }
+     return {session:result.user.uid,data};
+   }
+   if(method==='teacherLogout'){
+     if(ctx.auth.currentUser)await ctx.signOut(ctx.auth);
+     return {ok:true};
+   }
+   if(method==='teacherRefresh')return readTeacher(ctx);
+   if(method==='teacherSetSlot'){
+     const [session,date,enabled,note]=args;
+     if(!DATES.some(x=>x[0]===date))throw new Error('예약 가능 날짜가 아닙니다.');
+     await ctx.set(ctx.ref(ctx.db,BASE+'/slots/'+date),{enabled:!!enabled,note:String(note||'').slice(0,500)});
+     return readTeacher(ctx);
+   }
+   if(method==='teacherUpdateApplication'){
+     const [session,id,decision,note,statusChanges]=args;
+     if(!['WAITING','APPROVED','NEEDS_EDIT','REJECTED'].includes(decision))throw new Error('올바르지 않은 상태입니다.');
+     const [date,studentId]=String(id||'').split('_');
+     if(!DATES.some(x=>x[0]===date)||!/^\d{5}$/.test(studentId))throw new Error('신청 정보를 찾을 수 없습니다.');
+     const recordRef=ctx.ref(ctx.db,BASE+'/applications/'+date+'/'+studentId);
+     const original=(await ctx.get(recordRef)).val();
+     if(!original)throw new Error('신청서를 찾을 수 없습니다.');
+     const changes=new Map((statusChanges||[]).map(x=>[x.id,x.status]));
+     const buy=(original.buy||[]).map(x=>({
+       ...x,status:['NEEDED','ORDERED','PURCHASED'].includes(changes.get(x.id))?changes.get(x.id):x.status
+     }));
+     await ctx.update(recordRef,{decision,note:String(note||'').slice(0,1500),buy,updated:kstTime()});
+     return readTeacher(ctx);
+   }
+   throw new Error('지원하지 않는 요청입니다.');
+ }catch(e){
+   if(e.code==='PERMISSION_DENIED')throw new Error('Firebase 접근 권한이 없습니다. 교사 인증 또는 데이터베이스 규칙을 확인하세요.');
+   throw e;
+ }
 }
 async function call(method,...args){if(busy)throw new Error('이전 작업이 처리 중입니다.');busy=true;try{return await api(method,...args);}finally{busy=false;}}
 function notice(message,ok=false){$('notice').innerHTML=`<div class="alert ${ok?'success':''}" role="alert">${esc(message)}</div>`;window.scrollTo({top:0,behavior:'smooth'});}
@@ -89,7 +202,7 @@ function nextStep(n){try{if(step===0){if(!selectedDate)throw new Error('실험 �
 async function submit(){try{clearNotice();const data={date:selectedDate,rep,members:validateMembers(),plan:validatePlan(),buy:validateBuy(),stock:validateStock()};if(!selectedDate)throw new Error('실험 날짜를 선택하세요.');if(!confirm(`${dateText(selectedDate)} 실험을 최종 신청하시겠습니까?\n제출 후에는 직접 수정할 수 없습니다.`))return;const btn=$('submitBtn');btn.disabled=true;btn.textContent='제출 중…';try{const result=await call('submitApplication',data);$('studentFlow').hidden=true;$('donePanel').hidden=false;$('doneMessage').innerHTML=`<b>${esc(result.rep.id)} ${esc(result.rep.name)}</b> · ${esc(dateText(result.date))}<div class="minor">제출 시각: ${esc(result.submittedAt)} (한국 시간)</div>`;notice(result.message,true);}finally{btn.disabled=false;btn.textContent='✓ 최종 제출하기';}}catch(e){notice(e.message);}}
 function resetForNext(){selectedDate='';$('donePanel').hidden=true;$('studentFlow').hidden=false;$('memberRows').innerHTML='';$('buyRows').innerHTML='';$('stockRows').innerHTML='';['expTitle','expPurpose','expMethod','expSafety'].forEach(id=>$(id).value='');updateTotals();buildSlots();showStep(0);}
 function setLinks(){const teacher=role==='teacher';$('studentView').hidden=teacher;$('teacherView').hidden=!teacher;$('studentLink').classList.toggle('active',!teacher);$('teacherLink').classList.toggle('active',teacher);$('teacherLink').setAttribute('aria-pressed',String(teacher));$('studentLink').setAttribute('aria-pressed',String(!teacher));$('heroTitle').textContent=teacher?'실험 신청 관리실':'방과후 실험 신청';$('heroDescription').textContent=teacher?'모둠별 신청서와 구매 요청을 확인하고 준비물 구매 상태를 관리하세요.':'대표학생이 날짜 → 참석 학생 → 실험 주제 → 구입 준비물 → 과학실 준비물 순서로 신청하세요.';}
-function clearTeacherSession(){const old=teacherSession;teacherSession='';teacherData=null;selectedRecord=null;$('teacherPasswordInput').value='';$('teacherDashboard').hidden=true;$('teacherLoginPanel').hidden=false;if(old)api('teacherLogout',old).catch(()=>{});}
+function clearTeacherSession(){const old=teacherSession;teacherSession='';teacherData=null;selectedRecord=null;$('teacherDashboard').hidden=true;$('teacherLoginPanel').hidden=false;if(old)api('teacherLogout',old).catch(()=>{});}
 function switchRole(next){if(next==='student'&&role==='teacher')clearTeacherSession();role=next;setLinks();clearNotice();window.scrollTo({top:0,behavior:'smooth'});if(next==='student'&&!config)loadSlots();}
 function teacherMetrics(){const rec=teacherData.records,needed=rec.flatMap(r=>r.buy||[]).filter(x=>x.status==='NEEDED').reduce((n,x)=>n+x.qty*x.price,0);$('metrics').innerHTML=`<div class="metric"><strong>${rec.length}</strong><span>신청서 접수</span></div><div class="metric"><strong>${rec.filter(r=>r.decision==='WAITING').length}</strong><span>교사 확인 전</span></div><div class="metric"><strong>${money(needed)}</strong><span>구매 필요 예상금액</span></div>`;}
 function teacherRender(){if(!teacherData)return;teacherMetrics();const select=$('filterDate');const curr=select.value;select.innerHTML='<option value="">모든 실험 날짜</option>'+teacherData.slots.map(s=>`<option value="${esc(s.date)}">${esc(s.label)}</option>`).join('');select.value=curr;teacherRenderApplications();teacherRenderSlots();if(selectedRecord){const exists=teacherData.records.find(r=>r.id===selectedRecord);if(exists)showRecord(exists.id);else $('recordDetail').hidden=true;}}
@@ -98,7 +211,7 @@ function teacherRenderApplications(){const d=$('filterDate').value,q=$('filterQu
 function staticTable(items,stock){if(!items.length)return '<div class="empty">해당 준비물 없음</div>';if(stock)return `<div class="tablewrap"><table class="table"><thead><tr><th>품목명</th><th>종류·규격</th><th>수량</th></tr></thead><tbody>${items.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.qty)}</td></tr>`).join('')}</tbody></table></div>`;return `<div class="tablewrap"><table class="table"><thead><tr><th>품목명</th><th>종류·규격</th><th>수량</th><th>단가</th><th>합계</th><th>G마켓</th><th>구매상태</th></tr></thead><tbody>${items.map(x=>`<tr data-buy-id="${esc(x.id)}"><td><strong>${esc(x.name)}</strong></td><td>${esc(x.type)}</td><td>${esc(x.qty)}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)}</td><td><a href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">상품보기</a></td><td><select class="t-buy-status">${Object.entries(BUY_STATUS).map(([k,v])=>`<option value="${k}" ${x.status===k?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>`;}
 function showRecord(id){const r=teacherData.records.find(x=>x.id===id);if(!r)return;selectedRecord=id;$('recordDetail').hidden=false;$('recordDetailContent').innerHTML=`<div class="heading-row"><h2 class="section-title" style="margin:0">신청서 상세</h2><button class="btn small" id="closeDetail">닫기</button></div><div class="details-grid"><div class="info-item"><strong>실험 날짜</strong>${esc(dateText(r.date))}</div><div class="info-item"><strong>대표학생</strong>${esc(r.rep.id)} ${esc(r.rep.name)}</div><div class="info-item"><strong>참석 학생 명단 (${(r.members||[]).length+1}명)</strong>${esc([r.rep,...r.members].map(x=>x.id+' '+x.name).join(' / '))}</div><div class="info-item"><strong>신청 시각</strong>${esc(r.created)}</div><div class="info-item full"><strong>실험 주제</strong>${esc(r.plan.title)}</div><div class="info-item full"><strong>탐구 목적</strong>${esc(r.plan.purpose)}</div><div class="info-item full"><strong>실험 방법</strong>${esc(r.plan.method)}</div>${r.plan.safety?`<div class="info-item full"><strong>안전 유의사항</strong>${esc(r.plan.safety)}</div>`:''}</div><div class="mini-sep"></div><div class="heading-row"><h3>구입할 준비물 (${r.buy.length}개)</h3><b class="fine">예상 구입 비용 ${money(r.buy.reduce((n,x)=>n+x.qty*x.price,0))}</b></div>${staticTable(r.buy,false)}<div class="mini-sep"></div><h3>과학실에 구비된 준비물 (${r.stock.length}개)</h3>${staticTable(r.stock,true)}<div class="mini-sep"></div><div class="grid2"><div class="field"><label>실험 진행 확인</label><select class="select" id="t-decision">${Object.entries(DEC).map(([k,v])=>`<option value="${k}" ${r.decision===k?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>교사 메모</label><textarea class="textarea" id="t-note" style="min-height:80px" placeholder="준비물 구매 및 확인 사항">${esc(r.note)}</textarea></div></div><div class="actions" style="justify-content:flex-end"><button class="btn primary" id="saveTeacherRecord">확인 사항 저장</button></div>`;
 $('closeDetail').addEventListener('click',()=>{$('recordDetail').hidden=true;selectedRecord=null;});$('saveTeacherRecord').addEventListener('click',saveTeacherRecord);$('recordDetail').scrollIntoView({behavior:'smooth',block:'start'});}
-async function teacherLogin(e){e.preventDefault();try{const pass=text('teacherPasswordInput');if(!pass)throw new Error('교사용 비밀번호를 입력하세요.');const result=await call('teacherLogin',pass);teacherSession=result.session;teacherData=result.data;$('teacherPasswordInput').value='';$('teacherLoginPanel').hidden=true;$('teacherDashboard').hidden=false;teacherRender();clearNotice();}catch(e){teacherSession='';$('teacherPasswordInput').value='';notice(e.message);}}
+async function teacherLogin(e){e.preventDefault();try{const result=await call('teacherLogin');teacherSession=result.session;teacherData=result.data;$('teacherLoginPanel').hidden=true;$('teacherDashboard').hidden=false;teacherRender();clearNotice();}catch(e){teacherSession='';notice(e.message);}}
 async function teacherRefresh(){try{teacherData=await call('teacherRefresh',teacherSession);teacherRender();notice('최신 신청 현황을 불러왔습니다.',true);}catch(e){notice(e.message);}}
 async function saveTeacherSlot(date){try{const row=document.querySelector(`[data-slot="${date}"]`);const enabled=row.querySelector('.t-enabled').checked,note=row.querySelector('.t-note').value;teacherData=await call('teacherSetSlot',teacherSession,date,enabled,note);teacherRender();notice('해당 날짜의 신청 설정을 저장했습니다.',true);}catch(e){notice(e.message);}}
 async function saveTeacherRecord(){try{const id=selectedRecord,decision=$('t-decision').value,note=$('t-note').value;const statusChanges=Array.from($('recordDetail').querySelectorAll('[data-buy-id]')).map(el=>({id:el.dataset.buyId,status:el.querySelector('.t-buy-status').value}));teacherData=await call('teacherUpdateApplication',teacherSession,id,decision,note,statusChanges);teacherRender();notice('교사 확인 사항 및 구매 상태를 저장했습니다.',true);}catch(e){notice(e.message);}}
