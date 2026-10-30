@@ -114,6 +114,10 @@ async function readTeacher(ctx){
  }));
  return {now:kstTime(),slots:await readSlots(ctx),records};
 }
+function isFirebasePermissionDenied(error){
+ const details=String(error?.code||'')+' '+String(error?.message||error||'');
+ return /permission[\s_-]*denied/i.test(details);
+}
 async function api(method,...args){
  let ctx;
  try{ctx=await firebaseReady();}catch(e){throw new Error('Firebase 연결 실패: '+String(e?.message||e));}
@@ -127,7 +131,7 @@ async function api(method,...args){
        await ctx.get(ctx.ref(ctx.db,BASE+'/applications'));
        throw new Error('Firebase 보안 규칙이 아직 전체 공개 상태입니다. 신청 저장을 중단했습니다. 교사가 새 규칙을 설정해야 합니다.');
      }catch(e){
-       if(e.code!=='PERMISSION_DENIED')throw e;
+       if(!isFirebasePermissionDenied(e))throw e;
      }
      const item=args[0],date=String(item?.date||''),id=String(item?.rep?.id||'');
      if(!DATES.some(d=>d[0]===date)||!/^\d{5}$/.test(id))throw new Error('날짜와 대표학생 학번을 확인하세요.');
@@ -139,7 +143,7 @@ async function api(method,...args){
      const data={id:uid,date,rep:item.rep,members:item.members||[],plan:item.plan,
        buy,stock,decision:'WAITING',note:'',created:timestamp,updated:timestamp};
      try{await ctx.set(ctx.ref(ctx.db,BASE+'/applications/'+date+'/'+id),data)}
-     catch(e){if(e.code==='PERMISSION_DENIED')throw new Error('이미 신청했거나 신청 기한이 지났습니다. 신청 정보를 확인하세요.');throw e;}
+     catch(e){if(isFirebasePermissionDenied(e))throw new Error('Firebase에서 최종 제출을 거부했습니다. 이미 같은 날짜에 신청했거나 보안 규칙의 입력 검증 조건이 맞지 않을 수 있습니다. 작성한 내용은 임시저장되어 있습니다.');throw e;}
      return {ok:true,date,rep:item.rep,submittedAt:timestamp,message:'신청이 정상 접수되었습니다.'};
    }
    if(method==='teacherLogin'){
@@ -148,7 +152,7 @@ async function api(method,...args){
      let data;
      try{data=await readTeacher(ctx)}
      catch(e){
-       if(e.code==='PERMISSION_DENIED')throw new Error('Google 로그인은 되었으나 교사 권한 등록이 필요합니다. Firebase Authentication 사용자 목록에서 UID를 확인하세요. 현재 로그인 UID: '+result.user.uid);
+       if(isFirebasePermissionDenied(e))throw new Error('Google 로그인은 되었으나 교사 권한 등록이 필요합니다. Firebase Authentication 사용자 목록에서 UID를 확인하세요. 현재 로그인 UID: '+result.user.uid);
        throw e;
      }
      return {session:result.user.uid,data};
@@ -181,7 +185,7 @@ async function api(method,...args){
    }
    throw new Error('지원하지 않는 요청입니다.');
  }catch(e){
-   if(e.code==='PERMISSION_DENIED')throw new Error('Firebase 접근 권한이 없습니다. 교사 인증 또는 데이터베이스 규칙을 확인하세요.');
+   if(isFirebasePermissionDenied(e))throw new Error('Firebase 접근 권한이 없습니다. 교사 인증 또는 데이터베이스 규칙을 확인하세요.');
    throw e;
  }
 }
