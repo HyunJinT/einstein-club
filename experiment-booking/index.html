@@ -496,13 +496,14 @@ async function deleteTeacherRecord(id=selectedRecord){
  const r=teacherData.records.find(x=>x.id===id);if(!r)return;
  if(!confirm('이 신청서를 삭제할까요?\n'+r.date+' · '+r.rep.id+' '+r.rep.name+'\n학생에게 공개된 결과·코멘트도 삭제됩니다.'))return;
  if(!confirm('마지막 확인: 삭제한 신청서는 복구할 수 없습니다. 정말 삭제하시겠습니까?'))return;
- const btn=$('deleteTeacherRecord');btn.disabled=true;btn.textContent='삭제 중…';
+ const btn=document.querySelector('[data-delete-record="'+r.id+'"]')||$('deleteTeacherRecord');
+ if(btn){btn.disabled=true;btn.textContent='삭제 중…';}
  try{
    teacherData=await call('teacherDeleteApplication',teacherSession,r.id);
    if(selectedRecord===r.id){selectedRecord=null;$('recordDetail').hidden=true;}teacherRender();
    notice('신청서와 학생 결과가 함께 삭제되었습니다.',true);
  }catch(e){notice(e.message)}
- finally{if($('deleteTeacherRecord')){$('deleteTeacherRecord').disabled=false;$('deleteTeacherRecord').textContent='신청서 삭제';}}
+ finally{if(btn&&btn.isConnected){btn.disabled=false;btn.textContent=btn.classList.contains('delete-inline')?'삭제':'신청서 삭제';}}
 }
 async function saveTeacherRecord(){try{const id=selectedRecord,decision=$('t-decision').value,note=$('t-note').value;const statusChanges=Array.from($('recordDetail').querySelectorAll('[data-buy-id]')).map(el=>({id:el.dataset.buyId,status:el.querySelector('.t-buy-status').value}));teacherData=await call('teacherUpdateApplication',teacherSession,id,decision,note,statusChanges);teacherRender();notice('실험 결과·코멘트를 참석 학생들에게 공개하고 구매 상태를 저장했습니다.',true);}catch(e){notice(e.message);}}
 function csvCell(v){let s=String(v??'');if(/^[\s]*[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
