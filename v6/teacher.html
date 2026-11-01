@@ -83,19 +83,40 @@ header h1{font-size:25px;letter-spacing:-.025em}
 #codesTable th:nth-child(6){width:15%}
 #codesTable button.student-row-password-reset{background:#fff4ea;color:#865019;border:1px solid #e9c7a9;font-size:12px;padding:6px 10px;margin:0;white-space:nowrap}
 #codesTable button.student-row-password-reset:hover{background:#ffe6cd}
+
+.codes-overview>summary.codes-summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:7px 0;color:#173b57;font-size:17px}
+.codes-summary .hint{font-size:12px;font-weight:400}
+#submissionOverview input,#posterOverview input{margin:10px 0;max-width:550px}
+#teacherPinGo{width:100%;max-width:350px}
+#teacherPinFeedback{min-height:20px;color:#a42d45}
+@media(max-width:840px){body{min-width:0}.wrap{width:calc(100% - 20px);margin:12px auto}.grid{grid-template-columns:1fr}.card{padding:16px 12px}header{padding:20px 14px}input,textarea{max-width:100%;box-sizing:border-box}}
 </style></head><body><header><small style="color:#92c9ce">2026 EINSTEIN SCIENCE CLUB</small><h1>교사용 · 동아리 특기사항 근거 확인</h1><div style="color:#d1e5eb">학생이 실제로 제출한 자료에서 주요 탐구 근거만 발췌합니다. 자동으로 생기부 문장을 생성하지 않습니다.</div></header>
-<main class="wrap"><section class="card" id="authForm"><h2>교사 인증</h2><p class="hint">개인 PC를 등록한 뒤에는 숫자 PIN으로 빠르게 로그인할 수 있습니다. 새 기기를 처음 등록할 때만 64자리 접근코드가 필요합니다.</p><label for="teacherCode">교사용 접근코드</label><input type="password" autocomplete="off" id="teacherCode" placeholder="64자리 교사용 코드"><button id="login">인증하고 자료 열기</button><label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간, 개인 PC에서만)</label><p class="hint">공용 컴퓨터에서는 선택하지 마세요. 로그인 중인 탭을 닫거나 직접 로그아웃하면 다시 인증해야 합니다.</p><p id="alert"></p></section>
+<main class="wrap"><section class="card" id="authForm"><h2>교사용 PIN 로그인</h2>
+<p class="hint">처음 접속하는 휴대전화나 컴퓨터에서도 PIN만 입력해 로그인합니다.</p>
+<label for="teacherPinInput">교사용 PIN</label><input id="teacherPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN 번호 입력">
+<button type="button" id="teacherPinGo">PIN으로 로그인</button><p id="teacherPinFeedback" role="status" class="hint"></p>
+<details class="resetBlock" id="teacherRecovery"><summary>관리자 긴급 복구 · 기존 교사코드 로그인</summary>
+<label for="teacherCode">긴급 복구용 교사코드</label><input id="teacherCode" type="password" autocomplete="off" placeholder="기존 교사코드"><button id="login">교사코드 로그인</button>
+<label class="remember-session" for="rememberSession"><input type="checkbox" id="rememberSession">이 탭에서 인증 유지 (최대 8시간)</label>
+</details><p id="alert"></p></section>
 <div id="privateArea" hidden><div style="text-align:right;margin-bottom:4px"><button id="logout" type="button">교사 로그아웃</button></div><div class="grid"><section class="card"><h2>학생별 제출코드 발급</h2><p class="hint">한 줄에 학생 1명씩 입력합니다. 형식: <code>20000,홍길동,조장</code> 또는 <code>20001,김영희</code><br>이미 발급된 학생을 다시 입력해도 같은 코드를 조회합니다. 기존 데이터에는 일회성 갱신이 필요할 수 있습니다.</p><textarea id="rosterInput" placeholder="20000,홍길동,조장&#10;20001,김영희"></textarea><button id="issue">제출코드 발급</button><p class="hint">코드는 교사용 서버에 보관됩니다. 발급 버튼을 다시 눌러도 기존 코드는 변경되지 않습니다.</p><textarea id="issued" readonly placeholder="조회 또는 발급한 학생별 코드" style="min-height:100px"></textarea><button id="copy">화면 목록 복사</button>
 
 <details class="resetBlock"><summary>기존 코드 복원 불가 학생 · 1회 갱신 / 개별 코드 재발급</summary><p class="hint">과거 서버에서 해시값만 저장한 코드는 복원할 수 없습니다. 아래 버튼은 코드를 분실한 학생에게 <strong>새 코드</strong>를 발급합니다. 기존 코드는 무효화되며, 이미 업로드 중이거나 완료한 학생은 갱신되지 않습니다.</p>
 <div class="toolbar"><button id="resetLegacy">복원 불가 학생만 일괄 갱신</button></div>
 <label for="resetIds">특정 학생만 재발급할 때 학번 입력</label><textarea id="resetIds" placeholder="20000&#10;20001" style="min-height:70px"></textarea><button id="resetCodes">선택한 학생 코드 재발급</button></details></section>
-<section class="card"><h2>학생 비밀번호 초기화</h2><p class="hint">학생이 비밀번호를 잊은 경우에만 초기화하세요. <strong>기존 제출코드·작성 기록·첨부파일은 삭제되지 않습니다.</strong> 초기화 후 학생은 처음 이용 화면에서 기존 개별 제출코드로 새 비밀번호를 설정할 수 있습니다.</p><label for="studentPasswordResetId">초기화할 학생 학번</label><input id="studentPasswordResetId" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10000"><button type="button" id="studentPasswordResetBtn">해당 학생 비밀번호 초기화</button><div id="studentPasswordResetFeedback" class="hint" role="status"></div></section>
-<section class="card"><h2>제출 현황</h2><p class="hint">실제 접수 완료된 자료만 표시됩니다.</p><div id="counts">-</div><button id="refresh">제출현황 새로고침</button><input id="search" placeholder="학번·이름·주제 검색" style="margin-top:10px"></section></div><section class="card codes-overview" aria-labelledby="allCodesTitle"><div class="codes-heading"><div><h2 id="allCodesTitle">학생별 학번 · 이름 · 개별 제출코드</h2><p class="hint">등록된 학생 전체를 노트북·데스크톱 너비에 맞춰 표시합니다. 코드 표는 별도 스크롤 없이 아래로 모두 펼쳐집니다.</p></div></div><div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
-<div id="codeCount" class="hint"></div><div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th><th>비밀번호 관리</th></tr></thead><tbody id="codeRows"></tbody></table></div></section><section id="list"></section></div>
+</div><details class="card codes-overview" aria-labelledby="allCodesTitle">
+<summary class="codes-summary"><strong id="allCodesTitle">학생별 학번 · 이름 · 개별 제출코드</strong><span class="hint" id="codeCount">등록 학생 조회 중</span></summary>
+<p class="hint">펼치면 학생별 코드 조회와 비밀번호 초기화가 가능합니다.</p>
+<div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
+<div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th><th>비밀번호 관리</th></tr></thead><tbody id="codeRows"></tbody></table></div></details>
+<section class="card" id="submissionOverview"><h2>최종보고서 · 활동 기록 제출 현황</h2><p class="hint">최종 제출 학생을 학번 · 이름 · 연구주제로 검색할 수 있습니다.</p>
+<div id="counts">-</div><input id="search" placeholder="학번 · 이름 · 연구주제 검색"><button id="refresh">제출현황 새로고침</button></section>
+<section id="list"></section>
+<section class="card" id="posterOverview"><h2>모둠별 연구포스터 제출 현황</h2><p class="hint">포스터 파일·제출일시·모둠원별 확인 여부를 조회합니다.</p>
+<div id="posterCount" class="hint">포스터 조회 중…</div><input id="posterSearch" placeholder="모둠원 학번 · 이름 · 연구제목 검색"><button id="refreshPosters">포스터 새로고침</button><div id="posterList"></div></section></div>
 </main>
 <script>
-(function(){'use strict';const $=x=>document.getElementById(x),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const connected=typeof google!=='undefined'&&!!google.script?.run;let code='',all=[],tokens=[];
+(function(){'use strict';const $=x=>document.getElementById(x),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const connected=typeof google!=='undefined'&&!!google.script?.run;let code='',all=[],tokens=[],posters=[];
 function call(fn,...a){return new Promise((ok,no)=>{if(!connected){no(Error('서버 연결 전: 이 파일을 GitHub에서 직접 연 경우 미리보기만 가능합니다.'));return;}google.script.run.withSuccessHandler(ok).withFailureHandler(e=>no(Error(e.message||String(e))))[fn](...a);});}
 function notice(s){$('alert').textContent=s;}
 function snippet(label,t){return t?`<div class="excerpt"><strong>${esc(label)}</strong>${esc(t)}</div>`:'';}
@@ -219,6 +240,7 @@ async function authenticate(k,resuming){
   if(!resuming){if($('rememberSession').checked){if(!rememberAuth(k))alert('브라우저 저장소 제한으로 이번 탭의 인증을 유지하지 못할 수 있습니다.');}else forgetSession();}
   $('privateArea').hidden=false;$('authForm').hidden=true;$('teacherCode').value='';notice('');
   showTokens(initialTokens);
+  loadPosters();
   $('counts').textContent='제출현황 불러오는 중…';
   $('list').innerHTML='';
   // Drive에서 제출 보고서를 읽는 느린 요청은 별도로 실행합니다.
@@ -239,11 +261,11 @@ async function authenticate(k,resuming){
 $('login').onclick=()=>authenticate($('teacherCode').value.trim(),false);
 $('teacherCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('login').click();}});
 $('logout').onclick=()=>{
- forgetSession();code='';all=[];tokens=[];$('rememberSession').checked=false;
+ forgetSession();code='';all=[];tokens=[];posters=[];$('rememberSession').checked=false;
  $('privateArea').hidden=true;$('authForm').hidden=false;
  $('teacherCode').value='';$('issued').value='';$('list').innerHTML='';
  $('codesTable').querySelector('tbody').innerHTML='';$('codeCount').textContent='';
- $('counts').textContent='-';notice('로그아웃했습니다.');
+ $('counts').textContent='-';$('posterCount').textContent='-';$('posterList').innerHTML='';notice('로그아웃했습니다.');
 };
 const savedKey=restoreAuth();
 if(savedKey){$('rememberSession').checked=true;notice('이 탭의 교사 인증을 확인하는 중입니다…');authenticate(savedKey,true);}
@@ -333,30 +355,63 @@ $('codesTable').addEventListener('click',async function(event){
   try{
     await call('resetEinsteinStudentPasswordV14',code,id);
     button.textContent='초기화 완료';
-    $('studentPasswordResetFeedback').textContent=id+' '+student.name+' 학생 비밀번호 초기화 완료. 학생은 기존 개별 제출코드로 새 비밀번호를 설정할 수 있습니다.';
+
     alert(id+' '+student.name+' 학생 비밀번호를 초기화했습니다. 기록과 파일은 유지됩니다.');
   }catch(e){
     button.textContent='비번 초기화';
     alert('초기화 실패: '+e.message);
   }finally{button.disabled=false;}
 });
-$('studentPasswordResetBtn').onclick=async function(){
- const id=$('studentPasswordResetId').value.trim(),button=this;
- if(!/^\d{5}$/.test(id))return alert('학번 5자리를 입력하세요.');
- if(!confirm(id+' 학생의 비밀번호를 초기화하시겠습니까? 기존 제출코드와 작성 기록은 유지됩니다.'))return;
- button.disabled=true;$('studentPasswordResetFeedback').textContent='초기화 요청 중…';
- try{
-  const result=await call('resetEinsteinStudentPasswordV14',code,id);
-  $('studentPasswordResetFeedback').textContent=result.studentId+' 학생의 비밀번호를 초기화했습니다. 기존 개별코드로 다시 등록할 수 있습니다.';
-  $('studentPasswordResetId').value='';
- }catch(e){$('studentPasswordResetFeedback').textContent='초기화 실패: '+e.message;}
- finally{button.disabled=false;}
-};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('issued').value);alert('복사했습니다.');}catch{ $('issued').select();document.execCommand('copy');}};
+
+async function loadPosters(){
+ if(!code)return;
+ $('posterCount').textContent='포스터 현황 불러오는 중…';
+ try{const a=await call('getEinsteinTeacherPosterDashboardV18',code);if(!Array.isArray(a))throw Error('결과 형식 오류');posters=a;renderPosters();}
+ catch(e){$('posterCount').textContent='포스터 조회 실패: '+e.message+' (Apps Script 서버 기능 배포 여부 확인)';$('posterList').innerHTML='';}
+}
+function renderPosters(){
+ const q=$('posterSearch').value.trim().toLowerCase();
+ const found=posters.filter(p=>([p.title,p.leaderId,p.leaderName].join(' ')+' '+(p.members||[]).map(m=>m.studentId+' '+m.name).join(' ')).toLowerCase().includes(q));
+ const confirmed=posters.filter(p=>(p.memberStatuses||[]).length&&(p.memberStatuses||[]).every(m=>m.status==='확인')).length;
+ $('posterCount').textContent='제출된 모둠포스터 '+posters.length+'건 · 전원 확인 '+confirmed+'건 · 검색 '+found.length+'건';
+ if(!found.length){$('posterList').innerHTML='<p class="hint">등록된 포스터가 없거나 검색 결과가 없습니다.</p>';return;}
+ $('posterList').innerHTML='<div class="table-scroller"><table style="min-width:950px"><thead><tr><th>연구제목</th><th>대표학생</th><th>제출일시</th><th>모둠원 확인</th><th>포스터 파일</th></tr></thead><tbody>'+found.map(p=>{
+  const ms=p.memberStatuses||[],members=ms.map(m=>esc(m.studentId+' '+m.name+' ('+m.status+')')).join('<br>');
+  const link=/^https:\/\//.test(p.fileUrl||'')?'<a href="'+esc(p.fileUrl)+'" target="_blank" rel="noopener noreferrer">포스터 열기</a>':'-';
+  return '<tr><td>'+esc(p.title)+'</td><td>'+esc(p.leaderId+' '+(p.leaderName||''))+'</td><td>'+esc(p.submittedAt)+'</td><td>'+ms.filter(m=>m.status==='확인').length+'/'+ms.length+'명 확인<br>'+members+'</td><td>'+link+'</td></tr>';
+ }).join('')+'</tbody></table></div>';
+}
+$('refreshPosters').onclick=loadPosters;
+$('posterSearch').oninput=renderPosters;
+
 $('search').oninput=render;
 if(!connected)notice('미리보기 화면입니다. 실제 데이터 열람과 코드 발급은 Apps Script 배포 주소에서만 가능합니다.');
 })();
 </script>
-<!-- v17: trusted teacher login rendered by external script; preserve server doGet injection skip marker: id="einsteinTrustedLogin" -->
-<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/teacher-pin-easy-v17.js?v=1"></script>
+<!-- id="einsteinTrustedLogin": 이전 Apps Script 간편로그인 중복 삽입 방지 -->
+<script>
+(function(){
+'use strict';
+const pin=document.getElementById('teacherPinInput'),b=document.getElementById('teacherPinGo'),msg=document.getElementById('teacherPinFeedback');
+if(!pin||!b||!msg)return;
+function signIn(){
+ const v=pin.value.trim();
+ if(!/^\d{4,12}$/.test(v)){msg.textContent='숫자 PIN을 입력하세요.';return;}
+ if(typeof google==='undefined'||!google.script?.run){msg.textContent='Apps Script 교사용 주소에서 접속하세요.';return;}
+ b.disabled=true;msg.textContent='PIN 인증 중…';
+ google.script.run.withSuccessHandler(function(r){
+  b.disabled=false;if(!r||!r.session){msg.textContent='인증 세션이 없습니다.';return;}
+  document.getElementById('teacherCode').value=r.session;
+  document.getElementById('rememberSession').checked=false;
+  pin.value='';msg.textContent='인증 완료. 자료를 불러오는 중…';
+  document.getElementById('login').click();
+ }).withFailureHandler(function(e){
+  b.disabled=false;msg.textContent='PIN 로그인 실패: '+(e&&e.message?e.message:String(e))+' (서버 업데이트 여부 확인)';
+ }).loginEinsteinTeacherPinV18(v);
+}
+b.onclick=signIn;
+pin.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();signIn();}});
+})();
+</script>
 </body></html>
