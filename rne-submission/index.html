@@ -46,12 +46,12 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <div id="closedWarning" class="warning" hidden>교사가 제출을 마감했습니다. 기존 제출물은 확인할 수 있지만 신규 제출과 수정은 불가능합니다.</div>
 <div id="reportForm" hidden>
 <div class="field"><label>희망 진로 및 관심 분야 <span class="req">*</span></label><input id="career" class="input" placeholder="예: 생명공학, 화학공학, 의학 등" maxlength="150"></div>
-<div class="field"><label>최종 보고서 파일 <span class="req">*</span></label><input class="input" type="file" id="reportFile" accept=".pdf,.hwpx,.hwp,.docx"><div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 25MB. 기존 파일이 있다면 새 파일을 선택할 때 교체됩니다.</div></div>
+<div class="field"><label>최종 보고서 파일 <span class="req">*</span></label><input class="input" type="file" id="reportFile" accept=".pdf,.hwpx,.hwp,.docx"><div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 15MB · Google Drive 비공개 저장. 새 파일 선택 시 기존 파일을 교체합니다.</div></div>
 </div>
 <div id="presentationForm" hidden>
 <div class="field"><label>연구주제 또는 모둠명 <span class="req">*</span></label><input id="teamTitle" class="input" maxlength="150" placeholder="연구주제 또는 모둠명"></div>
 <div class="field"><label>발표 모둠원 전체 명단 <span class="req">*</span></label><p class="small">발표자 포함 전원의 학번과 이름을 등록하세요. 발표자료는 대표학생 1명이 제출하고 수정합니다.</p><div id="memberList"></div><button class="btn" type="button" id="addMember">＋ 모둠원 추가</button></div>
-<div class="field"><label>발표자료 파일 <span class="req">*</span></label><input class="input" type="file" id="pptFile" accept=".pptx,.ppt,.pdf"><div class="small">PPTX, PPT 또는 PDF · 파일 1개 · 최대 25MB.</div></div>
+<div class="field"><label>발표자료 파일 <span class="req">*</span></label><input class="input" type="file" id="pptFile" accept=".pptx,.ppt,.pdf"><div class="small">PPTX, PPT 또는 PDF · 파일 1개 · 최대 15MB · Google Drive 비공개 저장.</div></div>
 </div>
 <div class="buttonbar"><button class="btn primary" type="button" id="saveSubmit">☁ 최종 제출 / 수정 저장</button><button class="btn" type="button" id="otherKind">다른 종류 제출</button><button class="btn" type="button" id="studentLogout">로그아웃</button></div>
 <div id="uploadProgress" class="small" aria-live="polite"></div>
@@ -72,12 +72,11 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <footer>2026 은행고등학교 · R&E 최종 결과물 제출 · 모든 시각은 한국 표준시 기준</footer>
 </main>
 <script type="module">
-// R&E 전용 Firebase 프로젝트 설정을 받은 다음 아래 값들을 변경합니다.
-// 기존 yeast-lab Firebase에 연결되지 않도록 지금은 임시값으로 비활성화합니다.
+// R&E 전용 Firebase 프로젝트(eunhaeng). 기존 효모 가상실험 Firebase와 분리되어 있습니다.
 const FIREBASE_CONFIG={
  apiKey:"AIzaSyD-pySAwEfbd9SHMnuPKd-SWjDtVD1QY_Y",
  authDomain:"eunhaeng.firebaseapp.com",
- databaseURL:"https://eunhaeng-default-rtdb.asia-southeast1.firebasedatabase.app", // 새 프로젝트 Realtime Database 생성 후 콘솔의 실제 URL을 입력해야 합니다.
+ databaseURL:"https://eunhaeng-default-rtdb.asia-southeast1.firebasedatabase.app",
  projectId:"eunhaeng",
  storageBucket:"eunhaeng.firebasestorage.app",
  messagingSenderId:"608700074461",
@@ -85,6 +84,10 @@ const FIREBASE_CONFIG={
  measurementId:"G-XC6BLZCLZ7"
 };
 const ROOT='rneSubmission2026';
+// Google Apps Script 웹앱을 배포하면 여기 /exec URL을 입력합니다.
+// Firebase Storage가 아닌 선생님 개인 Google Drive에 업로드합니다.
+const DRIVE_UPLOAD_WEBAPP_URL='';
+const MAX_FILE_BYTES=15*1024*1024;
 const $=id=>document.getElementById(id);
 let ctx=null,kind=null,student=null,credentialMode='login',accountVersion=null,closed=false,existing=null,teacherRecords=null,busy=false;
 const views=['homeView','loginView','studentView','teacherLogin','teacherView'];
@@ -93,26 +96,25 @@ function tell(msg,ok){const box=document.createElement('div');box.className='not
 function isPin(v){return /^\d{6}$/.test(v);}
 function isId(v){return /^\d{5}$/.test(v);}
 function kst(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());}
-function allowedFile(file,type){if(!file)return false;if(file.size<=0||file.size>25*1024*1024)return false;return (type==='report'?/\.(pdf|hwpx|hwp|docx)$/i:/\.(pptx|ppt|pdf)$/i).test(file.name);}
+function allowedFile(file,type){if(!file)return false;if(file.size<=0||file.size>MAX_FILE_BYTES)return false;return (type==='report'?/\.(pdf|hwpx|hwp|docx)$/i:/\.(pptx|ppt|pdf)$/i).test(file.name);}
 async function sha(id,pin){const buff=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('rne2026:'+id+':'+pin));return Array.from(new Uint8Array(buff)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 async function boot(){
- const [app,auth,db,storage]=await Promise.all([
+ const [app,auth,db]=await Promise.all([
   import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
   import('https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js'),
-  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js'),
-  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js')
+  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js')
  ]);
  const instance=app.initializeApp(FIREBASE_CONFIG,'rne-submission-2026');
  const authInstance=auth.getAuth(instance);
  await authInstance.authStateReady();
- ctx={auth:authInstance,db:db.getDatabase(instance),storage:storage.getStorage(instance),...auth,...db,...storage,dbRef:db.ref,storageRef:storage.ref};
+ ctx={auth:authInstance,db:db.getDatabase(instance),...auth,...db,dbRef:db.ref};
  await refreshClosed();
 }
 async function ready(){if(!ctx)await boot();return ctx;}
 async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
-async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능';return closed;}
-function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return '파일 저장소 권한이 없습니다. Firebase Storage 규칙을 확인하세요.';return String(e?.message||e);}
-function setBusy(v){busy=v;['checkAccount','pinSubmit','pinResetSetup','saveSubmit','googleLogin','closeButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
+async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':(!DRIVE_UPLOAD_WEBAPP_URL?'현재 상태: Google Drive 업로드 연결을 설정해야 합니다.':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능');return closed;}
+function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return 'Google Drive 업로드 연결 설정이 필요합니다.';return String(e?.message||e);}
+function setBusy(v){busy=v;['checkAccount','pinSubmit','pinResetSetup','saveSubmit','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
 async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
 function openKind(x){kind=x;if(student){void run(showStudent);return;}$('loginTitle').textContent=x==='report'?'최종 보고서 제출 · 학생 로그인':'발표자료 제출 · 대표학생 로그인';$('pinArea').hidden=true;$('studentId').value='';$('studentName').value='';show('loginView');}
 function pinMode(mode){credentialMode=mode;$('pinArea').hidden=false;$('pinConfirmWrap').hidden=mode==='login';$('pinSubmit').textContent=mode==='login'?'PIN 로그인':'PIN 설정하고 시작하기';$('pinTitle').textContent=mode==='login'?'PIN 입력':'새 PIN 설정';$('pinHint').textContent=mode==='login'?'기존에 설정한 숫자 6자리 PIN을 입력하세요.':'본인만 아는 숫자 6자리 PIN을 새로 설정하고 다시 입력하세요.';$('pinResetSetup').hidden=mode!=='login';$('pinInput').value='';$('pinConfirm').value='';$('pinInput').focus();}
@@ -161,7 +163,7 @@ function showExisting(){
  const area=$('submissionStatus');area.replaceChildren();
  const title=document.createElement('strong');title.textContent=existing?'✓ 이미 제출한 자료가 있습니다.':'아직 제출한 자료가 없습니다.';area.append(title);
  const d=document.createElement('div');d.className='small';d.textContent=existing?'최근 저장: '+(existing.updatedAt||'')+' · 제출 마감 전에는 정보를 수정하고 파일을 교체할 수 있습니다.':'파일을 첨부하여 처음 제출해 주세요.';area.append(d);
- if(existing?.file?.url){const link=document.createElement('a');link.href=existing.file.url;link.target='_blank';link.rel='noopener noreferrer';link.className='filelink';link.textContent='기존 파일: '+existing.file.name;area.append(link);}
+ if(existing?.file?.name){const fileLabel=document.createElement('div');fileLabel.className='filelink';fileLabel.textContent='기존 제출 파일: '+existing.file.name+' (비공개 Google Drive 저장 · 교사용 페이지에서 열람)';area.append(fileLabel);}
 }
 async function showStudent(){
  await refreshClosed();const c=await ready();
@@ -182,35 +184,95 @@ async function showStudent(){
  }
  showExisting();show('studentView');
 }
-async function fileUpload(file,type){
- const c=await ready(),ext=file.name.split('.').pop().toLowerCase(),path=ROOT+'/'+c.auth.currentUser.uid+'/'+type+'/'+crypto.randomUUID()+'.'+ext;
- const fileRef=c.storageRef(c.storage,path);
- $('uploadProgress').textContent='파일 업로드 중: '+file.name;
- await c.uploadBytes(fileRef,file,{contentType:file.type||'application/octet-stream'});
- const url=await c.getDownloadURL(fileRef);
- return {name:file.name,size:file.size,path:path,url:url};
+async function fileAsBase64(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error('파일을 읽을 수 없습니다.'));
+  reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');
+  reader.readAsDataURL(file);
+ });
+}
+async function pollDriveRecord(type,id,requestId){
+ const c=await ready();
+ const dbPath=ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id;
+ const stopAt=Date.now()+180000;
+ while(Date.now()<stopAt){
+  // 서버가 Drive 파일 저장 및 Firebase 기록 반영을 완료할 때까지 확인합니다.
+  const record=(await c.get(c.dbRef(c.db,dbPath))).val();
+  if(record&&record.requestId===requestId&&record.file?.driveId)return record;
+  await new Promise(resolve=>setTimeout(resolve,2200));
+ }
+ throw new Error('Google Drive의 제출 확인이 완료되지 않았습니다. 다시 제출하기 전에 로그인하여 제출 현황을 확인하고, 문제가 지속되면 교사에게 문의하세요.');
+}
+async function uploadToGoogleDrive(file,type,details){
+ if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(DRIVE_UPLOAD_WEBAPP_URL)){
+  throw new Error('Google Drive 업로드 서버가 아직 연결되지 않았습니다. 선생님께 문의하세요.');
+ }
+ const c=await anonymous();
+ if(!c.auth.currentUser?.isAnonymous)throw new Error('학생 로그인 정보가 없습니다.');
+ const requestId=crypto.randomUUID();
+ $('uploadProgress').textContent='파일 읽는 중 · '+file.name;
+ const fileBase64=await fileAsBase64(file);
+ const packet={
+  requestId,type,studentId:student.id,studentName:student.name,
+  authUid:c.auth.currentUser.uid,
+  idToken:await c.auth.currentUser.getIdToken(),
+  fileName:file.name,fileBase64,
+  ...details
+ };
+ $('uploadProgress').textContent='Google Drive로 전송 중 · 이 화면을 닫지 마세요.';
+ // Apps Script 웹앱은 GitHub Pages 도메인으로 CORS 응답 헤더를 제공하지 않습니다.
+ // 따라서 no-cors POST 후 Firebase의 해당 requestId가 기록되는지 확인합니다.
+ try{
+  await fetch(DRIVE_UPLOAD_WEBAPP_URL,{
+   method:'POST',mode:'no-cors',credentials:'omit',
+   headers:{'Content-Type':'text/plain;charset=UTF-8'},
+   body:JSON.stringify(packet),
+   redirect:'follow'
+  });
+ }catch(e){
+  throw new Error('Google Drive 서버 전송에 실패했습니다. 네트워크 또는 Apps Script 배포 설정을 확인하세요.');
+ }
+ $('uploadProgress').textContent='서버 저장 결과를 확인 중입니다. 이 화면을 닫지 마세요.';
+ return await pollDriveRecord(type,student.id,requestId);
 }
 async function saveSubmission(){
  if(await refreshClosed())throw Error('교사가 제출을 마감하여 신규 제출 및 수정이 불가능합니다.');
  if(!student)throw Error('먼저 학생 로그인을 완료하세요.');
  const type=kind,id=student.id,c=await ready();
- const file=$((type==='report')?'reportFile':'pptFile').files[0];
- if(file&&!allowedFile(file,type))throw Error('허용된 파일 형식인지, 파일 크기가 25MB 이내인지 확인하세요.');
+ const file=$(type==='report'?'reportFile':'pptFile').files[0];
+ if(file&&!allowedFile(file,type))throw Error('허용된 파일 형식인지, 파일 크기가 15MB 이내인지 확인하세요.');
  if(!file&&!existing?.file)throw Error('제출할 파일을 선택하세요.');
- let next={studentId:id,studentName:student.name,createdAt:existing?.createdAt||kst(),updatedAt:kst()};
- if(type==='report'){const career=$('career').value.trim();if(!career)throw Error('희망 진로 및 관심 분야를 입력하세요.');next.career=career;}
- else{const teamTitle=$('teamTitle').value.trim();if(!teamTitle)throw Error('연구주제 또는 모둠명을 입력하세요.');next.teamTitle=teamTitle;next.members=membersFromForm();}
+ const next={studentId:id,studentName:student.name,createdAt:existing?.createdAt||kst(),updatedAt:kst()};
+ if(type==='report'){
+  const career=$('career').value.trim();
+  if(!career)throw Error('희망 진로 및 관심 분야를 입력하세요.');
+  next.career=career;
+ }else{
+  const teamTitle=$('teamTitle').value.trim();
+  if(!teamTitle)throw Error('연구주제 또는 모둠명을 입력하세요.');
+  next.teamTitle=teamTitle;next.members=membersFromForm();
+ }
  if(!confirm('이 자료를 '+(existing?'수정 저장':'최종 제출')+'할까요? 교사가 마감하기 전에는 다시 수정할 수 있습니다.'))return;
  $('uploadProgress').textContent='';
- next.file=file?await fileUpload(file,type):existing.file;
- await c.set(c.dbRef(c.db,ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id),next);
- existing=next;showExisting();$(type==='report'?'reportFile':'pptFile').value='';
- $('uploadProgress').textContent='✓ 서버에 저장되었습니다. 저장 시각: '+next.updatedAt;
- tell('자료가 정상적으로 '+(file?'제출/교체':'수정')+'되었습니다.',true);
+ if(file){
+  // 파일 업로드와 Firebase 제출 기록 갱신은 Apps Script 서버에서 모두 처리합니다.
+  existing=await uploadToGoogleDrive(file,type,next);
+ }else{
+  // 파일을 그대로 유지한 채 진로 또는 모둠원 등 텍스트만 수정합니다.
+  next.file=existing.file;
+  next.requestId=crypto.randomUUID();
+  await c.set(c.dbRef(c.db,ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id),next);
+  existing=next;
+ }
+ showExisting();
+ $(type==='report'?'reportFile':'pptFile').value='';
+ $('uploadProgress').textContent='✓ 저장 완료: '+existing.updatedAt+' (한국 시간)';
+ tell('제출 자료가 정상 저장되었습니다. 마감 전에는 다시 수정할 수 있습니다.',true);
 }
 function fileLink(record){
  const a=document.createElement('a');a.className='filelink';a.textContent=record.file?.name||'첨부파일 없음';
- if(record.file?.url){a.href=record.file.url;a.target='_blank';a.rel='noopener noreferrer';}
+ if(record.file?.url){a.href=record.file.url;a.target='_blank';a.rel='noopener noreferrer';a.title='비공개 Google Drive 파일 · 교사 계정으로 열기';}
  return a;
 }
 function recordCard(title,subtitle,rec){
