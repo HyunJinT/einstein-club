@@ -15,8 +15,8 @@
       "accounts": {
         ".read": "auth != null && auth.uid === 'm6QiCUlxlZWuhzxVNt8SuYboIBk2' && auth.token.firebase.sign_in_provider === 'google.com'",
         "$id": {
-          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.hasChildren(['name','pinVersion','credentials','createdAt']) && newData.child('pinVersion').val() === 1 && newData.child('credentials/name').val() === newData.child('name').val()) || (auth != null && auth.uid === 'm6QiCUlxlZWuhzxVNt8SuYboIBk2' && auth.token.firebase.sign_in_provider === 'google.com' && data.exists() && newData.exists() && newData.child('name').val() === data.child('name').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('pinVersion').val() === data.child('pinVersion').val() + 1 && !newData.child('credentials').exists())",
-          ".validate": "$id.matches(/^[0-9]{5}$/) && newData.hasChildren(['name','createdAt','pinVersion']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('createdAt').isString() && newData.child('pinVersion').isNumber() && newData.child('pinVersion').val() >= 1 && (!newData.child('credentials').exists() || (newData.child('credentials/name').val() === newData.child('name').val() && newData.child('credentials/hash').isString() && newData.child('credentials/hash').val().matches(/^[a-f0-9]{64}$/)))",
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.hasChildren(['name','pinVersion','credentials','createdAt']) && newData.child('pinVersion').val() === 1 && newData.child('credentials/name').val() === newData.child('name').val()) || (auth != null && auth.uid === 'm6QiCUlxlZWuhzxVNt8SuYboIBk2' && auth.token.firebase.sign_in_provider === 'google.com' && data.exists() && newData.exists() && newData.child('name').val() === data.child('name').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('pinVersion').val() === data.child('pinVersion').val() + 1 && !newData.child('credentials').exists() && newData.child('pinNeedsSetup').val() === true)",
+          ".validate": "$id.matches(/^[0-9]{5}$/) && newData.hasChildren(['name','createdAt','pinVersion']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('createdAt').isString() && newData.child('pinVersion').isNumber() && newData.child('pinVersion').val() >= 1 && (!newData.child('credentials').exists() || (newData.child('credentials/name').val() === newData.child('name').val() && newData.child('credentials/hash').isString() && newData.child('credentials/hash').val().matches(/^[a-f0-9]{64}$/))) && (!newData.child('pinNeedsSetup').exists() || newData.child('pinNeedsSetup').isBoolean())",
           "pinVersion": {
             ".read": true,
             ".validate": "newData.isNumber() && newData.val() >= 1"
@@ -24,6 +24,11 @@
           "credentials": {
             ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && root.child('rneSubmission2026/accounts').child($id).child('name').val() === newData.child('name').val() && newData.child('hash').isString() && newData.child('hash').val().matches(/^[a-f0-9]{64}$/))",
             ".validate": "newData.hasChildren(['name','hash']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('hash').isString() && newData.child('hash').val().matches(/^[a-f0-9]{64}$/)"
+          },
+          "pinNeedsSetup": {
+            ".read": true,
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && data.val() === true && newData.val() === false && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists()",
+            ".validate": "newData.isBoolean()"
           }
         }
       },
