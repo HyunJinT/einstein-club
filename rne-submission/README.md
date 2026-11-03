@@ -23,7 +23,7 @@
 5. 등록된 교사용 Google Auth UID가 규칙에 반영되어 있습니다.
 
 ### 2) Firebase Storage 활성화 및 규칙 게시
-1. Firebase Console → Build → Storage에서 저장소가 아직 없으면 생성합니다. Cloud Storage 사용에는 프로젝트 요금제/결제 설정이 요구될 수 있습니다.
+1. Firebase Console → Build → Storage에서 저장소가 아직 없으면 생성합니다. **2026년 기준 Firebase Cloud Storage 사용에는 Blaze(종량제) 요금제가 필수**입니다. 무료 사용량이 포함될 수 있으나 과금 가능성이 있으므로 결제 계정과 예산 알림을 먼저 설정하세요.
 2. Storage → Rules에서 [firebase-storage.rules](./firebase-storage.rules)의 `match /rneSubmission2026/{uid}/{kind}/{filename}` 블록을 **기존 다른 Storage 규칙과 병합**해서 게시합니다.
 3. 기존 Storage 규칙 전체를 덮어쓰면 다른 웹앱 업로드 기능이 중단될 수 있습니다. 기존 규칙은 삭제하지 마세요.
 4. 저장소 주소가 `yeast-lab.firebasestorage.app`인지 확인하세요. 다른 경우 HTML의 `storageBucket` 값을 맞춰야 합니다.
