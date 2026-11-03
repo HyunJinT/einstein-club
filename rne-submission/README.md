@@ -30,7 +30,7 @@
 7. **다음 사용자 인증 정보로 실행: 나(Me)**, **액세스 권한이 있는 사용자: 모든 사용자(Anyone)**로 설정
 8. **배포** 클릭 후 Google Drive, 외부 요청(UrlFetchApp) 등 권한 승인
 9. **웹 앱 URL**로 표시되는 https://script.google.com/macros/s/.../exec 주소 전체 복사
-10. 해당 URL을 ChatGPT에 보내 R&E 앱 코드의 DRIVE_UPLOAD_WEBAPP_URL 에 반영하도록 요청 (또는 [index.html](./index.html)의 const DRIVE_UPLOAD_WEBAPP_URL 값을 직접 수정)
+10. **완료:** R&E 앱의 DRIVE_UPLOAD_WEBAPP_URL에 배포된 Apps Script URL을 연결했습니다. 웹앱을 재배포하여 URL이 바뀌는 경우에만 다시 수정하세요.
 
 **주의:** 웹 앱을 "나로 실행"하는 이유는 학생들이 선생님 Drive에 직접 권한을 갖는 것이 아니라, 서버가 인증된 학생의 제출 요청만 검증하고 대신 저장하기 위함입니다. 모든 사용자 접근이어도 PIN 세션 확인에 실패하면 파일을 저장하지 않습니다. **교사용 Firebase Google 로그인 계정과 Apps Script를 배포한 계정은 같은 계정**이어야 비공개 Drive 파일을 교사용 화면에서 정상 열 수 있습니다.
 
