@@ -5,7 +5,7 @@ service firebase.storage {
     match /rneSubmission2026/{uid}/{kind}/{filename} {
       function isTeacher() {
         return request.auth != null
-          && request.auth.uid == "Dt6RrEmQzvbyUp3m7firSdhgcvK2"
+          && request.auth.uid == "REPLACE_WITH_EUNHAENG_TEACHER_UID"
           && request.auth.token.firebase.sign_in_provider == "google.com";
       }
       function isStudentUploader() {
