@@ -46,7 +46,13 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <div id="closedWarning" class="warning" hidden>교사가 제출을 마감했습니다. 기존 제출물은 확인할 수 있지만 신규 제출과 수정은 불가능합니다.</div>
 <div id="reportForm" hidden>
 <div class="field"><label>희망 진로 및 관심 분야 <span class="req">*</span></label><input id="career" class="input" placeholder="예: 생명공학, 화학공학, 의학 등" maxlength="150"></div>
-<div class="field"><label>최종 보고서 파일 <span class="req">*</span></label><input class="input" type="file" id="reportFile" accept=".pdf,.hwpx,.hwp,.docx"><div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 15MB · Google Drive 비공개 저장. 새 파일 선택 시 기존 파일을 교체합니다.</div></div>
+<div class="field"><label for="reportFile">최종 보고서 파일 <span class="req">*</span></label>
+ <div id="reportExistingFileNotice" class="info" hidden><strong>1인당 1개의 파일만 제출 가능합니다.</strong><div>이미 제출한 파일이 있습니다. 새 파일은 '파일 교체하기'로 선택하세요.</div></div>
+ <button class="btn" type="button" id="replaceReportFileButton" hidden>↻ 파일 교체하기</button>
+ <div id="reportFileInputWrap"><input class="input" type="file" id="reportFile" accept=".pdf,.hwpx,.hwp,.docx"></div>
+ <div id="reportReplacementStatus" class="small" role="status" aria-live="polite" hidden></div>
+ <div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 15MB · 비공개 Google Drive 저장</div>
+</div>
 </div>
 <div id="presentationForm" hidden>
 <div class="field"><label for="teamTitle">연구주제 <span class="req">*</span></label><input id="teamTitle" class="input" maxlength="150" placeholder="연구주제를 입력하세요"></div>
@@ -114,7 +120,7 @@ async function ready(){if(!ctx)await boot();return ctx;}
 async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
 async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':(!DRIVE_UPLOAD_WEBAPP_URL?'현재 상태: Google Drive 업로드 연결을 설정해야 합니다.':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능');return closed;}
 function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return 'Google Drive 업로드 연결 설정이 필요합니다.';return String(e?.message||e);}
-function setBusy(v){busy=v;['checkAccount','pinSubmit','saveSubmit','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
+function setBusy(v){busy=v;['checkAccount','pinSubmit','saveSubmit','replaceReportFileButton','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
 async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
 function openKind(x){kind=x;if(student){void run(showStudent);return;}$('loginTitle').textContent=x==='report'?'최종 보고서 제출 · 학생 로그인':'발표자료 제출 · 대표학생 로그인';$('pinArea').hidden=true;$('studentId').value='';$('studentName').value='';show('loginView');}
 function pinMode(mode){credentialMode=mode;$('pinArea').hidden=false;$('pinConfirmWrap').hidden=mode==='login';$('pinSubmit').textContent=mode==='login'?'PIN 로그인':'PIN 설정하고 시작하기';$('pinTitle').textContent=mode==='login'?'PIN 입력':'새 PIN 설정';$('pinHint').textContent=mode==='login'?'기존에 설정한 숫자 6자리 PIN을 입력하세요.':'본인만 아는 숫자 6자리 PIN을 새로 설정하고 다시 입력하세요.';$('pinInput').value='';$('pinConfirm').value='';$('pinInput').focus();}
@@ -186,6 +192,30 @@ function showExisting(){
   area.append(hint);
  }
 }
+function displayReportFileControls(){
+ const alreadySubmitted=kind==='report' && Boolean(existing?.file);
+ const canEdit=!closed;
+ $('reportExistingFileNotice').hidden=!alreadySubmitted;
+ $('replaceReportFileButton').hidden=!alreadySubmitted||!canEdit;
+ $('reportFileInputWrap').hidden=alreadySubmitted||!canEdit;
+ $('reportReplacementStatus').hidden=true;
+ $('reportReplacementStatus').textContent='';
+}
+function pickReplacementReportFile(){
+ if(kind!=='report'||closed||!existing?.file)return;
+ $('reportFileInputWrap').hidden=false;
+ $('reportFile').click();
+}
+function reportFileChanged(){
+ const f=$('reportFile').files[0];
+ const status=$('reportReplacementStatus');
+ if(kind==='report'&&existing?.file&&f){
+  status.hidden=false;
+  status.textContent='교체할 파일: '+f.name+' · 아래의 “최종 제출 / 수정 저장”을 눌러야 기존 파일이 실제로 대체됩니다.';
+ }else{
+  status.hidden=true;status.textContent='';
+ }
+}
 async function showStudent(){
  await refreshClosed();const c=await ready();
  const path=ROOT+'/'+(kind==='report'?'reports':'presentations')+'/'+student.id;
@@ -196,6 +226,7 @@ async function showStudent(){
  $('reportForm').hidden=kind!=='report';$('presentationForm').hidden=kind!=='presentation';
  $('closedWarning').hidden=!closed;$('saveSubmit').hidden=closed;
  $('reportFile').value='';$('pptFile').value='';
+ displayReportFileControls();
  $('career').value=kind==='report'?(existing?.career||''):'';
  $('teamTitle').value=kind==='presentation'?(existing?.teamTitle||''):'';
  $('memberList').replaceChildren();
@@ -293,6 +324,7 @@ async function saveSubmission(){
  }
  showExisting();
  $(type==='report'?'reportFile':'pptFile').value='';
+ displayReportFileControls();
  $('uploadProgress').textContent='✓ 저장 완료: '+existing.updatedAt+' (한국 시간)';
  tell('제출 자료가 정상 저장되었습니다. 마감 전에는 다시 수정할 수 있습니다.',true);
 }
@@ -416,6 +448,8 @@ $('checkAccount').addEventListener('click',()=>run(checkAccount));
 $('pinSubmit').addEventListener('click',()=>run(submitPin));
 
 $('saveSubmit').addEventListener('click',()=>run(saveSubmission));
+$('replaceReportFileButton').addEventListener('click',pickReplacementReportFile);
+$('reportFile').addEventListener('change',reportFileChanged);
 $('addMember').addEventListener('click',()=>addMember());
 $('otherKind').addEventListener('click',()=>{kind=kind==='report'?'presentation':'report';void run(showStudent);});
 $('studentLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);goHome();}));
