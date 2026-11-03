@@ -2,7 +2,7 @@
 
 학생·교사 공통 주소: https://hyunjint.github.io/einstein-club/rne-submission/
 
-**중요:** 이전 `yeast-lab` 프로젝트와 완전히 분리합니다. 이 폴더의 앱은 새 Firebase의 웹앱 설정값이 반영되기 전까지 제출 기능이 비활성화됩니다. 기존 효모·방과후 앱 Firebase 규칙은 **절대 수정하지 마세요.**
+**중요:** 이전 `yeast-lab` 프로젝트와 완전히 분리합니다. R&E 앱의 새 Firebase 웹앱 설정과 Realtime Database 주소가 반영되었습니다. 단, Firebase의 보안 규칙 게시 및 Storage 활성화가 끝나기 전에는 제출이 동작하지 않습니다. 기존 효모·방과후 앱 Firebase 규칙은 **절대 수정하지 마세요.**
 
 ## 사용자 기능
 - 개인별 최종 보고서: 학번 5자리, 이름, 희망 진로, 보고서 1개(PDF/HWP/HWPX/DOCX)
@@ -19,14 +19,14 @@
 4. 새 프로젝트의 **Authentication**에서 **Anonymous** 및 **Google** 로그인 활성화, **Authorized domains**에 `hyunjint.github.io` 추가.
 5. 새 프로젝트의 **Realtime Database → Rules**에 이 폴더의 `firebase-database.rules.json` **전체 붙여넣기**. 이 파일은 전용 프로젝트용 독립 규칙이며 기존 효모·방과후 데이터 규칙은 없습니다.
 6. 새 프로젝트의 **Storage** 활성화 (Blaze 종량제 요금제와 결제 계정이 필요), **Storage → Rules**에 이 폴더의 `firebase-storage.rules` **전체 붙여넣기**.
-7. 새 프로젝트의 웹앱 `firebaseConfig` (public key values)와 RTDB URL을 앱 코드 `index.html`의 `FIREBASE_CONFIG`에 반영.
-8. 교사용 Google 로그인 테스트 후, 새 프로젝트 Authentication 사용자 목록에서 교사 Google 계정의 UID를 확인. **예전에 사용하던 교사 UID와 새 Firebase 프로젝트의 UID가 같다고 가정하지 마세요.** 이 폴더의 Realtime Database 규칙과 Storage 규칙에 임시로 들어 있는 기존 UID를 **새 프로젝트에서 확인한 UID로 변경**해야 합니다.
+7. **완료:** 새 프로젝트의 웹앱 설정값·RTDB URL이 `index.html`에 반영되어 있습니다.
+8. **완료:** 새 프로젝트에서 확인한 교사용 Google UID `m6QiCUlxlZWuhzxVNt8SuYboIBk2`를 데이터베이스와 Storage 규칙에 반영했습니다. 별도 수정 없이 각 규칙 파일을 Firebase 콘솔에 게시하세요.
 9. 학생용/교사용 파일 제출·PIN 초기화·마감 테스트 후 학생들에게 링크 배포.
 
 ## 파일
 - `index.html`: GitHub Pages 정적 프런트엔드
-- `firebase-database.rules.json`: R&E 전용 Realtime Database 규칙 전체 (교사 UID 적용 필요)
-- `firebase-storage.rules`: R&E 전용 Storage 규칙 전체 (교사 UID 적용 필요)
+- `firebase-database.rules.json`: R&E 전용 Realtime Database 규칙 전체 (교사 UID 적용 완료, Firebase 게시 필요)
+- `firebase-storage.rules`: R&E 전용 Storage 규칙 전체 (교사 UID 적용 완료, Firebase 게시 필요)
 
 ### 필수 보안 점검
 - 신규 계정에 대한 학적부 인증은 없으므로 최초 등록자에 의한 학번 선점 가능성이 있습니다.
