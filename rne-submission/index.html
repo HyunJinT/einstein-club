@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17314c">
+<title>2026 R&E 최종 결과물 제출 | 은행고등학교</title>
+<style>
+:root{--navy:#17314c;--navy2:#234e69;--teal:#0d858c;--blue:#2772ad;--ink:#24384b;--muted:#657a8d;--line:#d9e6ed;--soft:#f2f7fb;--red:#b83e4c;--green:#148069;--shadow:0 12px 36px rgba(21,49,74,.07)}
+*{box-sizing:border-box}body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;color:var(--ink);background:linear-gradient(150deg,#f5f9fc,#eef5f8);font-size:15px;line-height:1.7}button,input,select{font:inherit}button{cursor:pointer}a{color:var(--blue)}[hidden]{display:none!important}
+header{background:var(--navy);color:#fff;padding:15px max(20px,calc((100% - 980px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 5px 20px #18314918}
+.brand{display:flex;gap:12px;align-items:center}.mark{height:40px;width:40px;border-radius:12px;background:#247f91;display:grid;place-items:center;font-size:23px}.brand strong{font-size:17px}.brand small{display:block;color:#bad3e0;font-size:11px;margin-top:-4px}
+header button{border:1px solid #678099;background:transparent;color:#eef6fd;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:750}
+main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22px;background:linear-gradient(115deg,#193751,#24566b 75%,#1c777a);padding:28px 34px;color:white;margin-bottom:20px;box-shadow:var(--shadow)}.hero .eyebrow{font-size:11px;font-weight:900;letter-spacing:1.5px;color:#9fe7db}.hero h1{font-size:29px;margin:7px 0 8px;letter-spacing:-1px;line-height:1.35}.hero p{margin:0;font-size:13px;color:#d5e6ed}.card{border:1px solid #e0eaf0;border-radius:19px;background:white;padding:28px 32px;margin:0 0 18px;box-shadow:var(--shadow)}h2{font-size:22px;letter-spacing:-.8px;margin:0 0 7px}h3{font-size:17px;margin:4px 0 12px}.muted{font-size:13px;color:var(--muted)}.small{font-size:12px;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.choice{padding:24px;text-align:left;background:#f9fcfe;border:1px solid #d3e2eb;border-radius:16px;min-height:190px;transition:.15s}.choice:hover{transform:translateY(-2px);border-color:#409aaa;box-shadow:0 8px 20px #17384b15}.choice .em{font-size:32px;display:block;margin-bottom:13px}.choice strong{display:block;font-size:19px;color:#1b435e}.choice span:last-child{display:block;font-size:13px;color:#698093;margin-top:6px}.field{margin:0 0 18px}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px;color:#29475c}.req{color:var(--red)}.input{display:block;width:100%;min-height:46px;border:1px solid #d1dfe7;border-radius:10px;background:white;padding:11px 13px;outline:none;color:var(--ink)}.input:focus{border-color:#39979c;box-shadow:0 0 0 3px #1a98971b}.input[type=file]{font-size:12px;padding:10px}.buttonbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:17px}.btn{min-height:45px;border:1px solid #ccdde6;background:white;border-radius:11px;padding:10px 17px;font-size:13px;font-weight:850;color:#2b536b}.btn.primary{background:linear-gradient(120deg,#296fa6,#15898d);color:white;border-color:transparent}.btn.danger{color:#ad4350;border-color:#f0bdc6}.btn:disabled{opacity:.52;cursor:not-allowed}.notice{border-radius:12px;padding:13px 16px;margin:0 0 16px;background:#fff5f4;border:1px solid #efc7c7;color:#a33341;font-size:13px;font-weight:700}.notice.ok{background:#edf9f3;border-color:#b6ddca;color:#15715c}.info{padding:15px 17px;border-radius:12px;border:1px solid #cbe6e7;background:#f0fafa;color:#306e74;font-size:12px;margin:14px 0 20px}.warning{border-left:4px solid #ca5361;background:#fff5f5;padding:12px 14px;color:#9f3e4b;border-radius:9px;font-size:13px;margin:15px 0}.divider{height:1px;background:#e2ebf0;margin:20px 0}.status{display:inline-block;border-radius:30px;background:#e8f6f1;color:#14816e;padding:4px 10px;font-size:11px;font-weight:800}.status.closed{background:#fff0f1;color:#af4753}.member{border:1px solid #dfe9ee;background:#fafcfe;border-radius:11px;padding:13px;display:grid;grid-template-columns:125px 1fr auto;gap:9px;margin:9px 0;align-items:center}.member .input{min-width:0}.member .btn{padding:7px 10px;min-height:38px}.listbox{border:1px solid #dde8ed;border-radius:12px;padding:15px;margin:10px 0;background:#fbfdff}.listbox strong{color:#214c67}.records{display:grid;gap:10px}.record{border:1px solid #dce7ed;border-radius:12px;padding:14px 16px;background:#fbfdff}.record strong{font-size:14px}.record .sub{font-size:12px;color:#657d8d;word-break:break-word}.record .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.filelink{display:inline-block;font-size:13px;font-weight:750;word-break:break-all}.teacherControls{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:14px;border:1px solid #dde9ef;background:#f6fafc;border-radius:13px}footer{text-align:center;color:#8ca0ad;font-size:11px;padding:12px}
+@media(max-width:650px){header{padding:12px 15px}.brand strong{font-size:14px}.hero{padding:23px 21px;border-radius:18px}.hero h1{font-size:23px}main{padding:16px 12px 35px}.card{padding:22px 17px;border-radius:15px}h2{font-size:20px}.grid{grid-template-columns:1fr}.choice{min-height:150px;padding:19px}.member{grid-template-columns:100px 1fr}.member .btn{grid-column:2;justify-self:end}.buttonbar .btn{flex:1;min-width:110px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="mark">⚗</div><div><strong>R&E 최종 결과물 제출</strong><small>2026 은행고등학교 · 개별 보고서 및 모둠 발표자료</small></div></div><div><button id="homeButton" type="button">⌂ 처음 화면</button> <button id="teacherButton" type="button">교사용</button></div></header>
+<main>
+<section class="hero"><div class="eyebrow">RESEARCH & EDUCATION · 2026</div><h1 id="heroTitle">R&E 최종 결과물 제출</h1><p id="heroDescription">개별 최종 보고서와 모둠 발표자료를 제출하세요. 제출 마감 전에는 로그인 후 수정할 수 있습니다.</p></section>
+<div id="message" role="status" aria-live="polite"></div>
+<section id="homeView" class="card">
+<h2>어떤 자료를 제출하나요?</h2><p class="muted">제출할 종류를 선택하세요. 각각 별도로 제출할 수 있습니다.</p>
+<div class="grid">
+<button class="choice" id="reportChoice" type="button"><span class="em">▤</span><strong>최종 보고서 제출</strong><span>학생 1명당 1개 · 학번, 이름, 진로 및 보고서 파일</span></button>
+<button class="choice" id="presentationChoice" type="button"><span class="em">▣</span><strong>발표자료 제출</strong><span>모둠별 1개 · 모둠원 전체 명단 및 PPT 파일</span></button>
+</div>
+<div class="info"><strong>최종 보고서 제출 기한: 11월 22일(일) 23:59</strong><br>제출 후에도 교사가 제출을 마감하기 전까지는 수정 가능합니다. 마감 버튼은 교사용 페이지에서 관리합니다.</div>
+<div id="homeStatus" class="small">서버 상태를 확인하는 중입니다.</div>
+</section>
+<section id="loginView" class="card" hidden>
+<h2 id="loginTitle">학생 로그인</h2><p class="muted">학번과 이름으로 계정을 확인한 뒤 6자리 숫자 PIN으로 로그인합니다.</p>
+<div class="grid"><div class="field"><label for="studentId">학번 <span class="req">*</span></label><input class="input" id="studentId" maxlength="5" inputmode="numeric" autocomplete="off" placeholder="예: 20000"></div><div class="field"><label for="studentName">이름 <span class="req">*</span></label><input class="input" id="studentName" maxlength="40" autocomplete="name" placeholder="이름 입력"></div></div>
+<div class="buttonbar"><button type="button" class="btn primary" id="checkAccount">다음 →</button><button type="button" class="btn" id="backLogin">뒤로</button></div>
+<div id="pinArea" hidden>
+<div class="divider"></div><h3 id="pinTitle">PIN 입력</h3><p id="pinHint" class="muted"></p>
+<div class="grid"><div class="field"><label for="pinInput">6자리 PIN <span class="req">*</span></label><input class="input" id="pinInput" inputmode="numeric" maxlength="6" type="password" autocomplete="off" placeholder="숫자 6자리"></div><div class="field" id="pinConfirmWrap" hidden><label for="pinConfirm">PIN 확인 <span class="req">*</span></label><input class="input" id="pinConfirm" inputmode="numeric" maxlength="6" type="password" autocomplete="off" placeholder="다시 입력"></div></div>
+<div class="buttonbar"><button type="button" class="btn primary" id="pinSubmit">로그인</button><button type="button" class="btn" id="pinResetSetup" hidden>PIN 초기화 후 새 PIN 설정</button></div>
+<div class="info">PIN은 학생 본인이 기억해야 합니다. 잊어버린 경우 담당 교사에게 초기화를 요청하세요. PIN 초기화 후에도 기존 제출물은 삭제되지 않습니다.</div>
+</div>
+</section>
+<section id="studentView" class="card" hidden>
+<div class="buttonbar" style="justify-content:space-between;margin-top:0"><h2 id="formTitle">제출하기</h2><span id="studentTag" class="status"></span></div>
+<div id="submissionStatus" class="listbox"></div>
+<div id="closedWarning" class="warning" hidden>교사가 제출을 마감했습니다. 기존 제출물은 확인할 수 있지만 신규 제출과 수정은 불가능합니다.</div>
+<div id="reportForm" hidden>
+<div class="field"><label>희망 진로 및 관심 분야 <span class="req">*</span></label><input id="career" class="input" placeholder="예: 생명공학, 화학공학, 의학 등" maxlength="150"></div>
+<div class="field"><label>최종 보고서 파일 <span class="req">*</span></label><input class="input" type="file" id="reportFile" accept=".pdf,.hwpx,.hwp,.docx"><div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 25MB. 기존 파일이 있다면 새 파일을 선택할 때 교체됩니다.</div></div>
+</div>
+<div id="presentationForm" hidden>
+<div class="field"><label>연구주제 또는 모둠명 <span class="req">*</span></label><input id="teamTitle" class="input" maxlength="150" placeholder="연구주제 또는 모둠명"></div>
+<div class="field"><label>발표 모둠원 전체 명단 <span class="req">*</span></label><p class="small">발표자 포함 전원의 학번과 이름을 등록하세요. 발표자료는 대표학생 1명이 제출하고 수정합니다.</p><div id="memberList"></div><button class="btn" type="button" id="addMember">＋ 모둠원 추가</button></div>
+<div class="field"><label>발표자료 파일 <span class="req">*</span></label><input class="input" type="file" id="pptFile" accept=".pptx,.ppt,.pdf"><div class="small">PPTX, PPT 또는 PDF · 파일 1개 · 최대 25MB.</div></div>
+</div>
+<div class="buttonbar"><button class="btn primary" type="button" id="saveSubmit">☁ 최종 제출 / 수정 저장</button><button class="btn" type="button" id="otherKind">다른 종류 제출</button><button class="btn" type="button" id="studentLogout">로그아웃</button></div>
+<div id="uploadProgress" class="small" aria-live="polite"></div>
+</section>
+<section id="teacherLogin" class="card" hidden>
+<h2>교사용 로그인</h2><p class="muted">등록된 교사 Google 계정만 제출 현황을 열람하고 마감 설정 및 학생 PIN 초기화를 진행할 수 있습니다.</p>
+<button class="btn primary" type="button" id="googleLogin">Google 계정으로 로그인</button>
+</section>
+<section id="teacherView" class="card" hidden>
+<div class="buttonbar" style="justify-content:space-between;margin-top:0"><h2>교사용 제출 관리</h2><button class="btn" type="button" id="teacherLogout">로그아웃</button></div>
+<div class="teacherControls"><div><strong>학생 제출 상태</strong><div id="teacherStatus" class="small"></div></div><button id="closeButton" class="btn danger" type="button">제출 마감</button></div>
+<div class="info">교사용 페이지에서는 학생이 제출한 보고서와 발표자료를 수정하거나 삭제할 수 없습니다. 학생 PIN 초기화는 제출 자료에 영향을 주지 않습니다.</div>
+<div class="field"><label for="teacherSearch">학생 검색</label><input id="teacherSearch" class="input" placeholder="학번, 이름, 진로, 모둠원 또는 연구주제로 검색"></div>
+<h3>개인별 최종 보고서 <span id="reportCount" class="status">0건</span></h3><div id="teacherReports" class="records"></div>
+<div class="divider"></div><h3>모둠별 발표자료 <span id="pptCount" class="status">0건</span></h3><div id="teacherPpts" class="records"></div>
+<div class="divider"></div><h3>학생 PIN 관리</h3><p class="muted">PIN을 잊은 학생만 초기화하세요. 초기화된 학생은 학번·이름 입력 후 새 PIN을 설정할 수 있습니다.</p><div id="teacherAccounts" class="records"></div>
+</section>
+<footer>2026 은행고등학교 · R&E 최종 결과물 제출 · 모든 시각은 한국 표준시 기준</footer>
+</main>
+<script type="module">
+const FIREBASE_CONFIG={
+ apiKey:"AIzaSyBCwY1NAGzbOqHRjCEjogKPQ4dcF3lRTWM",
+ authDomain:"yeast-lab.firebaseapp.com",
+ databaseURL:"https://yeast-lab-default-rtdb.firebaseio.com",
+ projectId:"yeast-lab",
+ storageBucket:"yeast-lab.firebasestorage.app",
+ messagingSenderId:"108753928170",
+ appId:"1:108753928170:web:b9c5b73a57b14a0ce2bc93"
+};
+const ROOT='rneSubmission2026';
+const $=id=>document.getElementById(id);
+let ctx=null,kind=null,student=null,credentialMode='login',accountVersion=null,closed=false,existing=null,teacherRecords=null,busy=false;
+const views=['homeView','loginView','studentView','teacherLogin','teacherView'];
+function show(id){views.forEach(x=>$(x).hidden=x!==id);$('message').innerHTML='';window.scrollTo({top:0,behavior:'smooth'});}
+function tell(msg,ok){const box=document.createElement('div');box.className='notice'+(ok?' ok':'');box.textContent=msg;$('message').replaceChildren(box);window.scrollTo({top:0,behavior:'smooth'});}
+function isPin(v){return /^\d{6}$/.test(v);}
+function isId(v){return /^\d{5}$/.test(v);}
+function kst(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());}
+function allowedFile(file,type){if(!file)return false;if(file.size<=0||file.size>25*1024*1024)return false;return (type==='report'?/\.(pdf|hwpx|hwp|docx)$/i:/\.(pptx|ppt|pdf)$/i).test(file.name);}
+async function sha(id,pin){const buff=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('rne2026:'+id+':'+pin));return Array.from(new Uint8Array(buff)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function boot(){
+ const [app,auth,db,storage]=await Promise.all([
+  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
+  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js'),
+  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js'),
+  import('https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js')
+ ]);
+ const instance=app.initializeApp(FIREBASE_CONFIG,'rne-submission-2026');
+ const authInstance=auth.getAuth(instance);
+ await auth.authStateReady(authInstance);
+ ctx={auth:authInstance,db:db.getDatabase(instance),storage:storage.getStorage(instance),...auth,...db,...storage};
+ await refreshClosed();
+}
+async function ready(){if(!ctx)await boot();return ctx;}
+async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
+async function refreshClosed(){const c=await ready();closed=(await c.get(c.ref(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능';return closed;}
+function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return '파일 저장소 권한이 없습니다. Firebase Storage 규칙을 확인하세요.';return String(e?.message||e);}
+function setBusy(v){busy=v;['checkAccount','pinSubmit','pinResetSetup','saveSubmit','googleLogin','closeButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
+async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
+function openKind(x){kind=x;if(student){void run(showStudent);return;}$('loginTitle').textContent=x==='report'?'최종 보고서 제출 · 학생 로그인':'발표자료 제출 · 대표학생 로그인';$('pinArea').hidden=true;$('studentId').value='';$('studentName').value='';show('loginView');}
+function pinMode(mode){credentialMode=mode;$('pinArea').hidden=false;$('pinConfirmWrap').hidden=mode==='login';$('pinSubmit').textContent=mode==='login'?'PIN 로그인':'PIN 설정하고 시작하기';$('pinTitle').textContent=mode==='login'?'PIN 입력':'새 PIN 설정';$('pinHint').textContent=mode==='login'?'기존에 설정한 숫자 6자리 PIN을 입력하세요.':'본인만 아는 숫자 6자리 PIN을 새로 설정하고 다시 입력하세요.';$('pinResetSetup').hidden=mode!=='login';$('pinInput').value='';$('pinConfirm').value='';$('pinInput').focus();}
+async function checkAccount(){
+ const id=$('studentId').value.trim(),name=$('studentName').value.trim();
+ if(!isId(id)||!name||name.length>40)throw Error('학번은 숫자 5자리, 이름은 1~40자로 입력하세요.');
+ const c=await anonymous();
+ accountVersion=(await c.get(c.ref(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
+ pinMode(accountVersion==null?'setup':'login');
+}
+async function prove(id,name,pin){
+ const c=await anonymous(),hash=await sha(id,pin),ver=(await c.get(c.ref(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
+ if(ver==null)throw Error('학생 계정이 없습니다. 처음부터 다시 시작하세요.');
+ try{await c.set(c.ref(c.db,ROOT+'/sessions/'+id+'/'+c.auth.currentUser.uid),{hash:hash,name:name,pinVersion:ver,createdAt:kst()});}
+ catch(e){throw Error('학번·이름 또는 PIN이 일치하지 않습니다. PIN을 분실했다면 교사에게 초기화를 요청하세요.');}
+ student={id:id,name:name};$('pinInput').value='';$('pinConfirm').value='';await showStudent();
+}
+async function submitPin(){
+ const id=$('studentId').value.trim(),name=$('studentName').value.trim(),pin=$('pinInput').value.trim();
+ if(!isId(id)||!name||!isPin(pin))throw Error('학번, 이름과 숫자 6자리 PIN을 확인하세요.');
+ const c=await anonymous();
+ if(credentialMode==='setup'){
+  if(pin!==$('pinConfirm').value.trim())throw Error('PIN 확인이 일치하지 않습니다.');
+  const hash=await sha(id,pin);
+  if(accountVersion==null)await c.set(c.ref(c.db,ROOT+'/accounts/'+id),{name:name,pinVersion:1,createdAt:kst(),credentials:{name:name,hash:hash}});
+  else await c.set(c.ref(c.db,ROOT+'/accounts/'+id+'/credentials'),{name:name,hash:hash});
+ }
+ await prove(id,name,pin);
+}
+function addMember(id='',name='',fixed=false){
+ const row=document.createElement('div');row.className='member';
+ const idEl=document.createElement('input');idEl.className='input member-id';idEl.maxLength=5;idEl.inputMode='numeric';idEl.placeholder='학번';idEl.value=id;
+ const nameEl=document.createElement('input');nameEl.className='input member-name';nameEl.maxLength=40;nameEl.placeholder='이름';nameEl.value=name;
+ const del=document.createElement('button');del.type='button';del.className='btn';del.textContent=fixed?'대표학생':'삭제';del.disabled=fixed;del.addEventListener('click',()=>row.remove());
+ if(fixed){idEl.readOnly=true;nameEl.readOnly=true;}
+ row.append(idEl,nameEl,del);$('memberList').append(row);
+}
+function membersFromForm(){
+ const members=Array.from($('memberList').children).map(x=>({id:x.querySelector('.member-id').value.trim(),name:x.querySelector('.member-name').value.trim()}));
+ if(!members.length||members.some(x=>!isId(x.id)||!x.name||x.name.length>40))throw Error('모든 모둠원의 학번 5자리와 이름을 입력하세요.');
+ if(new Set(members.map(x=>x.id)).size!==members.length)throw Error('모둠원 학번이 중복되었습니다.');
+ if(members[0].id!==student.id||members[0].name!==student.name)throw Error('대표학생 정보가 다릅니다.');
+ return members;
+}
+function showExisting(){
+ const area=$('submissionStatus');area.replaceChildren();
+ const title=document.createElement('strong');title.textContent=existing?'✓ 이미 제출한 자료가 있습니다.':'아직 제출한 자료가 없습니다.';area.append(title);
+ const d=document.createElement('div');d.className='small';d.textContent=existing?'최근 저장: '+(existing.updatedAt||'')+' · 제출 마감 전에는 정보를 수정하고 파일을 교체할 수 있습니다.':'파일을 첨부하여 처음 제출해 주세요.';area.append(d);
+ if(existing?.file?.url){const link=document.createElement('a');link.href=existing.file.url;link.target='_blank';link.rel='noopener noreferrer';link.className='filelink';link.textContent='기존 파일: '+existing.file.name;area.append(link);}
+}
+async function showStudent(){
+ await refreshClosed();const c=await ready();
+ const path=ROOT+'/'+(kind==='report'?'reports':'presentations')+'/'+student.id;
+ existing=(await c.get(c.ref(c.db,path))).val();
+ $('formTitle').textContent=kind==='report'?'개인별 최종 보고서 제출':'모둠별 발표자료 제출';
+ $('studentTag').textContent=student.id+' '+student.name;
+ $('reportForm').hidden=kind!=='report';$('presentationForm').hidden=kind!=='presentation';
+ $('closedWarning').hidden=!closed;$('saveSubmit').hidden=closed;
+ $('reportFile').value='';$('pptFile').value='';
+ $('career').value=kind==='report'?(existing?.career||''):'';
+ $('teamTitle').value=kind==='presentation'?(existing?.teamTitle||''):'';
+ $('memberList').replaceChildren();
+ if(kind==='presentation'){
+  const list=Array.isArray(existing?.members)?existing.members:Object.values(existing?.members||{});
+  addMember(student.id,student.name,true);
+  for(const m of list){if(m.id!==student.id)addMember(m.id,m.name);}
+ }
+ showExisting();show('studentView');
+}
+async function fileUpload(file,type){
+ const c=await ready(),ext=file.name.split('.').pop().toLowerCase(),path=ROOT+'/'+c.auth.currentUser.uid+'/'+type+'/'+crypto.randomUUID()+'.'+ext;
+ const fileRef=c.sRef(c.storage,path);
+ $('uploadProgress').textContent='파일 업로드 중: '+file.name;
+ await c.uploadBytes(fileRef,file,{contentType:file.type||'application/octet-stream'});
+ const url=await c.getDownloadURL(fileRef);
+ return {name:file.name,size:file.size,path:path,url:url};
+}
+async function saveSubmission(){
+ if(await refreshClosed())throw Error('교사가 제출을 마감하여 신규 제출 및 수정이 불가능합니다.');
+ if(!student)throw Error('먼저 학생 로그인을 완료하세요.');
+ const type=kind,id=student.id,c=await ready();
+ const file=$((type==='report')?'reportFile':'pptFile').files[0];
+ if(file&&!allowedFile(file,type))throw Error('허용된 파일 형식인지, 파일 크기가 25MB 이내인지 확인하세요.');
+ if(!file&&!existing?.file)throw Error('제출할 파일을 선택하세요.');
+ let next={studentId:id,studentName:student.name,createdAt:existing?.createdAt||kst(),updatedAt:kst()};
+ if(type==='report'){const career=$('career').value.trim();if(!career)throw Error('희망 진로 및 관심 분야를 입력하세요.');next.career=career;}
+ else{const teamTitle=$('teamTitle').value.trim();if(!teamTitle)throw Error('연구주제 또는 모둠명을 입력하세요.');next.teamTitle=teamTitle;next.members=membersFromForm();}
+ if(!confirm('이 자료를 '+(existing?'수정 저장':'최종 제출')+'할까요? 교사가 마감하기 전에는 다시 수정할 수 있습니다.'))return;
+ $('uploadProgress').textContent='';
+ next.file=file?await fileUpload(file,type):existing.file;
+ await c.set(c.ref(c.db,ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id),next);
+ existing=next;showExisting();$(type==='report'?'reportFile':'pptFile').value='';
+ $('uploadProgress').textContent='✓ 서버에 저장되었습니다. 저장 시각: '+next.updatedAt;
+ tell('자료가 정상적으로 '+(file?'제출/교체':'수정')+'되었습니다.',true);
+}
+function fileLink(record){
+ const a=document.createElement('a');a.className='filelink';a.textContent=record.file?.name||'첨부파일 없음';
+ if(record.file?.url){a.href=record.file.url;a.target='_blank';a.rel='noopener noreferrer';}
+ return a;
+}
+function recordCard(title,subtitle,rec){
+ const div=document.createElement('div');div.className='record';
+ const top=document.createElement('strong');top.textContent=title;
+ const sub=document.createElement('div');sub.className='sub';sub.textContent=subtitle;
+ div.append(top,sub,fileLink(rec));return div;
+}
+async function loadTeacher(){
+ const c=await ready();
+ const [accounts,reports,ppts]=await Promise.all(['accounts','reports','presentations'].map(p=>c.get(c.ref(c.db,ROOT+'/'+p))));
+ teacherRecords={accounts:accounts.val()||{},reports:reports.val()||{},presentations:ppts.val()||{}};
+ await refreshClosed();$('teacherStatus').textContent=closed?'마감됨 · 학생 신규 제출 및 수정 차단':'접수 중 · 학생 제출 및 수정 가능';
+ $('closeButton').textContent=closed?'제출 마감 해제':'제출 마감';$('closeButton').className=closed?'btn primary':'btn danger';
+ renderTeacher();show('teacherView');
+}
+function renderTeacher(){
+ if(!teacherRecords)return;const q=$('teacherSearch').value.trim().toLowerCase();
+ const filtered=(text)=>!q||text.toLowerCase().includes(q);
+ const reports=Object.entries(teacherRecords.reports).filter(([id,r])=>filtered([id,r.studentName,r.career].join(' ')));
+ const ppts=Object.entries(teacherRecords.presentations).filter(([id,r])=>filtered([id,r.studentName,r.teamTitle,...(Array.isArray(r.members)?r.members:Object.values(r.members||{})).map(m=>m.id+' '+m.name)].join(' ')));
+ const accounts=Object.entries(teacherRecords.accounts).filter(([id,r])=>filtered([id,r.name].join(' ')));
+ $('reportCount').textContent=Object.keys(teacherRecords.reports).length+'건';
+ $('pptCount').textContent=Object.keys(teacherRecords.presentations).length+'건';
+ $('teacherReports').replaceChildren(...reports.map(([id,r])=>recordCard(id+' '+r.studentName,r.career+' · '+(r.updatedAt||''),r)));
+ $('teacherPpts').replaceChildren(...ppts.map(([id,r])=>recordCard(r.teamTitle,id+' '+r.studentName+' · 모둠원: '+(Array.isArray(r.members)?r.members:Object.values(r.members||{})).map(m=>m.id+' '+m.name).join(', ')+' · '+(r.updatedAt||''),r)));
+ if(!reports.length)$('teacherReports').textContent='조회된 제출물이 없습니다.';
+ if(!ppts.length)$('teacherPpts').textContent='조회된 발표자료가 없습니다.';
+ $('teacherAccounts').replaceChildren(...accounts.map(([id,account])=>{
+  const card=document.createElement('div');card.className='record';
+  const top=document.createElement('strong');top.textContent=id+' '+account.name;
+  const sub=document.createElement('div');sub.className='sub';sub.textContent=account.credentials?'PIN 설정됨':'PIN 초기화됨 · 새 PIN 설정 대기';
+  const line=document.createElement('div');line.className='actions';
+  const btn=document.createElement('button');btn.className='btn danger';btn.type='button';btn.textContent='PIN 초기화';btn.disabled=!account.credentials;
+  btn.addEventListener('click',()=>run(()=>resetPin(id,account)));
+  line.append(btn);card.append(top,sub,line);return card;
+ }));
+ if(!accounts.length)$('teacherAccounts').textContent='검색된 학생이 없습니다.';
+}
+async function resetPin(id,account){
+ if(!confirm(id+' '+account.name+' 학생의 PIN만 초기화할까요?\n기존 보고서와 발표자료는 그대로 유지됩니다.'))return;
+ const c=await ready(),next={...account,pinVersion:(Number(account.pinVersion)||1)+1};
+ delete next.credentials;
+ await c.set(c.ref(c.db,ROOT+'/accounts/'+id),next);
+ teacherRecords.accounts[id]=next;renderTeacher();tell(id+' '+account.name+' 학생의 PIN만 초기화했습니다. 제출 자료는 변경되지 않았습니다.',true);
+}
+async function teacherToggle(){
+ const action=closed?'마감 해제':'제출 마감';
+ if(!confirm('학생의 신규 제출 및 수정을 '+(closed?'다시 허용':'차단')+'할까요?'))return;
+ const c=await ready();await c.set(c.ref(c.db,ROOT+'/settings/closed'),!closed);await loadTeacher();tell(action+' 처리되었습니다.',true);
+}
+async function teacherLogin(){
+ const c=await ready();const provider=new c.GoogleAuthProvider();
+ await c.signInWithPopup(c.auth,provider);
+ try{await loadTeacher();}catch(e){await c.signOut(c.auth);throw Error('교사 계정 접근 권한이 없습니다. 등록된 Google 계정으로 로그인하거나 Firebase 규칙을 확인하세요.');}
+}
+function goHome(){student=null;existing=null;kind=null;show('homeView');void run(refreshClosed);}
+$('homeButton').addEventListener('click',goHome);
+$('teacherButton').addEventListener('click',()=>{student=null;kind=null;show('teacherLogin');});
+$('reportChoice').addEventListener('click',()=>openKind('report'));
+$('presentationChoice').addEventListener('click',()=>openKind('presentation'));
+$('backLogin').addEventListener('click',goHome);
+$('checkAccount').addEventListener('click',()=>run(checkAccount));
+$('pinSubmit').addEventListener('click',()=>run(submitPin));
+$('pinResetSetup').addEventListener('click',()=>pinMode('setup'));
+$('saveSubmit').addEventListener('click',()=>run(saveSubmission));
+$('addMember').addEventListener('click',()=>addMember());
+$('otherKind').addEventListener('click',()=>{kind=kind==='report'?'presentation':'report';void run(showStudent);});
+$('studentLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);goHome();}));
+$('googleLogin').addEventListener('click',()=>run(teacherLogin));
+$('teacherSearch').addEventListener('input',renderTeacher);
+$('closeButton').addEventListener('click',()=>run(teacherToggle));
+$('teacherLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);teacherRecords=null;goHome();}));
+void run(async()=>{await boot();});
+</script>
+</body></html>
