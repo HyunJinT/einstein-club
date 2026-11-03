@@ -75,13 +75,14 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 // R&E 전용 Firebase 프로젝트 설정을 받은 다음 아래 값들을 변경합니다.
 // 기존 yeast-lab Firebase에 연결되지 않도록 지금은 임시값으로 비활성화합니다.
 const FIREBASE_CONFIG={
- apiKey:"NEW_FIREBASE_API_KEY",
- authDomain:"NEW_FIREBASE_PROJECT_ID.firebaseapp.com",
- databaseURL:"https://NEW_FIREBASE_DATABASE_URL",
- projectId:"NEW_FIREBASE_PROJECT_ID",
- storageBucket:"NEW_FIREBASE_STORAGE_BUCKET",
- messagingSenderId:"NEW_FIREBASE_SENDER_ID",
- appId:"NEW_FIREBASE_APP_ID"
+ apiKey:"AIzaSyD-pySAwEfbd9SHMnuPKd-SWjDtVD1QY_Y",
+ authDomain:"eunhaeng.firebaseapp.com",
+ databaseURL:"", // 새 프로젝트 Realtime Database 생성 후 콘솔의 실제 URL을 입력해야 합니다.
+ projectId:"eunhaeng",
+ storageBucket:"eunhaeng.firebasestorage.app",
+ messagingSenderId:"608700074461",
+ appId:"1:608700074461:web:a95873e3e92f487dfd8e34",
+ measurementId:"G-XC6BLZCLZ7"
 };
 const ROOT='rneSubmission2026';
 const $=id=>document.getElementById(id);
@@ -283,8 +284,8 @@ $('googleLogin').addEventListener('click',()=>run(teacherLogin));
 $('teacherSearch').addEventListener('input',renderTeacher);
 $('closeButton').addEventListener('click',()=>run(teacherToggle));
 $('teacherLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);teacherRecords=null;goHome();}));
-if(FIREBASE_CONFIG.apiKey==='NEW_FIREBASE_API_KEY'){
- $('homeStatus').textContent='R&E 전용 Firebase 프로젝트 연결 준비 중입니다. 아직 제출하지 마세요.';
+if(!FIREBASE_CONFIG.databaseURL){
+ $('homeStatus').textContent='R&E 전용 Firebase 웹앱 등록 완료 · Realtime Database 주소 및 보안 규칙 설정 전이므로 제출을 잠시 비활성화했습니다.';
 }else{
  void run(async()=>{await boot();});
 }
