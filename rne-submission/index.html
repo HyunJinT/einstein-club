@@ -36,7 +36,7 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <div id="pinArea" hidden>
 <div class="divider"></div><h3 id="pinTitle">PIN 입력</h3><p id="pinHint" class="muted"></p>
 <div class="grid"><div class="field"><label for="pinInput">6자리 PIN <span class="req">*</span></label><input class="input" id="pinInput" inputmode="numeric" maxlength="6" type="password" autocomplete="off" placeholder="숫자 6자리"></div><div class="field" id="pinConfirmWrap" hidden><label for="pinConfirm">PIN 확인 <span class="req">*</span></label><input class="input" id="pinConfirm" inputmode="numeric" maxlength="6" type="password" autocomplete="off" placeholder="다시 입력"></div></div>
-<div class="buttonbar"><button type="button" class="btn primary" id="pinSubmit">로그인</button><button type="button" class="btn" id="pinResetSetup" hidden>PIN 초기화 후 새 PIN 설정</button></div>
+<div class="buttonbar"><button type="button" class="btn primary" id="pinSubmit">로그인</button></div>
 <div class="info">PIN은 학생 본인이 기억해야 합니다. 잊어버린 경우 담당 교사에게 초기화를 요청하세요. PIN 초기화 후에도 기존 제출물은 삭제되지 않습니다.</div>
 </div>
 </section>
@@ -114,16 +114,17 @@ async function ready(){if(!ctx)await boot();return ctx;}
 async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
 async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':(!DRIVE_UPLOAD_WEBAPP_URL?'현재 상태: Google Drive 업로드 연결을 설정해야 합니다.':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능');return closed;}
 function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return 'Google Drive 업로드 연결 설정이 필요합니다.';return String(e?.message||e);}
-function setBusy(v){busy=v;['checkAccount','pinSubmit','pinResetSetup','saveSubmit','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
+function setBusy(v){busy=v;['checkAccount','pinSubmit','saveSubmit','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
 async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
 function openKind(x){kind=x;if(student){void run(showStudent);return;}$('loginTitle').textContent=x==='report'?'최종 보고서 제출 · 학생 로그인':'발표자료 제출 · 대표학생 로그인';$('pinArea').hidden=true;$('studentId').value='';$('studentName').value='';show('loginView');}
-function pinMode(mode){credentialMode=mode;$('pinArea').hidden=false;$('pinConfirmWrap').hidden=mode==='login';$('pinSubmit').textContent=mode==='login'?'PIN 로그인':'PIN 설정하고 시작하기';$('pinTitle').textContent=mode==='login'?'PIN 입력':'새 PIN 설정';$('pinHint').textContent=mode==='login'?'기존에 설정한 숫자 6자리 PIN을 입력하세요.':'본인만 아는 숫자 6자리 PIN을 새로 설정하고 다시 입력하세요.';$('pinResetSetup').hidden=mode!=='login';$('pinInput').value='';$('pinConfirm').value='';$('pinInput').focus();}
+function pinMode(mode){credentialMode=mode;$('pinArea').hidden=false;$('pinConfirmWrap').hidden=mode==='login';$('pinSubmit').textContent=mode==='login'?'PIN 로그인':'PIN 설정하고 시작하기';$('pinTitle').textContent=mode==='login'?'PIN 입력':'새 PIN 설정';$('pinHint').textContent=mode==='login'?'기존에 설정한 숫자 6자리 PIN을 입력하세요.':'본인만 아는 숫자 6자리 PIN을 새로 설정하고 다시 입력하세요.';$('pinInput').value='';$('pinConfirm').value='';$('pinInput').focus();}
 async function checkAccount(){
  const id=$('studentId').value.trim(),name=$('studentName').value.trim();
  if(!isId(id)||!name||name.length>40)throw Error('학번은 숫자 5자리, 이름은 1~40자로 입력하세요.');
  const c=await anonymous();
  accountVersion=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
- pinMode(accountVersion==null?'setup':'login');
+ const needsSetup=accountVersion!==null && (await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinNeedsSetup'))).val()===true;
+ pinMode(accountVersion==null||needsSetup?'setup':'login');
 }
 async function prove(id,name,pin){
  const c=await anonymous(),hash=await sha(id,pin),ver=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
@@ -140,7 +141,10 @@ async function submitPin(){
   if(pin!==$('pinConfirm').value.trim())throw Error('PIN 확인이 일치하지 않습니다.');
   const hash=await sha(id,pin);
   if(accountVersion==null)await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id),{name:name,pinVersion:1,createdAt:kst(),credentials:{name:name,hash:hash}});
-  else await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id+'/credentials'),{name:name,hash:hash});
+  else {
+   await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id+'/credentials'),{name:name,hash:hash});
+   await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinNeedsSetup'),false);
+  }
  }
  await prove(id,name,pin);
 }
@@ -387,7 +391,7 @@ function renderTeacher(){
 }
 async function resetPin(id,account){
  if(!confirm(id+' '+account.name+' 학생의 PIN만 초기화할까요?\n기존 보고서와 발표자료는 그대로 유지됩니다.'))return;
- const c=await ready(),next={...account,pinVersion:(Number(account.pinVersion)||1)+1};
+ const c=await ready(),next={...account,pinVersion:(Number(account.pinVersion)||1)+1,pinNeedsSetup:true};
  delete next.credentials;
  await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id),next);
  teacherRecords.accounts[id]=next;renderTeacher();tell(id+' '+account.name+' 학생의 PIN만 초기화했습니다. 제출 자료는 변경되지 않았습니다.',true);
@@ -410,7 +414,7 @@ $('presentationChoice').addEventListener('click',()=>openKind('presentation'));
 $('backLogin').addEventListener('click',goHome);
 $('checkAccount').addEventListener('click',()=>run(checkAccount));
 $('pinSubmit').addEventListener('click',()=>run(submitPin));
-$('pinResetSetup').addEventListener('click',()=>pinMode('setup'));
+
 $('saveSubmit').addEventListener('click',()=>run(saveSubmission));
 $('addMember').addEventListener('click',()=>addMember());
 $('otherKind').addEventListener('click',()=>{kind=kind==='report'?'presentation':'report';void run(showStudent);});
