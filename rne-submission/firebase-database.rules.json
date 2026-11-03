@@ -31,7 +31,8 @@
         "$id": {
           "$uid": {
             ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && auth.uid === $uid && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists() && newData.hasChildren(['hash','name','pinVersion']) && newData.child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && newData.child('name').val() === root.child('rneSubmission2026/accounts').child($id).child('name').val() && newData.child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val()",
-            ".validate": "$id.matches(/^[0-9]{5}$/) && newData.child('hash').isString() && newData.child('name').isString() && newData.child('pinVersion').isNumber()"
+            ".validate": "$id.matches(/^[0-9]{5}$/) && newData.child('hash').isString() && newData.child('name').isString() && newData.child('pinVersion').isNumber()",
+            ".read": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'anonymous' && data.exists() && data.child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && data.child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val() && data.child('name').val() === root.child('rneSubmission2026/accounts').child($id).child('name').val() && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists()"
           }
         }
       },
