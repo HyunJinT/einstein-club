@@ -129,8 +129,18 @@ async function checkAccount(){
  if(!isId(id)||!name||name.length>40)throw Error('학번은 숫자 5자리, 이름은 1~40자로 입력하세요.');
  const c=await anonymous();
  accountVersion=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
- const needsSetup=accountVersion!==null && (await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinNeedsSetup'))).val()===true;
- pinMode(accountVersion==null||needsSetup?'setup':'login');
+ let needsSetup=false;
+ if(accountVersion!==null){
+  try{
+   needsSetup=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinNeedsSetup'))).val()===true;
+  }catch(error){
+   // 이전 버전의 Firebase Rules가 아직 게시된 경우 새 항목 읽기가 거부됩니다.
+   // 이 오류 때문에 기존 학생의 PIN 로그인까지 중단시키지 않습니다.
+   if(!/permission[\\s_-]*denied/i.test(String(error?.code||'')+' '+String(error?.message||error||'')))throw error;
+   console.warn('PIN 초기화 상태 확인 규칙이 아직 적용되지 않았습니다. Firebase Rules를 최신 버전으로 게시해 주세요.');
+  }
+ }
+ pinMode(accountVersion===null||needsSetup?'setup':'login');
 }
 async function prove(id,name,pin){
  const c=await anonymous(),hash=await sha(id,pin),ver=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
