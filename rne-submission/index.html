@@ -273,7 +273,7 @@ async function saveSubmission(){
  }
  const replaceFile=Boolean(file&&existing?.file);
  const confirmation=replaceFile
-  ?'기존 제출 파일이 새 파일로 대체되며, 기존 파일은 Google Drive에서 삭제됩니다.\\n다시 되돌릴 수 없습니다. 계속 진행할까요?'
+  ?'기존 제출 파일이 새 파일로 대체되며, 기존 파일은 Google Drive에서 삭제됩니다.\n다시 되돌릴 수 없습니다. 계속 진행할까요?'
   :'이 자료를 '+(existing?'수정 저장':'최종 제출')+'할까요? 교사가 마감하기 전에는 다시 수정할 수 있습니다.';
  if(!confirm(confirmation))return;
  $('uploadProgress').textContent='';
@@ -293,24 +293,29 @@ async function saveSubmission(){
  tell('제출 자료가 정상 저장되었습니다. 마감 전에는 다시 수정할 수 있습니다.',true);
 }
 
-function postToDriveServer(packet){
+function postToDriveServer(packet,windowName){
  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(DRIVE_UPLOAD_WEBAPP_URL))
   throw new Error('Google Drive 제출 서버가 연결되지 않았습니다.');
  const form=document.createElement('form');
- form.action=DRIVE_UPLOAD_WEBAPP_URL;form.method='POST';form.target='_blank';
+ form.action=DRIVE_UPLOAD_WEBAPP_URL;form.method='POST';form.target=windowName;
  form.acceptCharset='UTF-8';form.style.display='none';
  const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify(packet);
  form.append(input);document.body.append(form);form.submit();form.remove();
 }
 async function openSubmittedFile(){
  if(!existing?.file?.driveId||!student)return tell('열람할 제출 파일이 없습니다.');
- // 링크에는 Firebase 토큰이 포함되지 않으며, POST 본문에서 PIN 세션을 확인합니다.
- const c=await ready(),user=c.auth.currentUser;
- if(!user?.isAnonymous)return tell('학생 PIN으로 다시 로그인해 주세요.');
+ // 클릭 즉시 새 창을 연 뒤 PIN 인증 데이터를 URL이 아닌 POST 본문으로 보냅니다.
+ const windowName='rnePreview'+Date.now();
+ const preview=window.open('about:blank',windowName);
+ if(!preview)return tell('팝업이 차단되었습니다. 이 사이트에서 팝업 열기를 허용해 주세요.');
  try{
+  preview.document.title='R&E 제출 파일 확인';
+  preview.document.body.textContent='PIN 인증 후 비공개 제출 파일을 불러오는 중입니다.';
+  const c=await ready(),user=c.auth.currentUser;
+  if(!user?.isAnonymous)throw Error('학생 PIN으로 다시 로그인해 주세요.');
   postToDriveServer({action:'view',type:kind,studentId:student.id,studentName:student.name,
-   authUid:user.uid,idToken:await user.getIdToken(),driveId:existing.file.driveId});
- }catch(e){tell(errorMessage(e));}
+   authUid:user.uid,idToken:await user.getIdToken(),driveId:existing.file.driveId},windowName);
+ }catch(e){preview.close();tell(errorMessage(e));}
 }
 async function deleteSubmittedFile(){
  if(!student||!existing?.file?.driveId)throw new Error('삭제할 제출물이 없습니다.');
