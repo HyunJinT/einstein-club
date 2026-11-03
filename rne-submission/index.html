@@ -101,13 +101,13 @@ async function boot(){
  ]);
  const instance=app.initializeApp(FIREBASE_CONFIG,'rne-submission-2026');
  const authInstance=auth.getAuth(instance);
- await auth.authStateReady(authInstance);
- ctx={auth:authInstance,db:db.getDatabase(instance),storage:storage.getStorage(instance),...auth,...db,...storage};
+ await authInstance.authStateReady();
+ ctx={auth:authInstance,db:db.getDatabase(instance),storage:storage.getStorage(instance),...auth,...db,...storage,dbRef:db.ref,storageRef:storage.ref};
  await refreshClosed();
 }
 async function ready(){if(!ctx)await boot();return ctx;}
 async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
-async function refreshClosed(){const c=await ready();closed=(await c.get(c.ref(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능';return closed;}
+async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능';return closed;}
 function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return '파일 저장소 권한이 없습니다. Firebase Storage 규칙을 확인하세요.';return String(e?.message||e);}
 function setBusy(v){busy=v;['checkAccount','pinSubmit','pinResetSetup','saveSubmit','googleLogin','closeButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
 async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
@@ -117,13 +117,13 @@ async function checkAccount(){
  const id=$('studentId').value.trim(),name=$('studentName').value.trim();
  if(!isId(id)||!name||name.length>40)throw Error('학번은 숫자 5자리, 이름은 1~40자로 입력하세요.');
  const c=await anonymous();
- accountVersion=(await c.get(c.ref(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
+ accountVersion=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
  pinMode(accountVersion==null?'setup':'login');
 }
 async function prove(id,name,pin){
- const c=await anonymous(),hash=await sha(id,pin),ver=(await c.get(c.ref(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
+ const c=await anonymous(),hash=await sha(id,pin),ver=(await c.get(c.dbRef(c.db,ROOT+'/accounts/'+id+'/pinVersion'))).val();
  if(ver==null)throw Error('학생 계정이 없습니다. 처음부터 다시 시작하세요.');
- try{await c.set(c.ref(c.db,ROOT+'/sessions/'+id+'/'+c.auth.currentUser.uid),{hash:hash,name:name,pinVersion:ver,createdAt:kst()});}
+ try{await c.set(c.dbRef(c.db,ROOT+'/sessions/'+id+'/'+c.auth.currentUser.uid),{hash:hash,name:name,pinVersion:ver,createdAt:kst()});}
  catch(e){throw Error('학번·이름 또는 PIN이 일치하지 않습니다. PIN을 분실했다면 교사에게 초기화를 요청하세요.');}
  student={id:id,name:name};$('pinInput').value='';$('pinConfirm').value='';await showStudent();
 }
@@ -134,8 +134,8 @@ async function submitPin(){
  if(credentialMode==='setup'){
   if(pin!==$('pinConfirm').value.trim())throw Error('PIN 확인이 일치하지 않습니다.');
   const hash=await sha(id,pin);
-  if(accountVersion==null)await c.set(c.ref(c.db,ROOT+'/accounts/'+id),{name:name,pinVersion:1,createdAt:kst(),credentials:{name:name,hash:hash}});
-  else await c.set(c.ref(c.db,ROOT+'/accounts/'+id+'/credentials'),{name:name,hash:hash});
+  if(accountVersion==null)await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id),{name:name,pinVersion:1,createdAt:kst(),credentials:{name:name,hash:hash}});
+  else await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id+'/credentials'),{name:name,hash:hash});
  }
  await prove(id,name,pin);
 }
@@ -163,7 +163,7 @@ function showExisting(){
 async function showStudent(){
  await refreshClosed();const c=await ready();
  const path=ROOT+'/'+(kind==='report'?'reports':'presentations')+'/'+student.id;
- existing=(await c.get(c.ref(c.db,path))).val();
+ existing=(await c.get(c.dbRef(c.db,path))).val();
  $('formTitle').textContent=kind==='report'?'개인별 최종 보고서 제출':'모둠별 발표자료 제출';
  $('studentTag').textContent=student.id+' '+student.name;
  $('reportForm').hidden=kind!=='report';$('presentationForm').hidden=kind!=='presentation';
@@ -181,7 +181,7 @@ async function showStudent(){
 }
 async function fileUpload(file,type){
  const c=await ready(),ext=file.name.split('.').pop().toLowerCase(),path=ROOT+'/'+c.auth.currentUser.uid+'/'+type+'/'+crypto.randomUUID()+'.'+ext;
- const fileRef=c.sRef(c.storage,path);
+ const fileRef=c.storageRef(c.storage,path);
  $('uploadProgress').textContent='파일 업로드 중: '+file.name;
  await c.uploadBytes(fileRef,file,{contentType:file.type||'application/octet-stream'});
  const url=await c.getDownloadURL(fileRef);
@@ -200,7 +200,7 @@ async function saveSubmission(){
  if(!confirm('이 자료를 '+(existing?'수정 저장':'최종 제출')+'할까요? 교사가 마감하기 전에는 다시 수정할 수 있습니다.'))return;
  $('uploadProgress').textContent='';
  next.file=file?await fileUpload(file,type):existing.file;
- await c.set(c.ref(c.db,ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id),next);
+ await c.set(c.dbRef(c.db,ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id),next);
  existing=next;showExisting();$(type==='report'?'reportFile':'pptFile').value='';
  $('uploadProgress').textContent='✓ 서버에 저장되었습니다. 저장 시각: '+next.updatedAt;
  tell('자료가 정상적으로 '+(file?'제출/교체':'수정')+'되었습니다.',true);
@@ -218,7 +218,7 @@ function recordCard(title,subtitle,rec){
 }
 async function loadTeacher(){
  const c=await ready();
- const [accounts,reports,ppts]=await Promise.all(['accounts','reports','presentations'].map(p=>c.get(c.ref(c.db,ROOT+'/'+p))));
+ const [accounts,reports,ppts]=await Promise.all(['accounts','reports','presentations'].map(p=>c.get(c.dbRef(c.db,ROOT+'/'+p))));
  teacherRecords={accounts:accounts.val()||{},reports:reports.val()||{},presentations:ppts.val()||{}};
  await refreshClosed();$('teacherStatus').textContent=closed?'마감됨 · 학생 신규 제출 및 수정 차단':'접수 중 · 학생 제출 및 수정 가능';
  $('closeButton').textContent=closed?'제출 마감 해제':'제출 마감';$('closeButton').className=closed?'btn primary':'btn danger';
@@ -251,13 +251,13 @@ async function resetPin(id,account){
  if(!confirm(id+' '+account.name+' 학생의 PIN만 초기화할까요?\n기존 보고서와 발표자료는 그대로 유지됩니다.'))return;
  const c=await ready(),next={...account,pinVersion:(Number(account.pinVersion)||1)+1};
  delete next.credentials;
- await c.set(c.ref(c.db,ROOT+'/accounts/'+id),next);
+ await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id),next);
  teacherRecords.accounts[id]=next;renderTeacher();tell(id+' '+account.name+' 학생의 PIN만 초기화했습니다. 제출 자료는 변경되지 않았습니다.',true);
 }
 async function teacherToggle(){
  const action=closed?'마감 해제':'제출 마감';
  if(!confirm('학생의 신규 제출 및 수정을 '+(closed?'다시 허용':'차단')+'할까요?'))return;
- const c=await ready();await c.set(c.ref(c.db,ROOT+'/settings/closed'),!closed);await loadTeacher();tell(action+' 처리되었습니다.',true);
+ const c=await ready();await c.set(c.dbRef(c.db,ROOT+'/settings/closed'),!closed);await loadTeacher();tell(action+' 처리되었습니다.',true);
 }
 async function teacherLogin(){
  const c=await ready();const provider=new c.GoogleAuthProvider();
