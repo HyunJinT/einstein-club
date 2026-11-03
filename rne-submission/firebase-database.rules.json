@@ -1,0 +1,100 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "classes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "controls": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "einsteinBooking2026": {
+      ".read": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+      "slots": {
+        ".read": true,
+        "$date": {
+          ".write": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+          ".validate": "newData.hasChildren(['enabled']) && newData.child('enabled').isBoolean() && (!newData.child('note').exists() || (newData.child('note').isString() && newData.child('note').val().length <= 500))"
+        }
+      },
+      "applications": {
+        "$date": {
+          "$repId": {
+            ".write": "(auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com') || (auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.exists() && $repId.matches(/^[0-9]{5}$/) && newData.child('rep/id').val() === $repId && newData.child('date').val() === $date && newData.child('decision').val() === 'WAITING' && !newData.child('note').exists() && root.child('einsteinBooking2026/slots').child($date).child('enabled').val() !== false && (($date === '2026-11-02' && now < 1793458800000) || ($date === '2026-11-04' && now < 1793631600000) || ($date === '2026-11-05' && now < 1793718000000) || ($date === '2026-11-06' && now < 1793804400000) || ($date === '2026-11-09' && now < 1794063600000) || ($date === '2026-11-10' && now < 1794150000000)))",
+            ".validate": "newData.hasChildren(['id','date','rep','plan','decision','created','updated']) && newData.child('id').isString() && newData.child('id').val() === $date + '_' + $repId && newData.child('date').val() === $date && newData.child('rep/id').isString() && newData.child('rep/id').val() === $repId && newData.child('rep/name').isString() && newData.child('rep/name').val().length > 0 && newData.child('rep/name').val().length <= 50 && newData.child('plan/title').isString() && newData.child('plan/title').val().length > 0 && newData.child('plan/title').val().length <= 200 && newData.child('plan/purpose').isString() && newData.child('plan/purpose').val().length > 0 && newData.child('plan/purpose').val().length <= 1800 && newData.child('plan/method').isString() && newData.child('plan/method').val().length > 0 && newData.child('plan/method').val().length <= 4000 && newData.child('plan/durationMinutes').isNumber() && newData.child('plan/durationMinutes').val() >= 1 && newData.child('plan/durationMinutes').val() <= 600 && (!newData.child('plan/activity').exists() || newData.child('plan/activity').val() === '아인슈타인' || newData.child('plan/activity').val() === 'R&E' || newData.child('plan/activity').val() === '기타') && newData.child('decision').isString() && (newData.child('decision').val() === 'WAITING' || (auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com')) && (!newData.child('note').exists() || (newData.child('note').isString() && newData.child('note').val().length <= 1500)) && newData.child('created').isString() && newData.child('updated').isString()",
+            "resultKey": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+            },
+            "participantKeys": {
+              "$personKey": {
+                ".validate": "$personKey.matches(/^[a-f0-9]{64}$/) && newData.isBoolean() && newData.val() === true"
+              }
+            }
+          }
+        }
+      },
+      "results": {
+        "$personKey": {
+          ".read": "auth != null && $personKey.matches(/^[a-f0-9]{64}$/)",
+          "$resultKey": {
+            ".write": "(auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com') || (auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.exists() && newData.child('date').isString() && newData.child('repId').isString() && newData.child('title').isString() && newData.child('decision').val() === 'WAITING' && newData.child('note').val() === '교사가 확인 중' && root.child('einsteinBooking2026/applications').child(newData.child('date').val()).child(newData.child('repId').val()).child('resultKey').val() === $resultKey && root.child('einsteinBooking2026/applications').child(newData.child('date').val()).child(newData.child('repId').val()).child('participantKeys').child($personKey).val() === true && root.child('einsteinBooking2026/applications').child(newData.child('date').val()).child(newData.child('repId').val()).child('plan/title').val() === newData.child('title').val())",
+            ".validate": "newData.hasChildren(['date','title','decision','updated','repId']) && newData.child('date').isString() && newData.child('title').isString() && newData.child('title').val().length > 0 && newData.child('title').val().length <= 200 && newData.child('decision').isString() && newData.child('repId').isString() && newData.child('repId').val().matches(/^[0-9]{5}$/) && (!newData.child('note').exists() || (newData.child('note').isString() && newData.child('note').val().length <= 1500)) && newData.child('updated').isString()"
+          }
+        }
+      },
+      ".write": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'"
+    },
+    "rneSubmission2026": {
+      ".read": false,
+      ".write": false,
+      "settings": {
+        ".read": true,
+        "closed": {
+          ".write": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+          ".validate": "newData.isBoolean()"
+        }
+      },
+      "accounts": {
+        ".read": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+        "$id": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.hasChildren(['name','pinVersion','credentials','createdAt']) && newData.child('pinVersion').val() === 1 && newData.child('credentials/name').val() === newData.child('name').val()) || (auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com' && data.exists() && newData.exists() && newData.child('name').val() === data.child('name').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('pinVersion').val() === data.child('pinVersion').val() + 1 && !newData.child('credentials').exists())",
+          ".validate": "$id.matches(/^[0-9]{5}$/) && newData.hasChildren(['name','createdAt','pinVersion']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('createdAt').isString() && newData.child('pinVersion').isNumber() && newData.child('pinVersion').val() >= 1 && (!newData.child('credentials').exists() || (newData.child('credentials/name').val() === newData.child('name').val() && newData.child('credentials/hash').isString() && newData.child('credentials/hash').val().matches(/^[a-f0-9]{64}$/)))",
+          "pinVersion": {
+            ".read": true,
+            ".validate": "newData.isNumber() && newData.val() >= 1"
+          },
+          "credentials": {
+            ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && root.child('rneSubmission2026/accounts').child($id).child('name').val() === newData.child('name').val() && newData.child('hash').isString() && newData.child('hash').val().matches(/^[a-f0-9]{64}$/))",
+            ".validate": "newData.hasChildren(['name','hash']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 40 && newData.child('hash').isString() && newData.child('hash').val().matches(/^[a-f0-9]{64}$/)"
+          }
+        }
+      },
+      "sessions": {
+        "$id": {
+          "$uid": {
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && auth.uid === $uid && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists() && newData.hasChildren(['hash','name','pinVersion']) && newData.child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && newData.child('name').val() === root.child('rneSubmission2026/accounts').child($id).child('name').val() && newData.child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val()",
+            ".validate": "$id.matches(/^[0-9]{5}$/) && newData.child('hash').isString() && newData.child('name').isString() && newData.child('pinVersion').isNumber()"
+          }
+        }
+      },
+      "reports": {
+        ".read": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+        "$id": {
+          ".read": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val())",
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val()) && root.child('rneSubmission2026/settings/closed').val() !== true",
+          ".validate": "$id.matches(/^[0-9]{5}$/) && newData.hasChildren(['studentId','studentName','career','file','createdAt','updatedAt']) && newData.child('studentId').val() === $id && newData.child('studentName').val() === root.child('rneSubmission2026/accounts').child($id).child('name').val() && newData.child('career').isString() && newData.child('career').val().length > 0 && newData.child('career').val().length <= 150 && newData.child('file/name').isString() && newData.child('file/url').isString() && newData.child('file/path').isString() && newData.child('file/size').isNumber() && newData.child('file/size').val() <= 26214400 && newData.child('createdAt').isString() && newData.child('updatedAt').isString()"
+        }
+      },
+      "presentations": {
+        ".read": "auth != null && auth.uid === 'Dt6RrEmQzvbyUp3m7firSdhgcvK2' && auth.token.firebase.sign_in_provider === 'google.com'",
+        "$id": {
+          ".read": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val())",
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').exists() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('hash').val() === root.child('rneSubmission2026/accounts').child($id).child('credentials/hash').val() && root.child('rneSubmission2026/sessions').child($id).child(auth.uid).child('pinVersion').val() === root.child('rneSubmission2026/accounts').child($id).child('pinVersion').val()) && root.child('rneSubmission2026/settings/closed').val() !== true",
+          ".validate": "$id.matches(/^[0-9]{5}$/) && newData.hasChildren(['studentId','studentName','teamTitle','members','file','createdAt','updatedAt']) && newData.child('studentId').val() === $id && newData.child('studentName').val() === root.child('rneSubmission2026/accounts').child($id).child('name').val() && newData.child('teamTitle').isString() && newData.child('teamTitle').val().length > 0 && newData.child('teamTitle').val().length <= 150 && newData.child('members').exists() && newData.child('file/name').isString() && newData.child('file/url').isString() && newData.child('file/path').isString() && newData.child('file/size').isNumber() && newData.child('file/size').val() <= 26214400 && newData.child('createdAt').isString() && newData.child('updatedAt').isString()"
+        }
+      }
+    }
+  }
+}
