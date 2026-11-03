@@ -72,14 +72,16 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <footer>2026 은행고등학교 · R&E 최종 결과물 제출 · 모든 시각은 한국 표준시 기준</footer>
 </main>
 <script type="module">
+// R&E 전용 Firebase 프로젝트 설정을 받은 다음 아래 값들을 변경합니다.
+// 기존 yeast-lab Firebase에 연결되지 않도록 지금은 임시값으로 비활성화합니다.
 const FIREBASE_CONFIG={
- apiKey:"AIzaSyBCwY1NAGzbOqHRjCEjogKPQ4dcF3lRTWM",
- authDomain:"yeast-lab.firebaseapp.com",
- databaseURL:"https://yeast-lab-default-rtdb.firebaseio.com",
- projectId:"yeast-lab",
- storageBucket:"yeast-lab.firebasestorage.app",
- messagingSenderId:"108753928170",
- appId:"1:108753928170:web:b9c5b73a57b14a0ce2bc93"
+ apiKey:"NEW_FIREBASE_API_KEY",
+ authDomain:"NEW_FIREBASE_PROJECT_ID.firebaseapp.com",
+ databaseURL:"https://NEW_FIREBASE_DATABASE_URL",
+ projectId:"NEW_FIREBASE_PROJECT_ID",
+ storageBucket:"NEW_FIREBASE_STORAGE_BUCKET",
+ messagingSenderId:"NEW_FIREBASE_SENDER_ID",
+ appId:"NEW_FIREBASE_APP_ID"
 };
 const ROOT='rneSubmission2026';
 const $=id=>document.getElementById(id);
@@ -281,6 +283,10 @@ $('googleLogin').addEventListener('click',()=>run(teacherLogin));
 $('teacherSearch').addEventListener('input',renderTeacher);
 $('closeButton').addEventListener('click',()=>run(teacherToggle));
 $('teacherLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);teacherRecords=null;goHome();}));
-void run(async()=>{await boot();});
+if(FIREBASE_CONFIG.apiKey==='NEW_FIREBASE_API_KEY'){
+ $('homeStatus').textContent='R&E 전용 Firebase 프로젝트 연결 준비 중입니다. 아직 제출하지 마세요.';
+}else{
+ void run(async()=>{await boot();});
+}
 </script>
 </body></html>
