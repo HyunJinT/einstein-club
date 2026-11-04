@@ -60,6 +60,16 @@
 #posterCanvas .poster-credit-cell strong{display:block;flex:none;font-size:11px;color:#236b75;margin:0 0 4px;font-weight:800}
 #posterCanvas .poster-credit-cell p{margin:0;flex:1;min-height:0;min-width:0;font-size:11px;line-height:1.32;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;overflow:hidden;color:#506b79}
 #posterCanvas:has(.poster-bottom[style*="display: none"]) .poster-grid{height:990px!important;grid-template-rows:590px 355px!important}
+
+/* AI review controls: feedback appears only in the editing form, never on the PDF. */
+.appbar .top-actions .btn.poster-ai-button{background:#6d3db8;border:1px solid #8151d2;color:#fff;font-weight:800;box-shadow:0 2px 8px #37206422}
+.appbar .top-actions .btn.poster-ai-button:hover{background:#5930a5;border-color:#5930a5}
+.appbar .top-actions .btn.poster-ai-button:focus-visible{outline:3px solid #d9c7ff;outline-offset:2px}
+.poster-ai-feedback-status{font-size:12px;line-height:1.7;color:#5f399e;background:#f7f2ff;border:1px solid #dfcdfb;border-radius:10px;padding:9px 12px;margin:0 0 12px;overflow-wrap:anywhere}
+.poster-ai-field-feedback{font-size:12px;line-height:1.65;color:#6935ae;font-weight:650;margin:7px 0 4px;border-left:3px solid #ae83e8;padding:4px 0 3px 10px;overflow-wrap:anywhere}
+.poster-ai-field-feedback p{margin:3px 0 6px;color:inherit}
+.poster-ai-field-feedback[hidden],.poster-ai-feedback-status[hidden]{display:none!important}
+@media print{.poster-ai-field-feedback,.poster-ai-feedback-status,#posterAiFeedback{display:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
@@ -69,7 +79,8 @@
 <header class="appbar">
  <div class="mark">⚛</div><div class="heading"><strong>2026 은행고등학교 아인슈타인 동아리</strong><small>소논문형 연구포스터 제작실</small></div>
  <nav class="top-actions" aria-label="연구포스터 작업 메뉴">
-  <button class="btn primary" id="uploadPosterServer" type="button">☁ 서버에 업로드하기</button>
+  <button class="btn poster-ai-button" id="posterAiFeedback" type="button">✦ AI에게 포스터 피드백받기</button>
+   <button class="btn primary" id="uploadPosterServer" type="button">☁ 서버에 업로드하기</button>
   <button class="btn soft" id="savePdf" type="button">▣ 고화질 PDF 다운로드</button>
   <button class="btn dark" id="saveJson" type="button">⇩ 작업 백업</button>
   <button class="btn soft" id="loadJson" type="button">⇧ 작업 불러오기</button>
@@ -82,6 +93,7 @@
  <aside class="editor" id="editor">
   <div class="intro"><div class="eyebrow">POSTER MAKER · 2026</div><h1>연구를 포스터로 완성하세요</h1><p><strong>모둠 대표 학생 한 명만</strong> 이 제작실에서 포스터를 완성하면 됩니다. 왼쪽에 연구 내용을 입력해 완성한 뒤, 상단의 <strong>☁ 서버에 업로드하기</strong>를 눌러 등록하세요. 다른 모둠원은 동아리 활동 기록 앱에서 자기 포스터를 확인하고 최종 제출하면 됩니다.</p></div>
   <div id="einsteinPosterUploadStatus" class="upload-status" role="status" aria-live="polite" hidden></div>
+   <div id="posterAiFeedbackStatus" class="poster-ai-feedback-status" role="status" aria-live="polite" hidden></div>
   <details class="section" open><summary><span class="number">01</span> 연구 기본 정보</summary><div class="section-body">
    <div class="field"><label for="title">연구제목 *</label><input id="title" data-key="title" placeholder="예: 과산화수소 농도가 효모 생존에 미치는 영향" maxlength="48"></div>
    <div class="field"><label for="researchers">연구자 (학번 이름, 쉼표 구분) *</label><textarea id="researchers" data-key="researchers" maxlength="105" rows="2" placeholder="예: 20111 김가영, 20112 홍길동, 20113 이서준"></textarea></div>
@@ -209,5 +221,7 @@ init();
 </script>
 <script src="./poster-format-v2.js?v=14"></script>
 <script src="./pdf-server-v1.js?v=20"></script>
+<script src="./poster-ai-config.js?v=1"></script>
+<script src="./poster-ai-feedback-v1.js?v=1"></script>
 </body>
 </html>
