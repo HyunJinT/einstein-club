@@ -31,7 +31,12 @@
   }
   function forAI(fields) {
     const out = {};
-    for (const k of aiKeys) if (fields[k]) out[k] = fields[k].slice(0, 2000);
+    for (const k of aiKeys) if (fields[k]) {
+      out[k] = fields[k].slice(0, 2000)
+        .replace(/\b\d{5}\b/g, '[학번]')
+        .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[이메일]')
+        .replace(/010[- .]?\d{4}[- .]?\d{4}/g, '[전화번호]');
+    }
     return out;
   }
   function clearFeedback() {
@@ -51,7 +56,8 @@
       note.hidden = true;
       note.setAttribute('role', 'note');
       note.dataset.aiFeedbackFor = key;
-      input.insertAdjacentElement('afterend', note);
+      const counter = input.nextElementSibling?.classList?.contains('poster-character-status') ? input.nextElementSibling : null;
+      (counter || input).insertAdjacentElement('afterend', note);
       boxes[key] = note;
     }
     document.getElementById('editor')?.addEventListener('input', e => {
@@ -70,6 +76,11 @@
       const comments = (Array.isArray(raw) ? raw : typeof raw === 'string' ? [raw] : [])
         .filter(v => typeof v === 'string' && v.trim()).slice(0, 3);
       if (!note || !comments.length) continue;
+      // Graph rows are entered through a separate table; place its feedback below that table.
+      if (key === 'graphData') {
+        const graphTable = document.querySelector('.poster-graph-table');
+        if (graphTable) graphTable.insertAdjacentElement('afterend', note);
+      }
       note.textContent = '';
       comments.forEach(msg => {
         const line = document.createElement('p');
@@ -99,6 +110,9 @@
     if (fields.graphData && !fields.graphUnit) add('graphUnit', '측정값에 단위가 있다면 Y축 단위를 입력하세요.');
     if (fields.results && fields.discussion && /(?:고효율|최적|우수성|완벽하게|입증했다|증명했다)/.test(fields.discussion + fields.conclusion)) {
       add('conclusion', '비교 실험이나 추가 성능 측정 없이 성능의 우수성·최적성을 단정하지 않았는지 검토하세요.');
+    }
+    if (fields.researchers && fields.researchers.split(/[,，\n]+/).filter(Boolean).length > 1 && !fields.contributions) {
+      add('contributions', '연구자가 여러 명이라면 각 연구자의 실제 수행 역할을 구분해 작성하세요.');
     }
     if (fields.references && /^https?:\/\/\S+$/i.test(fields.references.replace(/\s+/g, ''))) {
       add('references', 'URL만 적었다면 문헌 제목·저자(또는 기관)·발행연도도 가능한 범위에서 기재하세요.');
