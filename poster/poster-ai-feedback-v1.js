@@ -6,7 +6,7 @@
   if (!button || !status) return;
 
   const labels = {
-    title:'연구제목', abstract:'초록·연구 개요', background:'연구 배경 및 필요성',
+    title:'연구제목', researchers:'연구자', group:'모둠명', abstract:'초록·연구 개요', background:'연구 배경 및 필요성',
     question:'연구질문', hypothesis:'가설 및 근거', variables:'변인 설정과 통제',
     materials:'실험 재료·기기', method:'실험 절차', results:'연구 결과 요약',
     graphTitle:'그래프 제목', graphXLabel:'X축 이름', graphXUnit:'X축 단위',
@@ -16,7 +16,7 @@
     contributions:'연구자별 실제 역할'
   };
   // Do not send identifying researcher lists, student IDs, group names, or photos to AI.
-  const aiKeys = Object.keys(labels).filter(k => k !== 'contributions');
+  const aiKeys = Object.keys(labels).filter(k => !['researchers', 'group', 'contributions'].includes(k));
   const allKeys = Object.keys(labels);
   const boxes = {};
   const endpoint = String(window.EINSTEIN_POSTER_AI_ENDPOINT || '').trim();
@@ -92,12 +92,40 @@
       count += comments.length;
     }
     status.hidden = false;
-    status.textContent = label + (count ? ' · 수정·보완 의견 ' + count + '건을 입력칸 아래에 표시했습니다.' : ' · 지적할 만한 사항이 확인되지 않았습니다.');
+    status.textContent = label + (count ? ' · 수정·보완 의견 ' + count + '건을 입력칸 아래에 표시했습니다.' : ' · 기본 규칙으로 확인 가능한 오류는 발견되지 않았습니다. 과학적 타당성까지 검증한 것은 아닙니다.');
+  }
+  // These checks detect obvious placeholder strings, not scientific misconceptions.
+  // Detailed scientific review requires a separately deployed AI backend.
+  function looksLikePlaceholder(key, text) {
+    const normalized = String(text || '').trim().replace(/\s+/g, '');
+    if (!normalized) return false;
+    // A sequence made only of isolated Korean jamo is not a completed Korean sentence.
+    if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(normalized) && normalized.length >= 2) return true;
+    // Identical character / short sequence repeated as test input: ㅇㅇㅇㅇ, abcabcabc.
+    if (/^([\s\S]{1,3})\1{2,}$/.test(normalized) && normalized.length >= 5) return true;
+    // Repeated punctuation, ellipses, or numbers with no scientific context.
+    if (/^[?!.~＿_\-]{3,}$/.test(normalized)) return true;
+    // Keyboard-mash Latin letters with no spaces or scientific context.
+    if (/^(?:asdf|qwer|zxcv|testtest|abcabc){2,}$/i.test(normalized)) return true;
+    // One-character responses cannot explain a full research section.
+    if (['abstract','background','question','hypothesis','variables','method','results','discussion','limitations','conclusion','followup'].includes(key) && [...normalized].length === 1) return true;
+    return false;
   }
   function localCheck(fields) {
     const feedback = {};
     function add(key, message) {
       (feedback[key] || (feedback[key] = [])).push(message);
+    }
+    // Catch obviously meaningless content regardless of which section was filled in.
+    for (const [key, content] of Object.entries(fields)) {
+      if (!content || !looksLikePlaceholder(key, content)) continue;
+      add(key, key === 'title' || key === 'group' || key === 'graphTitle'
+        ? '의미 없는 글자나 임시 입력으로 보입니다. 연구 내용을 나타내는 구체적인 제목이나 명칭으로 수정하세요.'
+        : '의미 없는 글자가 반복되거나 실제 연구 내용이 확인되지 않습니다. 수행한 실험에 근거한 구체적인 내용으로 다시 작성하세요.');
+    }
+    // Researcher list remains in the browser: it is never submitted to the external AI.
+    if (fields.researchers && fields.researchers.split(/[,，、;\n]+/).some(name => !/^\d{5}\s+[^\s,，、;]{2,20}$/.test(name.trim()))) {
+      add('researchers', '연구자 정보는 실제 참여 학생별로 학번 5자리와 이름을 정확히 입력하세요.');
     }
     if (!fields.question) add('question', '핵심 연구질문을 관찰하거나 측정할 수 있는 형태로 작성하세요.');
     if (!fields.hypothesis) add('hypothesis', '연구질문에 대응하는 검증 가능한 예측과 과학적 근거를 작성하세요.');
@@ -214,14 +242,14 @@
     if (pending) return;
     const fields = collect();
     const source = forAI(fields);
-    if (!Object.keys(source).length) {
+    if (!Object.values(fields).some(Boolean)) {
       status.hidden = false;
       status.textContent = '포스터 연구 내용을 먼저 입력하세요.';
       return;
     }
     const basic = localCheck(fields);
-    if (!endpoint) {
-      displayFeedback(basic, '기본 자동 점검 결과 (생성형 AI 서버 미연결)');
+    if (!endpoint || !Object.keys(source).length) {
+      displayFeedback(basic, '기본 자동 점검 결과 (생성형 AI 서버 미연결 또는 AI 전송 대상 없음)');
       return;
     }
     if (!sessionStorage.getItem('posterAiPrivacyAccepted')) {
