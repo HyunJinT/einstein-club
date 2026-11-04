@@ -85,6 +85,24 @@ for(const el of document.querySelectorAll('[data-key]')){
  el.addEventListener('compositionend',upd);
  upd();
 }
+// Optional button for students on tablets or phones; keyboard Enter does the same.
+const multilineKeys=new Set(['abstract','background','question','hypothesis','variables','materials','method','results','discussion','limitations','conclusion','followup','references','contributions']);
+for(const textarea of document.querySelectorAll('textarea[data-key]')){
+ if(!multilineKeys.has(textarea.dataset.key))continue;
+ const btn=document.createElement('button');
+ btn.type='button';btn.className='poster-insert-linebreak';
+ btn.textContent='↵ 줄바꿈';
+ btn.title='현재 커서 위치에서 다음 줄로 이동합니다. Enter 키로도 줄바꿈할 수 있습니다.';
+ btn.addEventListener('click',()=>{
+  const start=textarea.selectionStart ?? textarea.value.length;
+  const end=textarea.selectionEnd ?? start;
+  if(textarea.maxLength>0 && textarea.value.length-(end-start)>=textarea.maxLength)return;
+  textarea.setRangeText('\n',start,end,'end');
+  textarea.dispatchEvent(new Event('input',{bubbles:true}));
+  textarea.focus();
+ });
+ textarea.closest('.field')?.appendChild(btn);
+}
 const imageInputs=[['method','methodImage','methodPhoto','methodPhotoList'],['result','resultImage','resultPhoto','resultPhotoList']];
 for(const [kind,id,,listId] of imageInputs){
  const input=$(id);if(!input)continue;
