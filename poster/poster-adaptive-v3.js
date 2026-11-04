@@ -225,11 +225,98 @@ function renderCompositeSections(){
   setGridRows(node,visible,g.cls);
  }
 }
+// Measure and size content cards using actual rendered text, not fixed input quotas.
+// The poster sheet itself stays A1; unused space is outside cards instead of
+// appearing as a large blank gap inside short sections.
+function naturalHeight(card){
+ if(!card||card.style.display==='none')return 0;
+ card.style.setProperty('height','auto','important');
+ card.style.setProperty('flex','0 0 auto','important');
+ card.style.setProperty('align-self','start','important');
+ const body=card.querySelector('.body');
+ if(body){
+  body.style.setProperty('flex','0 0 auto','important');
+  body.style.setProperty('height','auto','important');
+  body.style.setProperty('overflow','visible','important');
+  if(['pSummary','pMethods','pQuestionHypothesis'].includes(body.id)){
+   body.style.setProperty('align-content','start','important');
+  }
+ }
+ const h=Math.max(45,Math.ceil(card.offsetHeight));
+ if(body){
+  body.style.removeProperty('flex');
+  body.style.removeProperty('height');
+  body.style.removeProperty('overflow');
+ }
+ return h;
+}
+function fitStack(column, specs, overflowName){
+ const visible=specs.filter(s=>s.card&&s.card.style.display!=='none');
+ if(!visible.length)return null;
+ const available=Math.max(0,column.clientHeight||578);
+ for(const spec of visible){
+  spec.size=spec.kind==='photo'?(spec.min||94):naturalHeight(spec.card);
+  if(spec.kind==='graph')spec.min=spec.size;
+  else if(spec.kind==='text')spec.min=Math.min(spec.size,spec.min||62);
+ }
+ const gap=9;
+ const total=()=>visible.reduce((sum,s)=>sum+s.size,0)+gap*Math.max(0,visible.length-1);
+ // Give extra space to photographs, not empty text cards.
+ if(total()<available){
+  for(const spec of visible.filter(x=>x.kind==='photo')){
+   const room=available-total();
+   spec.size+=Math.max(0,Math.min(room,(spec.max||300)-spec.size));
+  }
+ }
+ // When content is long, reduce pictures first; then let text auto-fit.
+ let excess=Math.max(0,total()-available);
+ for(const kind of ['photo','text']){
+  if(excess<=0)break;
+  const flexibles=visible.filter(x=>x.kind===kind&&x.size>x.min);
+  let capacity=flexibles.reduce((sum,x)=>sum+x.size-x.min,0);
+  if(!capacity)continue;
+  const toReduce=Math.min(excess,capacity);
+  let remaining=toReduce;
+  flexibles.forEach((spec,i)=>{
+   const cut=i===flexibles.length-1?remaining:toReduce*(spec.size-spec.min)/capacity;
+   spec.size-=cut;remaining-=cut;
+  });
+  excess-=toReduce;
+ }
+ visible.forEach(spec=>setHeight(spec.card,Math.max(1,Math.floor(spec.size))));
+ return total()>available+4?overflowName:null;
+}
+function fitDiscussionGrid(column){
+ const visible=[...column.children].filter(el=>el.style.display!=='none');
+ const tracks=visible.length>2?2:1;
+ const rowHeights=[];
+ const natural=visible.map(el=>naturalHeight(el));
+ for(let row=0;row<tracks;row++){
+  const pair=natural.slice(row*2,row*2+2);
+  rowHeights.push(Math.max(45,...pair));
+ }
+ const available=Math.max(0,column.clientHeight||269);
+ const gap=tracks>1?11:0;
+ const total=rowHeights.reduce((a,b)=>a+b,0)+gap;
+ if(total>available){
+  const usable=Math.max(90,available-gap);
+  const ratio=usable/Math.max(1,total-gap);
+  for(let i=0;i<rowHeights.length;i++)rowHeights[i]=Math.max(45,Math.floor(rowHeights[i]*ratio));
+ }
+ column.style.setProperty('grid-template-rows',rowHeights.map(n=>n+'px').join(' '),'important');
+ column.style.setProperty('align-content','start','important');
+ visible.forEach((card,i)=>{
+  setHeight(card,Math.min(natural[i],rowHeights[Math.floor(i/2)]));
+  card.style.setProperty('align-self','start','important');
+  card.style.gridColumn=visible.length%2===1&&i===visible.length-1?'span 2':'auto';
+ });
+ return rowHeights.reduce((a,b)=>a+b,0)+gap>available+4?'논의·결론':null;
+}
 function optionalSectionLayout(){
  const column1=poster.querySelector('.poster-column:nth-child(1)');
  const column2=poster.querySelector('.poster-column:nth-child(2)');
  const column3=poster.querySelector('.poster-column:nth-child(3)');
- if(!column1||!column2||!column3)return;
+ if(!column1||!column2||!column3)return [];
  function display(el,on){
   if(!el)return;
   const d=on?'':'none';
@@ -255,35 +342,32 @@ function optionalSectionLayout(){
   const title=getFieldValue('abstract').trim()?'04 연구 개요·주요 결과':'04 연구 결과';
   if(summaryHeading.textContent!==title)summaryHeading.textContent=title;
  }
- setHeight(column1.children[2],photos.method.length>=2?155:(methodPhotos?180:280));
- if(!hasGraph&&!resultPhotos){
-  setHeight(column2.children[0],565);
- }else if(!hasGraph){
-  // Keep result-photo panels compact; enlarge the adjacent results text card instead.
-  setHeight(column2.children[0],330);
-  setHeight(resultPhoto,238);
- }else{
-  setHeight(column2.children[0],resultPhotos?150:178);
-  setHeight(graph,resultPhotos?226:390);
-  if(resultPhotos)setHeight(resultPhoto,184);
- }
- // The question, analysis and conclusion are required. Optional cards vanish.
  display(column3.children[1],!!getFieldValue('limitations').trim());
  display(column3.children[3],!!getFieldValue('followup').trim());
- const visible=[...column3.children].filter(el=>el.style.display!=='none');
- const rows=visible.length>2?'repeat(2,minmax(0,1fr))':'minmax(0,1fr)';
- if(column3.style.gridTemplateRows!==rows)column3.style.gridTemplateRows=rows;
- visible.forEach((el,i)=>{
-   const span=visible.length%2===1&&i===visible.length-1?'span 2':'auto';
-   if(el.style.gridColumn!==span)el.style.gridColumn=span;
- });
+ // A1 size stays fixed, with optional references/footer space reclaimed.
  const footer=poster.querySelector('.poster-bottom');
  const hasCredits=!!(getFieldValue('references').trim()||getFieldValue('contributions').trim());
  display(footer,hasCredits);
- // Keep all posters the same 594×841mm, reclaim only the optional footer space.
  const grid=poster.querySelector('.poster-grid');
  const height=hasCredits?'882px':'990px';
  if(grid&&grid.style.height!==height)grid.style.height=height;
+ const warnings=[];
+ const left=fitStack(column1,[
+  {card:column1.children[0],kind:'text',min:65},
+  {card:column1.children[1],kind:'text',min:82},
+  {card:column1.children[2],kind:'text',min:100},
+  {card:methodPhoto,kind:'photo',min:methodPhotos?100:0,max:290}
+ ],'연구 배경·질문·방법');
+ if(left)warnings.push(left);
+ const right=fitStack(column2,[
+  {card:column2.children[0],kind:'text',min:90},
+  {card:graph,kind:'graph'},
+  {card:resultPhoto,kind:'photo',min:resultPhotos?96:0,max:280}
+ ],'연구 개요·결과·그래프');
+ if(right)warnings.push(right);
+ const bottom=fitDiscussionGrid(column3);
+ if(bottom)warnings.push(bottom);
+ return warnings;
 }
 function fitComposite(){
  const bad=[];
@@ -315,7 +399,7 @@ function analyze(){
 }
 function reflow(){
  if(busy)return;busy=true;try{
-  renderPhotos();renderCompositeSections();optionalSectionLayout();const bad=analyze();lastWarning=bad.join(' · ');
+  renderPhotos();renderCompositeSections();const layoutWarnings=optionalSectionLayout();const bad=[...new Set([...analyze(),...layoutWarnings])];lastWarning=bad.join(' · ');
   const status=$('posterFitStatus');
   if(status){
    status.classList.toggle('problem',!!bad.length);
