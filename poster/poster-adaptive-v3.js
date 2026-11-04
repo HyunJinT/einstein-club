@@ -260,17 +260,17 @@ function optionalSectionLayout(){
   const title=getFieldValue('abstract').trim()?'04 연구 개요·주요 결과':'04 연구 결과';
   if(summaryHeading.textContent!==title)summaryHeading.textContent=title;
  }
- setHeight(column1.children[2],photos.method.length>=2?155:(methodPhotos?180:290));
+ setHeight(column1.children[2],photos.method.length>=2?155:(methodPhotos?180:280));
  if(!hasGraph&&!resultPhotos){
   setHeight(column2.children[0],565);
  }else if(!hasGraph){
   // Keep result-photo panels compact; enlarge the adjacent results text card instead.
   setHeight(column2.children[0],330);
-  setHeight(resultPhoto,250);
+  setHeight(resultPhoto,238);
  }else{
   setHeight(column2.children[0],resultPhotos?150:178);
   setHeight(graph,resultPhotos?226:390);
-  if(resultPhotos)setHeight(resultPhoto,196);
+  if(resultPhotos)setHeight(resultPhoto,184);
  }
  // The question, analysis and conclusion are required. Optional cards vanish.
  display(column3.children[1],!!getFieldValue('limitations').trim());
@@ -287,7 +287,7 @@ function optionalSectionLayout(){
  display(footer,hasCredits);
  // Keep all posters the same 594×841mm, reclaim only the optional footer space.
  const grid=poster.querySelector('.poster-grid');
- const height=hasCredits?'930px':'990px';
+ const height=hasCredits?'882px':'990px';
  if(grid&&grid.style.height!==height)grid.style.height=height;
 }
 function fitComposite(){
