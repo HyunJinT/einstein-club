@@ -256,9 +256,11 @@ function naturalHeight(card){
   body.style.setProperty('flex','0 0 auto','important');
   body.style.setProperty('height','auto','important');
   body.style.setProperty('overflow','visible','important');
+  // Measure at a readable default font instead of an old autoshrunk size.
   if(['pSummary','pMethods','pQuestionHypothesis'].includes(body.id)){
    body.style.setProperty('align-content','start','important');
-  }
+   for(const item of body.children)item.style.fontSize='12px';
+  }else body.style.fontSize='14px';
  }
  const h=Math.max(45,Math.ceil(card.offsetHeight));
  if(body){
@@ -401,6 +403,10 @@ function fitComposite(){
    const parts=[...methods.querySelectorAll('.poster-method-part')];
    for(const part of parts){if(part.getClientRects().length&& !fitOne(part,12,8.5))bad.push('실험 방법');}
  }
+ for(const [id,name] of [['pQuestionHypothesis','연구질문·가설'],['pSummary','연구 개요·주요 결과'],['pMethods','실험 방법']]){
+  const area=$(id);
+  if(area&&area.getClientRects().length&&area.scrollHeight>area.clientHeight+2)bad.push(name);
+ }
  return bad;
 }
 function analyze(){
@@ -417,7 +423,7 @@ function analyze(){
 }
 function reflow(){
  if(busy)return;busy=true;try{
-  renderPhotos();renderCompositeSections();const layoutWarnings=optionalSectionLayout();const bad=[...new Set([...analyze(),...layoutWarnings])];lastWarning=bad.join(' · ');
+  renderPhotos();renderCompositeSections();const layoutWarnings=optionalSectionLayout();renderPhotos();const bad=[...new Set([...analyze(),...layoutWarnings])];lastWarning=bad.join(' · ');
   const status=$('posterFitStatus');
   if(status){
    status.classList.toggle('problem',!!bad.length);
