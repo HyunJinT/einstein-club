@@ -5,7 +5,7 @@
  * Never put the API key in a public GitHub repository or frontend JS.
  * Daily request cap protects casual overuse, not determined abuse.
  */
-const POSTER_AI_MODEL = 'gemini-2.5-flash-lite';
+const POSTER_AI_MODEL = 'gemini-3.6-flash';
 const POSTER_AI_MAX_DAILY = 80;
 const POSTER_AI_FIELDS = [
   'title','abstract','background','question','hypothesis','variables','materials',
@@ -67,6 +67,9 @@ function analyzePosterWithGemini_(fields, key) {
     '선택 입력 항목은 비워도 된다. 입력되지 않은 항목을 새로 작성하라고 요구하지 마라. 입력 객체에 존재하는 항목의 실제 내용만 검토하라.',
     '필수 항목의 누락 검사도 여기서는 하지 않는다. 업로드 단계에서 별도 확인한다. 피드백은 적힌 내용의 수정·보완에만 집중한다.',
     '우선순위: (1) 과학 개념·인과관계 오류, (2) 결과 수치/단위/반복 횟수의 항목 간 불일치,',
+    '연구 배경→가설→변인→방법→결과→논의→결론을 하나의 연구로 읽고 항목 간 모순을 구체적으로 비교하라.',
+    '예: 연구 과정 1.05V와 결과 0.8V가 다르면 각 수치를 정확히 인용하여 측정 조건 또는 전사 오류 확인을 요청하라.',
+    '과학적으로 틀린 주장이나 근거 부족, 설계와 가설의 불일치를 찾되 추정에 불과한 오류를 확정적으로 말하지 마라.',
     '(3) 가설과 실험 설계의 불일치, 대조군·변인 통제 부족, (4) 근거보다 강한 결론·일반화,',
     '(5) 그래프 축 단위 누락 및 자료 출처 부정확. 글을 잘 쓴 항목에는 아무것도 출력하지 마라.',
     '서로 다른 수치가 있어도 다른 조건에서 측정한 값일 수 있으므로 단정하지 말고 조건 확인을 요청하라.',
