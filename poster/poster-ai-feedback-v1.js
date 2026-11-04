@@ -140,14 +140,45 @@
     if (fields.references && /^https?:\/\/\S+$/i.test(fields.references.replace(/\s+/g, ''))) {
       add('references', 'URL만 적었다면 문헌 제목·저자(또는 기관)·발행연도도 가능한 범위에서 기재하세요.');
     }
-    const voltages = {};
-    for (const key of ['abstract', 'results', 'discussion', 'conclusion']) {
-      const values = [...fields[key].matchAll(/(\d+(?:\.\d+)?)\s*(?:m?V|볼트)(?=\s|[.,;)\]]|$)/gi)].map(m => m[0].replace(/\s/g, '').toLowerCase());
-      if (values.length) voltages[key] = values;
+    // Cross-check numerical statements across sections (e.g. method 1.05V vs results 0.8V).
+    // Different conditions can explain different numbers: flag the discrepancy for review, not as a confirmed scientific error.
+    const voltageKeys = ['abstract', 'method', 'results', 'discussion', 'conclusion'];
+    const voltageLabels = {
+      abstract:'연구 개요', method:'연구 과정', results:'연구 결과',
+      discussion:'결과 분석', conclusion:'결론'
+    };
+    const readVoltage = key => {
+      const matches = [];
+      const value = fields[key] || '';
+      for (const found of value.matchAll(/(\d+(?:\.\d+)?)\s*(mV|V|밀리볼트|볼트)(?![A-Za-z])/gi)) {
+        const unit = found[2].toLowerCase();
+        const volts = Number(found[1]) / (unit === 'mv' || unit === '밀리볼트' ? 1000 : 1);
+        if (Number.isFinite(volts) && volts >= 0) matches.push({
+          volts, text:found[0].replace(/\s+/g, '')
+        });
+      }
+      return matches;
+    };
+    const reported = voltageKeys.filter(key => !!fields[key]).map(key => ({
+      key, values:readVoltage(key)
+    })).filter(item => item.values.length);
+    let mismatch = null;
+    for (let i = 0; i < reported.length && !mismatch; i++) {
+      for (let j = i + 1; j < reported.length && !mismatch; j++) {
+        const left = reported[i], right = reported[j];
+        for (const a of left.values) {
+          const b = right.values.find(b => Math.abs(a.volts - b.volts) > Math.max(0.03, Math.min(a.volts,b.volts) * 0.05));
+          if (b) { mismatch = {left,right,a,b}; break; }
+        }
+      }
     }
-    const distinct = [...new Set(Object.values(voltages).flat())];
-    if (Object.keys(voltages).length >= 2 && distinct.length > 1) {
-      add('results', '서로 다른 전압값이 서술되어 있습니다. 각 값의 측정 조건·시점이 다른지 확인하고 본문 전반에 일관되게 표시하세요.');
+    if (mismatch) {
+      const {left,right,a,b} = mismatch;
+      const message = voltageLabels[left.key] + '에는 ' + a.text + ', ' +
+        voltageLabels[right.key] + '에는 ' + b.text + '로 기재되어 있습니다. ' +
+        '서로 다른 측정 조건인지 확인하고, 같은 조건의 결과라면 값을 일치시키세요.';
+      // Put the comment below the later section where the discrepancy is most useful.
+      add(right.key, message);
     }
     const repeat = [...['method', 'results', 'discussion', 'conclusion'].flatMap(k =>
       [...fields[k].matchAll(/(\d+)\s*회\s*(?:반복|측정|실험)/g)].map(m => m[1])
