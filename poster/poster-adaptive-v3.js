@@ -6,7 +6,7 @@ if(!poster||!pdf)return;
 const K='einstein_poster_photos_v3',MAX=3;
 const photoSizes={method:'auto',result:'auto'};
 const validPhotoSizes=['auto','70','85','100'];
-const limits={title:48,researchers:105,group:20,abstract:110,background:105,question:90,hypothesis:125,variables:95,materials:75,method:190,results:155,graphTitle:24,graphData:500,graphXLabel:28,graphXUnit:12,graphYLabel:28,graphUnit:12,discussion:215,limitations:95,conclusion:175,followup:100,references:48,contributions:48};
+const limits={title:48,researchers:105,group:20,abstract:110,background:105,question:90,hypothesis:125,variables:95,materials:75,method:190,results:155,graphTitle:24,graphData:500,graphXLabel:28,graphXUnit:12,graphYLabel:28,graphUnit:12,discussion:215,limitations:95,conclusion:175,followup:100,references:150,contributions:150};
 
 const sharedGroups=[
  {fields:['question','hypothesis'],budget:165},
@@ -315,7 +315,7 @@ function analyze(){
  bad.push(...fitComposite());
  if(!fitOne($('pTitle'),28,17))bad.push('연구 제목');
  if(!fitOne($('pAuthors'),13,10))bad.push('연구자');
- if(!fitOne($('pFooter'),11,8.5))bad.push('참고문헌·연구자 기여');
+ for(const [id,name] of [['pReferenceText','참고문헌'],['pContributionText','연구자별 기여']]){const el=$(id);if(el&&el.getClientRects().length&&!fitOne(el,11,8.5))bad.push(name);}
  return [...new Set(bad)];
 }
 function reflow(){
