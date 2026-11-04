@@ -277,7 +277,7 @@
     }
     const basic = localCheck(fields);
     if (!endpoint || !Object.keys(source).length) {
-      displayFeedback(basic, '기본 자동 점검 결과 (생성형 AI 서버 미연결 또는 AI 전송 대상 없음)');
+      displayFeedback(basic, '기본 검사만 실행됨 — 실제 AI 연구 내용 분석은 아직 미연결');
       return;
     }
     if (!sessionStorage.getItem('posterAiPrivacyAccepted')) {
@@ -301,7 +301,7 @@
       }
       displayFeedback(merge(basic, fromAI), 'AI 피드백');
     } catch (error) {
-      displayFeedback(basic, '기본 자동 점검 결과 (AI 연결 실패)');
+      displayFeedback(basic, 'AI 연결 실패 — 기본 검사만 실행됨 (과학적 내용 분석 아님)');
       status.textContent += ' · AI 검토 오류: ' + (error?.message || String(error));
     } finally {
       pending = false;
