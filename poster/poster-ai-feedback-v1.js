@@ -70,7 +70,10 @@
     clearFeedback();
     const source = review && typeof review === 'object' ? review : {};
     let count = 0;
+    const written = collect();
     for (const key of allKeys) {
+      // Feedback is for the text the student actually wrote. Never demand optional blank fields.
+      if (!written[key]) continue;
       const note = boxes[key];
       const raw = source[key];
       const comments = (Array.isArray(raw) ? raw : typeof raw === 'string' ? [raw] : [])
@@ -116,6 +119,7 @@
     function add(key, message) {
       (feedback[key] || (feedback[key] = [])).push(message);
     }
+    // Only review fields with content; required-field completeness is handled during upload.
     // Catch obviously meaningless content regardless of which section was filled in.
     for (const [key, content] of Object.entries(fields)) {
       if (!content || !looksLikePlaceholder(key, content)) continue;
@@ -127,20 +131,11 @@
     if (fields.researchers && fields.researchers.split(/[,，、;\n]+/).some(name => !/^\d{5}\s+[^\s,，、;]{2,20}$/.test(name.trim()))) {
       add('researchers', '연구자 정보는 실제 참여 학생별로 학번 5자리와 이름을 정확히 입력하세요.');
     }
-    if (!fields.question) add('question', '핵심 연구질문을 관찰하거나 측정할 수 있는 형태로 작성하세요.');
-    if (!fields.hypothesis) add('hypothesis', '연구질문에 대응하는 검증 가능한 예측과 과학적 근거를 작성하세요.');
-    if (!fields.variables && (fields.method || fields.results)) add('variables', '조작변인·종속변인과 통제할 조건을 구분하여 제시하세요.');
     if (fields.method && !/(반복|회\s*(측정|실험)|[2-9]\s*회|대조|비교)/.test(fields.method)) {
       add('method', '반복 측정 횟수나 비교 조건이 있다면 실험 절차에 구체적으로 명시하세요.');
     }
-    if (fields.graphData && !fields.graphXLabel) add('graphXLabel', '그래프의 가로축이 나타내는 조작변인을 명확히 쓰세요.');
-    if (fields.graphData && !fields.graphYLabel) add('graphYLabel', '그래프의 세로축이 나타내는 종속변인을 명확히 쓰세요.');
-    if (fields.graphData && !fields.graphUnit) add('graphUnit', '측정값에 단위가 있다면 Y축 단위를 입력하세요.');
     if (fields.results && fields.discussion && /(?:고효율|최적|우수성|완벽하게|입증했다|증명했다)/.test(fields.discussion + fields.conclusion)) {
       add('conclusion', '비교 실험이나 추가 성능 측정 없이 성능의 우수성·최적성을 단정하지 않았는지 검토하세요.');
-    }
-    if (fields.researchers && fields.researchers.split(/[,，\n]+/).filter(Boolean).length > 1 && !fields.contributions) {
-      add('contributions', '연구자가 여러 명이라면 각 연구자의 실제 수행 역할을 구분해 작성하세요.');
     }
     if (fields.references && /^https?:\/\/\S+$/i.test(fields.references.replace(/\s+/g, ''))) {
       add('references', 'URL만 적었다면 문헌 제목·저자(또는 기관)·발행연도도 가능한 범위에서 기재하세요.');
@@ -225,7 +220,9 @@
   }
   function merge(local, ai) {
     const out = {};
+    const written = collect();
     for (const key of allKeys) {
+      if (!written[key]) continue;
       const items = [];
       for (const source of [ai, local]) {
         const raw = source?.[key];
