@@ -79,19 +79,11 @@ for(const el of document.querySelectorAll('[data-key]')){
  const upd=()=>{recalculateCaps();schedule();};
  el.addEventListener('input',(ev)=>{
    if(ev.isComposing)return;
-   // Prevent extra hard line breaks from consuming all poster height.
-   const maxBreaks=el.dataset.key==='method'?2:
-     ['researchers','references','contributions','variables'].includes(el.dataset.key)?1:0;
-   const oldText=el.value;
-   let count=0;
-   const next=oldText.replace(/\r\n?/g,'\n').replace(/\n/g,()=>count++<maxBreaks?'\n':' ');
-   if(next!==oldText){
-     const at=el.selectionStart||next.length;
-     el.value=next;
-     try{el.setSelectionRange(Math.min(at,next.length),Math.min(at,next.length));}catch(err){}
-   }
+   // Preserve intentional line breaks in numbered steps and question lists.
    upd();
- },true);upd();
+ },true);
+ el.addEventListener('compositionend',upd);
+ upd();
 }
 const imageInputs=[['method','methodImage','methodPhoto','methodPhotoList'],['result','resultImage','resultPhoto','resultPhotoList']];
 for(const [kind,id,,listId] of imageInputs){
@@ -203,9 +195,12 @@ function setGridRows(node,visible,cssClass){
    if(text.textContent!==visible[i].value)text.textContent=visible[i].value;
   }
  }
- const weights=visible.map(x=>Math.max(1.5,1+Math.ceil((x.value.length+x.label.length)/33)));
- const cols=weights.map(w=>'minmax(0,'+w+'fr)').join(' ');
- if(node.style.gridTemplateRows!==cols)node.style.gridTemplateRows=cols;
+ // Compact rows: place each populated label and its text immediately below the previous one.
+ const tracks=visible.map(()=>'max-content').join(' ');
+ if(node.style.getPropertyValue('grid-template-rows')!==tracks||node.style.getPropertyPriority('grid-template-rows')!=='important')
+  node.style.setProperty('grid-template-rows',tracks,'important');
+ node.style.setProperty('align-content','start','important');
+ node.style.setProperty('row-gap','5px','important');
 }
 function renderCompositeSections(){
  const groups=[
