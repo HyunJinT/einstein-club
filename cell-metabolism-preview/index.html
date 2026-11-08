@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko"><head><base target="_top"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--navy:#15375e;--blue:#2869b2;--cyan:#e9f5ff;--ink:#1e3147;--muted:#66788b;--line:#dbe5ef;--paper:#f5f8fc;--danger:#ab3850;--green:#1b7965}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 'Malgun Gothic','맑은 고딕',system-ui,sans-serif}header{background:linear-gradient(112deg,#12365c,#285b92);color:white;padding:26px 20px}header .wrap{max-width:1100px;margin:auto}header h1{font-size:clamp(22px,3vw,30px);margin:0 0 5px;font-weight:800}header p{margin:0;opacity:.88;font-size:14px}main{max-width:1100px;margin:22px auto;padding:0 16px 55px}.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:22px;margin:0 0 17px;box-shadow:0 3px 13px #15375e07}h2{font-size:21px;margin:0 0 13px;color:var(--navy)}h3{font-size:17px;margin:0 0 10px;color:var(--navy)}p{margin:7px 0}.muted,.help{color:var(--muted);font-size:13px}.required{font-weight:700;color:var(--danger)}.eyebrow{font-size:12px;color:#2c75a7;font-weight:800;letter-spacing:.08em}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{margin:13px 0}.field label{display:block;font-weight:700;margin:0 0 6px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #bacadb;border-radius:9px;background:#fff;font:inherit;color:var(--ink)}textarea{min-height:90px;resize:vertical}input:focus,select:focus,textarea:focus{outline:2px solid #9cc9ff;border-color:#347cb8}.btn{border:0;border-radius:9px;background:#e7f0f8;color:var(--navy);font:inherit;font-weight:700;cursor:pointer;padding:10px 16px;transition:.14s}.btn:hover{filter:brightness(.97)}.btn.primary{background:var(--blue);color:white}.btn.dark{background:var(--navy);color:#fff}.btn.danger{background:#fff0f2;color:var(--danger)}.btn:disabled{cursor:wait;opacity:.6}.btn.small{font-size:12px;padding:6px 10px}.status{padding:10px 13px;border-radius:9px;background:#edf4fa;font-size:13px;margin:10px 0}.status.error{color:#9c2b42;background:#fff0f3}.status.good{color:#14694d;background:#e9faf3}.notice{background:#eef6ff;border-left:4px solid #4c8dc9;padding:11px 13px;border-radius:6px;font-size:14px}.warn{background:#fff8ea;border-left:4px solid #d69b32;padding:10px 13px;border-radius:5px;font-size:13px}.top-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}.tag{display:inline-block;padding:3px 9px;border-radius:18px;background:#eaf3fc;color:#244d76;font-size:12px;font-weight:700}.section-number{color:var(--blue);font-size:13px;font-weight:800;margin:0 0 5px}.pdf-frame{display:none;width:100%;height:min(74vh,740px);border:1px solid #cedae7;border-radius:10px;background:#fafafa;margin:14px 0}.split-note{padding:10px 12px;border-radius:9px;background:#fff6e8;font-size:13px;color:#775323}.center{text-align:center}.hide{display:none !important}.sticky-save{position:sticky;bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:white;box-shadow:0 5px 24px #173b6b24;border:1px solid #cbdce8;padding:11px 14px;border-radius:13px;z-index:5}.table-wrap{overflow:auto;max-height:550px;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:750px;font-size:13px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;vertical-align:top}th{position:sticky;top:0;background:#ebf3fa;color:var(--navy)}tr:hover td{background:#f8fbfd}td .btn{padding:5px 9px}.detail-text{background:#f6f9fd;border:1px solid #e0eaf2;border-radius:9px;padding:12px;white-space:pre-wrap;word-break:break-word;min-height:30px;margin:6px 0 12px}.rule{border:0;border-top:1px solid var(--line);margin:20px 0}.meter{font-size:12px;color:var(--muted);margin-top:5px}footer{text-align:center;color:#718394;font-size:12px;margin-top:25px}
+@media(max-width:680px){.grid2{grid-template-columns:1fr}.panel{padding:16px}.sticky-save{align-items:stretch;flex-direction:column}.sticky-save .row .btn{flex:1}.pdf-frame{height:460px}h2{font-size:19px}main{margin:15px auto}.top-actions{justify-content:space-between}}
+
+.copy-area{min-height:230px;width:100%;white-space:pre-wrap;font-size:13px;line-height:1.55;resize:vertical;background:#fafdff}.compact-card{background:#f4f8fc;border:1px solid #dbe7f4;border-radius:10px;padding:13px;margin:12px 0}.compact-card b{color:#1c4b79}.inline-check{display:flex;gap:7px;align-items:center;font-size:13px;color:#4c6075}.inline-check input{width:auto}.mini-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px}.mini-summary div{border:1px solid #e2ebf4;border-radius:9px;padding:10px;background:#f7fafd;white-space:pre-wrap;word-break:break-word;font-size:13px}.mini-summary b{display:block;color:#215785;margin-bottom:4px}@media(max-width:680px){.mini-summary{grid-template-columns:1fr}}
+
+.preview-mode #identityPane,.preview-mode #rememberedPane,.preview-mode #teacherLoginArea,.preview-mode #loginView>.row,.preview-mode #loginView>#loginMsg{display:none!important}
+.preview-callout{background:#fff5dc;border:1px solid #e6b857;border-radius:11px;padding:14px;margin-bottom:16px;color:#584321}.preview-callout b{display:block;margin-bottom:4px}.preview-controls{display:flex;gap:12px;flex-wrap:wrap}.preview-controls button{flex:1;min-width:150px}.preview-mode #scanUploadPanel{display:none!important}
+</style></head><body class="preview-mode">
+<header><div class="wrap"><div class="tag" style="background:#ffedbd;color:#665019;margin-bottom:9px">검토용 미리보기 · 가상 데이터</div><div class="eyebrow" style="color:#a8dafd">2026 · 세포와 물질대사</div><h1>탐구·성장 기록</h1><p>수행평가를 돌아보고, 실제 수업 활동과 배움의 변화를 기록합니다.</p></div></header>
+<main>
+<section id="loginView" class="panel" style="max-width:700px;margin-left:auto;margin-right:auto">
+ <div class="preview-callout"><b>검토용 시안 · 실제 학생 데이터 없음</b>아래 버튼으로 학생용·교사용 화면을 확인해 주세요. 예시 학생과 답변은 모두 가상 데이터입니다. 로그인·PDF 업로드·자료 저장은 실제 서버 배포 후에만 가능합니다.</div>
+ <div class="preview-controls"><button class="btn primary" onclick="openPreviewTeacher()">교사용 화면 미리보기</button><button class="btn" onclick="openPreviewStudent()">학생용 화면 미리보기</button></div>
+
+  <h2>학생 로그인</h2><p class="muted">처음 접속할 때 반·학번·이름을 확인하고 본인 비밀번호를 설정합니다. 본인 확인을 위해 최초 1회 교사 승인이 필요합니다.</p>
+  <div id="rememberedPane" class="hide">
+    <div class="notice"><b id="rememberedLabel"></b><p class="help" style="margin:4px 0 0">이 기기에서는 비밀번호만 입력하면 됩니다. 비밀번호는 기기에 저장하지 않습니다.</p></div>
+    <div class="field"><label for="quickPassword">비밀번호</label><input id="quickPassword" type="password" autocomplete="current-password" placeholder="설정한 비밀번호" onkeydown="if(event.key==='Enter')loginStudent()"></div>
+    <div class="row"><button class="btn primary" onclick="loginStudent()">로그인</button><button class="btn" onclick="switchStudent()">다른 학생 / 새 기기</button></div>
+  </div>
+  <div id="identityPane">
+    <div class="grid2"><div class="field"><label for="loginGroup">수업반</label><select id="loginGroup"><option value="">반 선택</option><option value="2-1">2-1</option><option value="2-2">2-2</option><option value="2-3">2-3</option></select></div><div class="field"><label for="loginId">학번 (5자리)</label><input id="loginId" maxlength="5" inputmode="numeric" placeholder="예: 20000"></div></div>
+    <div class="field"><label for="loginName">이름</label><input id="loginName" placeholder="학생 명단의 이름 그대로 입력"></div>
+    <div class="row" style="margin:14px 0"><button id="newModeBtn" class="btn primary" onclick="setAccountMode('register')">처음 접속 · 비밀번호 설정</button><button id="oldModeBtn" class="btn" onclick="setAccountMode('login')">이미 비밀번호가 있어요</button></div>
+    <div id="registerPane"><p class="help">영문과 숫자를 포함한 10자 이상으로 설정하세요. 교사 승인 전에는 원본 PDF와 작성 내용을 열람할 수 없습니다.</p>
+      <div class="grid2"><div class="field"><label for="newPassword">새 비밀번호</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="영문+숫자 10자 이상"></div><div class="field"><label for="newPasswordConfirm">비밀번호 확인</label><input id="newPasswordConfirm" type="password" autocomplete="new-password" placeholder="같은 비밀번호 한 번 더"></div></div>
+      <button class="btn primary" onclick="registerStudentUi()">비밀번호 설정 신청</button>
+    </div>
+    <div id="existingPane" class="hide"><div class="field"><label for="existingPassword">기존 비밀번호</label><input id="existingPassword" type="password" autocomplete="current-password" placeholder="설정한 비밀번호" onkeydown="if(event.key==='Enter')loginStudent()"></div><button class="btn primary" onclick="loginStudent()">로그인</button></div>
+  </div>
+  <div class="row" style="margin-top:14px"><button class="btn small" onclick="toggleAdminLogin()">교사용</button></div>
+  <div id="teacherLoginArea" class="hide"><hr class="rule"><h3>교사 로그인</h3><p class="help">Apps Script 최초 실행 로그에 출력된 관리자 비밀번호를 입력합니다.</p><div class="field"><input id="adminPassword" type="password" placeholder="관리자 비밀번호"></div><button class="btn dark" onclick="loginAdmin()">교사 화면 열기</button></div>
+  <p class="status" id="loginMsg">본인의 수행평가 원본과 실제 수업 경험을 토대로 작성하세요.</p>
+</section>
+<section id="studentView" class="hide">
+ <div class="top-actions"><span id="studentIdentity" class="tag"></span><button class="btn small" onclick="logout()">로그아웃</button></div>
+ <div class="panel"><div class="eyebrow">먼저 확인하세요</div><h2>1. 기존 주제탐구 수행평가 확인</h2>
+  <div id="originalTopic" class="notice">내가 직접 작성한 보고서 원본만 확인합니다. 요약본이나 교사 평가 메모는 학생 화면에 표시하지 않습니다.</div><p class="help">스캔본은 수정하지 않고 보존합니다. 사실과 다른 부분은 아래 정정란에만 작성합니다.</p>
+  <div class="row"><button id="openScanBtn" class="btn" onclick="openMyScan()">내 수행평가 스캔본 열기</button><button id="closeScanBtn" class="btn small hide" onclick="closeMyScan()">닫기</button></div><p id="scanMessage" class="help"></p><iframe title="내 수행평가 스캔 PDF" id="scanFrame" class="pdf-frame"></iframe>
+  <div id="feedbackPanel" class="warn hide"></div>
+ </div>
+ <div class="panel"><div class="section-number">선택 항목 ①</div><h2>2. 기존 보고서 정정·보완</h2><p class="help">수정할 내용이 없다면 '수정 없음'을 선택하면 됩니다. 기존 보고서를 처음부터 다시 쓰지 마세요.</p>
+  <div class="field"><label for="correction">기존 보고서에서 수정할 부분이 있나요?</label><select id="correction" data-field="correction"><option value="없음">수정 없음</option><option value="정정·보완">정정·보완할 내용 있음</option></select></div>
+  <div id="correctionFields" class="hide"><div class="field"><label for="original">수정 전 내용(핵심 주장·표현만)</label><textarea id="original" data-field="original" placeholder="기존 보고서의 어떤 주장이 부정확했나요?"></textarea></div>
+   <div class="field"><label for="revised">바로잡은 내용</label><textarea id="revised" data-field="revised" placeholder="과학적으로 무엇이 달라졌는지 구체적으로"></textarea></div>
+   <div class="field"><label for="correctionEvidence">그렇게 수정한 이유·근거 및 출처</label><textarea id="correctionEvidence" data-field="correctionEvidence" placeholder="교과 개념, 확인한 자료, 출처(제목·링크 등)"></textarea></div></div>
+ </div>
+ <div class="panel"><div class="section-number">선택 항목 ②</div><h2>3. 추가 탐구</h2><p class="help">보고서가 부족하거나 더 궁금한 점이 생겼을 때만 작성합니다. 기존 주제와 연계된 탐구를 권장하며, 꼭 새 실험을 할 필요는 없습니다.</p>
+  <div class="field"><label for="research">추가 탐구를 진행했나요?</label><select id="research" data-field="research"><option value="없음">추가 탐구 없음</option><option value="추가탐구">추가 탐구를 진행함</option></select></div>
+  <div id="researchFields" class="hide"><div class="field"><label for="question">새롭게 설정한 탐구 질문</label><textarea id="question" data-field="question" placeholder="예: 기존 보고서에서 설명하지 못한 현상은 무엇인가?"></textarea></div>
+   <div class="field"><label for="concept">수업 개념과의 연결</label><textarea id="concept" data-field="concept" placeholder="어떤 세포 구조·물질대사·효소·에너지 개념을 적용했나요?"></textarea></div>
+   <div class="field"><label for="method">실제로 사용한 자료·비교 방법</label><textarea id="method" data-field="method" placeholder="비교 대상, 자료 출처, 관찰 또는 분석 방법을 구체적으로"></textarea></div>
+   <div class="field"><label for="outcome">확인한 결과와 해석</label><textarea id="outcome" data-field="outcome" placeholder="근거로 뒷받침되는 결론은 무엇인가요?"></textarea></div>
+   <div class="field"><label for="limits">탐구의 한계·후속 질문 (권장)</label><textarea id="limits" data-field="limits" placeholder="일반화하기 어려운 점, 더 확인하고 싶은 점"></textarea></div>
+   <div class="field"><label for="sources">참고한 자료와 출처</label><textarea id="sources" data-field="sources" placeholder="책·논문·사이트 제목 및 저자/URL 등을 기입"></textarea></div>
+   <div class="field"><label for="researchUpload">추가 탐구보고서 PDF 첨부 (선택·7MB 이하)</label><input id="researchUpload" type="file" accept="application/pdf,.pdf"><p class="help">새 파일을 올리면 기존 첨부 PDF를 대체합니다. 텍스트를 임시저장한 뒤 첨부하세요.</p><div class="row"><button class="btn" onclick="uploadResearch()">PDF 첨부 / 교체</button><span class="tag" id="researchFileState">첨부 없음</span></div></div>
+  </div>
+ </div>
+ <div class="panel"><div class="section-number">필수 기록 ①</div><h2>4. 가장 의미 있었던 수업 활동 한 가지</h2><p class="notice">여러 활동을 나열하기보다 <b>내가 실제로 한 행동 → 관찰·분석한 근거 → 배운 점</b>을 한 가지 사례로 보여주세요.</p>
+  <div class="field"><label for="activityType">활동 선택 <span class="required">*</span></label><select id="activityType" data-field="activityType"><option value="">선택하세요</option><option>현미경 관찰·세포 크기</option><option>세포 구조·생체 분자 학습</option><option>효소 작용 탐구·실험</option><option>세포호흡·ATP 개념 탐구</option><option>광합성 개념·고전 실험 분석</option><option>효모 가상실험·자료 분석</option><option>모둠 토론·발표·질문</option><option>기타 수업 활동</option></select></div>
+  <div class="field"><label for="activityDetail">그때 무엇을 했나요? <span class="required">*</span></label><textarea id="activityDetail" data-field="activityDetail" placeholder="언제·어떤 문제나 활동이었는지, 구체적인 장면 중심으로"></textarea></div>
+  <div class="field"><label for="activityRole">내가 직접 맡았거나 시도한 일 <span class="required">*</span></label><textarea id="activityRole" data-field="activityRole" placeholder="내 질문, 모둠에서 맡은 역할, 오류 수정, 자료 비교 등"></textarea></div>
+  <div class="field"><label for="activityEvidence">그 결과 확인한 사실·증거 <span class="required">*</span></label><textarea id="activityEvidence" data-field="activityEvidence" placeholder="측정값, 관찰 결과, 그래프, 발표 내용, 근거 자료 등 (실제로 한 내용만)"></textarea></div>
+ </div>
+ <div class="panel"><div class="section-number">필수 기록 ②</div><h2>5. 내 생각이나 탐구 역량이 어떻게 달라졌나요?</h2><p class="help">'과학적 사고력이 향상되었다'는 평가보다 이전과 이후의 차이를 구체적으로 적어 주세요.</p>
+  <div class="field"><label for="before">처음에는 어떻게 생각했거나 무엇이 어려웠나요? <span class="required">*</span></label><textarea id="before" data-field="before" placeholder="탐구 전의 오개념, 해결하기 어려웠던 문제, 처음의 예상"></textarea></div>
+  <div class="field"><label for="after">이제 무엇을 더 정확하게 설명하거나 할 수 있나요? <span class="required">*</span></label><textarea id="after" data-field="after" placeholder="수정한 이해, 새로 던진 질문, 실제로 달라진 분석 방식"></textarea></div>
+  <div class="field"><label for="growthEvidence">그 변화가 드러난 장면 (선택)</label><textarea id="growthEvidence" data-field="growthEvidence" placeholder="자료 재해석, 실험 계획 수정, 질문의 변화 등"></textarea></div>
+ </div>
+ <div class="panel"><div class="section-number">필수 기록 ③</div><h2>6. 관심 분야와 수업의 연결</h2>
+  <div class="field"><label for="career">현재 관심 있는 진로·분야 <span class="required">*</span></label><input id="career" data-field="career" placeholder="예: 생명공학 / 운동과학 / 아직 탐색 중"></div>
+  <div class="field"><label for="careerLink">이 수업과 연결되는 점 (선택)</label><textarea id="careerLink" data-field="careerLink" placeholder="억지로 진로에 연결하지 않아도 됩니다. 구체적인 이유가 있으면 작성하세요."></textarea></div>
+  <div class="field"><label for="note">교사에게 추가로 알릴 사실 (선택)</label><textarea id="note" data-field="note" placeholder="다른 기록에 없는 내용만 작성 (동일 내용 반복 금지)"></textarea></div>
+  <div class="warn">생활기록부는 교사가 수업에서 관찰한 활동과 제출 자료를 종합하여 작성합니다. 학생이 쓴 내용이 모두 그대로 기재되는 것은 아닙니다. 실천하지 않은 활동이나 확인하지 않은 결과를 만들어 쓰지 마세요.</div>
+ </div>
+ <div class="sticky-save"><div><b id="saveFlag">작성 중</b><div class="help" id="saveTime">입력 후 잠시 지나면 자동 임시저장됩니다.</div></div><div class="row"><button class="btn" onclick="saveStudent(false)">임시저장</button><button class="btn primary" onclick="finalSubmit()">최종제출 / 재제출</button></div></div>
+</section>
+<section id="adminView" class="hide">
+ <div class="top-actions"><b class="tag">교사용 검토</b><button class="btn small" onclick="logout()">로그아웃</button></div>
+ <div class="panel"><h2>제출 현황</h2><div class="row" id="stats"></div><p class="help">원래 분석 시트는 변경하지 않습니다. 학생이 제출한 진술은 교사가 확인한 자료에 근거하여 판단해야 합니다.</p>
+  <div class="row"><button class="btn" onclick="refreshAdmin()">목록 새로고침</button><button class="btn" onclick="exportAccountList()">학생 인증현황 CSV</button><button class="btn" onclick="exportRecords()">전체 기록 CSV</button><a id="dbLink" target="_blank" rel="noopener" style="color:#2869b2">앱 데이터 시트</a></div>
+  <div class="grid2"><div class="field"><label for="filter">학생 검색</label><input id="filter" placeholder="학번·이름·기존 주제 검색" oninput="drawTable()"></div><div class="field"><label for="statusFilter">상태별 보기</label><select id="statusFilter" onchange="drawTable()"><option value="">전체</option><option value="미작성">미작성</option><option value="임시저장">임시저장</option><option value="최종제출">최종제출</option><option value="보완 요청">보완 요청</option><option value="승인 대기">승인 대기</option><option value="미등록">미등록</option></select></div></div>
+  <div class="table-wrap"><table><thead><tr><th>반</th><th>학번</th><th>이름</th><th>로그인 인증</th><th>수행평가</th><th>제출</th><th>보완·추가</th><th>교사 검토</th><th>보기</th></tr></thead><tbody id="studentRows"></tbody></table></div>
+ </div>
+
+ <div class="panel" id="portfolioExportPanel"><div class="eyebrow">교사 전용 · 생기부 기초자료</div><h2>학생별 핵심 기록 모아보기 · 복사</h2>
+  <p class="help">학생 진술과 교사의 기존 메모를 항목별로 정리합니다. 인공지능이 과학적 정확성을 검증하거나 실제 참여를 인정한 결과는 아닙니다. 학생의 신원과 보고서 원본을 확인한 뒤 사용해 주세요.</p>
+  <div class="grid2"><div class="field"><label for="packetClass">복사할 학급</label><select id="packetClass"><option value="2-1">2-1반</option><option value="2-2">2-2반</option><option value="2-3">2-3반</option><option value="">전체 학급</option></select></div>
+   <div class="field"><label for="packetMode">출력 방식</label><select id="packetMode"><option value="brief">핵심 내용 요약 (기본)</option><option value="full">제출 내용 전체 (검토용)</option></select></div></div>
+  <div class="row"><label class="inline-check"><input type="checkbox" id="packetSubmitted" checked> 최종 제출자만</label><label class="inline-check"><input type="checkbox" id="packetNames"> 이름 포함 (기본은 학번만)</label></div>
+  <div class="row" style="margin:14px 0"><button class="btn primary" onclick="previewPackets()">선택 학급 자료 불러오기</button><button class="btn" onclick="copyPackets()">ChatGPT용 자료 복사</button><button class="btn" onclick="downloadPackets()">텍스트 저장</button></div>
+  <p class="status" id="packetStatus">학급을 선택하고 ‘자료 불러오기’를 누르세요. 미제출자는 기본적으로 제외됩니다.</p>
+  <div class="field"><label for="packetPreview">복사할 내용 미리보기 · 직접 수정 가능</label><textarea id="packetPreview" class="copy-area" placeholder="학생들이 제출한 자료를 교사 계정에서 불러오면 여기에 표시됩니다."></textarea></div>
+  <p class="warn">외부 AI에 붙여넣기 전 학교 개인정보 처리 기준을 확인하세요. 이름은 기본적으로 제외되며, 학번도 필요에 따라 가명으로 바꿔 사용할 수 있습니다. 원본 PDF와 비밀번호는 복사되지 않습니다.</p>
+ </div>
+ <div id="scanUploadPanel" class="panel"><h3>학생별 PDF 스캔본 연결</h3><p class="help">합쳐진 반별 PDF는 그대로 공유하지 마세요. 학생별 2쪽 PDF로 분리해 비공개 Drive 폴더에 올린 다음 연결해야 합니다. 파일 이름은 <b>5자리 학번</b>으로 시작해야 합니다.</p><p><a id="scanFolderLink" target="_blank" rel="noopener">앱의 비공개 스캔 폴더 열기</a></p>
+  <div class="row"><input id="scanFolderId" style="flex:1;min-width:220px" placeholder="학생별 PDF가 있는 Drive 폴더 주소 또는 ID"><button class="btn" onclick="linkScanFolder()">폴더의 PDF 일괄 연결</button></div><p class="help" id="folderMsg"></p>
+ </div>
+ <div id="adminDetailView" class="panel hide"></div>
+</section>
+<footer>세포와 물질대사 · 학생의 실제 수업 활동과 확인 가능한 과학적 탐구 기록</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const state={role:'',token:'',student:null,rows:[],selected:'',data:null,busy:false,dirty:false,timer:null,pdfUrl:'',remembered:null,mode:'register'};
+const IDENTITY_KEY='cellapp_last_identity_v2';
+const FIELDS=['correction','original','revised','correctionEvidence','research','question','concept','method','outcome','limits','sources','researchFileId','activityType','activityDetail','activityRole','activityEvidence','before','after','growthEvidence','career','careerLink','note'];
+const EXCLUDE=['researchFileId'];
+const el=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+const SAMPLE_RECORDS = [
+ {id:'20000',name:'가상학생 A',group:'2-1',topic:'빛의 세기와 탄소 고정의 관계',review:'확인 전',memo:'교사의 예시 점검 메모: 광합성속도와 탄소 고정속도 용어 구분 필요',feedback:'명반응과 탄소 고정 반응의 관계를 근거와 연결해 설명할 것',answer:{submitted:true,submittedAt:'2026-11-09',savedAt:'2026-11-09',research:'추가탐구',question:'빛의 세기가 높아지면 탄소 고정 속도는 계속 증가할까?',concept:'명반응에서 생성된 ATP와 NADPH가 탄소 고정에 활용됨을 조사함.',method:'교과서 자료와 공개된 광합성 속도 그래프의 변인과 측정값 비교.',outcome:'일정 이상의 빛에서는 다른 요인이 제한 요인이 될 수 있음을 그래프를 통해 해석함.',limits:'측정 조건과 광합성속도 정의를 더 확인할 필요가 있음.',sources:'공개 교과서 자료(가상)',activityType:'그래프 분석',activityDetail:'광합성 반응 단계와 빛의 세기를 변인으로 하는 그래프를 분석함.',activityRole:'독립변인과 종속변인을 구분하고 조별 설명을 준비함.',activityEvidence:'자료의 증가·평탄 구간을 표시하고 해석을 발표함.',before:'빛이 증가하면 광합성 속도가 계속 증가할 것이라 예상함.',after:'다른 제한 요인에 의해 증가가 둔화될 수 있음을 이해함.',career:'생명과학',careerLink:'광합성 효율 개선과 연계하여 생각함.'}},
+ {id:'20001',name:'가상학생 B',group:'2-1',topic:'효소 활성과 온도의 관계',review:'확인 완료',memo:'교사의 예시 점검 메모: 최적 온도와 단백질 변성 구별',feedback:'',answer:{submitted:true,submittedAt:'2026-11-09',savedAt:'2026-11-09',research:'없음',activityType:'탐구 설계',activityDetail:'효소의 활성에 미치는 온도의 영향을 탐구하기 위한 실험 변인을 구분함.',activityRole:'통제 변인을 정리하고 실험 결과 표를 작성함.',activityEvidence:'조건별 측정값을 그래프로 나타냄.',before:'효소는 온도가 높을수록 늘 빨라진다고 생각함.',after:'최적 온도 이후 활성 감소를 단백질 구조 변화와 연결해 설명함.',career:'의생명',careerLink:'인체 내 효소의 기능과 연계함.'}},
+ {id:'20002',name:'가상학생 C',group:'2-2',topic:'세포 호흡과 발효의 차이',review:'보완 요청',memo:'교사의 예시 점검 메모: 발효 산물의 차이와 NAD+ 재생 역할',feedback:'ATP 생성과 NAD+ 재생의 과정을 구분해 볼 것',answer:{submitted:false,savedAt:'2026-11-09',activityType:'탐구 토의',activityDetail:'산소 유무에 따른 효모의 에너지 대사 과정을 토의함.',activityRole:'모둠에서 자료를 정리함.',activityEvidence:'실험에서 발생한 기체를 관찰함.',before:'발효는 ATP가 전혀 생성되지 않는다고 이해함.',after:'해당과정과 발효의 관계를 다시 정리함.',career:'생명공학'}},
+ {id:'20003',name:'가상학생 D',group:'2-3',topic:'엽록체 구조와 광합성',review:'확인 전',memo:'',feedback:'',answer:{submitted:true,savedAt:'2026-11-09',activityType:'모형 제작',activityDetail:'엽록체 내부 구조를 구분하여 타이라코이드와 스트로마의 차이를 표현함.',activityRole:'모형의 구조와 기능 설명을 담당함.',activityEvidence:'구조별 기능을 학습지에 작성함.',before:'모든 광합성 반응이 같은 공간에서 일어난다고 생각함.',after:'반응 단계별 위치와 물질 흐름을 구분함.',career:'교육',careerLink:'모형으로 과학 개념을 전달하는 방법을 생각함.'}}
+];
+const SAMPLE = SAMPLE_RECORDS;
+function sampleRow(r){return {id:r.id,name:r.name,group:r.group,topic:r.topic,scan:false,accountStatus:'승인 완료',review:r.review,feedback:r.feedback,hasAnswer:!!r.answer,submitted:!!r.answer?.submitted,research:r.answer?.research==='추가탐구',correction:!!r.answer?.revised,savedAt:r.answer?.savedAt||''};}
+function mockCall(name,...args){
+ if(name==='adminDashboard')return {students:SAMPLE.map(sampleRow),dbUrl:'#',scanFolderUrl:'#',total:SAMPLE.length};
+ if(name==='adminRecordPackets')return {records:SAMPLE.filter(r=>(!args[1]||r.group===args[1])&&(!args[2]||r.answer?.submitted)).map(r=>({...r,hasAnswer:!!r.answer,scan:false,submitted:!!r.answer?.submitted})),count:SAMPLE.length};
+ if(name==='adminDetail'){const r=SAMPLE.find(s=>s.id===args[1]);if(!r)throw Error('해당 예시 학생이 없습니다');return {...r,hasAnswer:!!r.answer,scan:false,accountStatus:'승인 완료'};}
+ if(name==='myData'){const r=SAMPLE[0];return {id:r.id,name:r.name,group:r.group,topic:r.topic,hasScan:false,feedback:r.feedback,review:r.review,answer:r.answer};}
+ if(name==='saveRecord'){SAMPLE[0].answer={...SAMPLE[0].answer,...args[1],submitted:args[2]||SAMPLE[0].answer.submitted,savedAt:new Date().toISOString()};return {savedAt:SAMPLE[0].answer.savedAt,submitted:!!SAMPLE[0].answer.submitted};}
+ if(name==='adminReview'){const r=SAMPLE.find(s=>s.id===args[1]);r.review=args[2];r.feedback=args[3];return {ok:true};}
+ if(name==='adminUpdateName'){SAMPLE.find(s=>s.id===args[1]).name=args[2];return {ok:true};}
+ if(name==='adminSetAccountStatus'||name==='adminResetStudentPassword')return {ok:true};
+ if(name==='adminLinkScanFolder')return {connected:0,unresolved:SAMPLE.length,duplicates:[]};
+ if(name==='adminLogin')return {token:'preview'};
+ throw Error('검토용 시안에서는 이 기능이 연결되지 않습니다. 실제 학생 자료는 저장하지 않습니다.');
+}
+async function openPreviewTeacher(){state.token='preview';state.role='admin';await refreshAdmin();}
+async function openPreviewStudent(){state.token='preview';state.role='student';await loadStudent();}
+
+function call(name,...args){return Promise.resolve().then(()=>mockCall(name,...args));}
+function toast(text,error=false,view='loginMsg'){const x=$(view);if(!x)return;x.textContent=text;x.className='status'+(error?' error':'');}
+function toggleAdminLogin(){$('teacherLoginArea').classList.toggle('hide');}
+function show(role){['loginView','studentView','adminView'].forEach(id=>$(id).classList.toggle('hide',id!==({login:'loginView',student:'studentView',admin:'adminView'}[role])));window.scrollTo(0,0);}
+function logout(){clearTimeout(state.timer);closeMyScan();Object.assign(state,{role:'',token:'',student:null,rows:[],selected:'',data:null,busy:false,dirty:false});sessionStorage.removeItem('cellapp_session');show('login');}
+function identityFromForm(){return {group:$('loginGroup').value,id:$('loginId').value.trim(),name:$('loginName').value.trim()};}
+function rememberIdentity(obj){const v={group:obj.group,id:obj.id,name:obj.name};localStorage.setItem(IDENTITY_KEY,JSON.stringify(v));state.remembered=v;renderRemembered();}
+function renderRemembered(){const has=!!state.remembered;$('rememberedPane').classList.toggle('hide',!has);$('identityPane').classList.toggle('hide',has);if(has)$('rememberedLabel').textContent=state.remembered.group+' · '+state.remembered.id+' '+state.remembered.name;}
+function switchStudent(){state.remembered=null;localStorage.removeItem(IDENTITY_KEY);renderRemembered();toast('반·학번·이름을 입력하세요.');}
+function setAccountMode(mode){state.mode=mode;$('registerPane').classList.toggle('hide',mode!=='register');$('existingPane').classList.toggle('hide',mode!=='login');$('newModeBtn').classList.toggle('primary',mode==='register');$('oldModeBtn').classList.toggle('primary',mode==='login');}
+async function registerStudentUi(){try{
+ const id=identityFromForm(),pw=$('newPassword').value;
+ if(pw!==$('newPasswordConfirm').value)throw Error('비밀번호 확인이 일치하지 않습니다.');
+ if(!confirm('반·학번·이름을 확인했나요? 비밀번호 설정 후 교사의 최초 승인을 받아야 로그인할 수 있습니다.'))return;
+ toast('비밀번호 설정 신청 중...');
+ const r=await call('registerStudent',id.group,id.id,id.name,pw);
+ $('newPassword').value='';$('newPasswordConfirm').value='';rememberIdentity(id);
+ toast('비밀번호 설정 신청이 완료되었습니다. 교사 승인 후 비밀번호만 입력하여 로그인하세요.');
+}catch(e){toast(e.message,true);}}
+async function loginStudent(){try{
+ const known=!!state.remembered,who=known?state.remembered:identityFromForm();
+ const pass=known?$('quickPassword').value:$('existingPassword').value;
+ toast('로그인 확인 중...');
+ const r=await call('studentLogin',who.group,who.id,who.name,pass);
+ if(known)$('quickPassword').value='';else $('existingPassword').value='';
+ rememberIdentity(who);state.token=r.token;state.role='student';
+ sessionStorage.setItem('cellapp_session',JSON.stringify({token:r.token,role:'student'}));await loadStudent();
+}catch(e){toast(e.message,true);}}
+
+async function loginAdmin(){try{toast('관리자 인증 중...');const r=await call('adminLogin',$('adminPassword').value);state.token=r.token;state.role='admin';sessionStorage.setItem('cellapp_session',JSON.stringify({token:r.token,role:'admin'}));await refreshAdmin();}catch(e){toast(e.message,true);}}
+async function loadStudent(){state.student=await call('myData',state.token);const s=state.student;show('student');$('studentIdentity').textContent=s.group+' · '+s.id+' '+s.name;$('originalTopic').textContent='학생별 원본 스캔본을 확인하고 필요한 부분만 정정하세요. 다른 학생의 보고서는 열람할 수 없습니다.';$('openScanBtn').disabled=!s.hasScan;$('scanMessage').textContent=s.hasScan?'학생별 PDF가 연결되어 있습니다. 아래 버튼으로 확인하세요.':'개인별 스캔 PDF 연결 전입니다. 교사가 연결하면 열람할 수 있습니다.';
+ $('feedbackPanel').classList.toggle('hide',!s.feedback);$('feedbackPanel').textContent=s.feedback?'교사 피드백 ['+s.review+']: '+s.feedback:'';
+ FIELDS.forEach(f=>{const x=$(f);if(x&&x.dataset.field!==undefined)x.value=s.answer[f]??((f==='correction'||f==='research')?'없음':'');});
+ $('researchFileState').textContent=s.answer.researchFileId?'첨부 PDF 있음':'첨부 없음';showConditional();state.dirty=false;state.busy=false;$('saveFlag').textContent=s.answer.submitted?'최종제출된 기록 · 수정 가능':'작성 중';$('saveTime').textContent=s.answer.savedAt?'마지막 저장: '+fmt(s.answer.savedAt):'입력 후 자동 임시저장됩니다.';}
+function showConditional(){$('correctionFields').classList.toggle('hide',$('correction').value!=='정정·보완');$('researchFields').classList.toggle('hide',$('research').value!=='추가탐구');}
+function formData(){const d={};FIELDS.forEach(f=>{if(!EXCLUDE.includes(f)&&$(f))d[f]=$(f).value;});return d;}
+function onEdit(){showConditional();state.dirty=true;$('saveFlag').textContent='저장되지 않은 변경';clearTimeout(state.timer);state.timer=setTimeout(()=>saveStudent(false,true),2200);}
+async function saveStudent(submit=false,automatic=false){if(state.busy){if(!automatic)alert('이전 저장이 진행 중입니다. 다시 눌러 주세요.');return;}clearTimeout(state.timer);const data=formData();state.busy=true;$('saveFlag').textContent='저장 중...';const snapshot=JSON.stringify(data);
+ try{const r=await call('saveRecord',state.token,data,submit);state.dirty=JSON.stringify(formData())!==snapshot;$('saveFlag').textContent=r.submitted?'최종제출 완료':'임시저장 완료';$('saveTime').textContent='저장: '+fmt(r.savedAt);if(submit)alert('최종 제출되었습니다. 이후에도 수정할 수 있으며, 변경사항은 교사가 다시 확인할 수 있습니다.');}
+ catch(e){state.dirty=true;$('saveFlag').textContent='저장 실패';$('saveTime').textContent=e.message;if(!automatic)alert(e.message);}
+ finally{state.busy=false;if(state.dirty)state.timer=setTimeout(()=>saveStudent(false,true),2500);}}
+function finalSubmit(){if(!confirm('실제로 참여한 활동과 근거만 작성했는지 확인했나요? 최종 제출 후에도 수정은 가능합니다.'))return;saveStudent(true);}
+function fmt(s){if(!s)return'';try{return new Date(s).toLocaleString('ko-KR')}catch(e){return s}}
+async function openMyScan(){try{$('scanMessage').textContent='스캔본을 불러오고 있습니다.';const pdf=await call('getMyScan',state.token);const binary=atob(pdf.base64);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);closeMyScan();state.pdfUrl=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));$('scanFrame').src=state.pdfUrl;$('scanFrame').style.display='block';$('closeScanBtn').classList.remove('hide');$('scanMessage').textContent=pdf.filename+' · 개인별 수행평가 스캔본';}catch(e){$('scanMessage').textContent=e.message;alert(e.message)}}
+function closeMyScan(){if($('scanFrame')){$('scanFrame').src='about:blank';$('scanFrame').style.display='none';$('closeScanBtn').classList.add('hide');}if(state.pdfUrl){URL.revokeObjectURL(state.pdfUrl);state.pdfUrl='';}}
+function readPdf(file){return new Promise((resolve,reject)=>{if(!file){reject(Error('PDF를 먼저 선택하세요.'));return;}if(file.size>7*1024*1024){reject(Error('파일은 7MB 이하여야 합니다.'));return;}if(!file.name.toLowerCase().endsWith('.pdf')){reject(Error('PDF만 가능합니다.'));return;}const reader=new FileReader();reader.onload=()=>resolve({name:file.name,mime:'application/pdf',base64:String(reader.result).split(',')[1]});reader.onerror=()=>reject(Error('파일 읽기에 실패했습니다.'));reader.readAsDataURL(file);});}
+async function uploadResearch(){try{if($('research').value!=='추가탐구')throw Error('추가 탐구를 선택한 경우에만 첨부할 수 있습니다.');const f=$('researchUpload').files[0];if(!f)throw Error('PDF 파일을 선택하세요.');if(!confirm('기존에 첨부한 보고서가 있다면 새 파일로 교체됩니다. 계속할까요?'))return;await saveStudent(false);const data=await readPdf(f);$('researchFileState').textContent='업로드 중...';const r=await call('uploadResearchPdf',state.token,data);$('researchFileState').textContent='첨부 완료: '+r.filename;alert('추가 탐구보고서를 첨부했습니다.');}catch(e){$('researchFileState').textContent='첨부 오류';alert(e.message);}}
+function summaryStat(v,text){return '<span class="tag">'+el(text)+': '+v+'</span>';}
+async function refreshAdmin(){try{state.data=await call('adminDashboard',state.token);state.rows=state.data.students;show('admin');$('stats').innerHTML=summaryStat(state.rows.length,'전체')+summaryStat(state.rows.filter(r=>r.submitted).length,'최종제출')+summaryStat(state.rows.filter(r=>r.hasAnswer&&!r.submitted).length,'임시저장')+summaryStat(state.rows.filter(r=>r.research).length,'추가탐구')+summaryStat(state.rows.filter(r=>r.scan).length,'스캔연결')+summaryStat(state.rows.filter(r=>r.accountStatus==='승인 대기').length,'승인 대기');$('dbLink').href='#';$('scanFolderLink').href='#';$('dbLink').style.display='none';drawTable();if(state.selected)await showDetail(state.selected);}catch(e){alert(e.message);logout();}}
+function drawTable(){if(!state.rows.length)return;
+const q=$('filter').value.trim(),flag=$('statusFilter').value;
+const matches=state.rows.filter(r=>{const hit=(r.id+r.name+r.topic).includes(q);const f=!flag||(flag==='미작성'&&!r.hasAnswer)||(flag==='임시저장'&&r.hasAnswer&&!r.submitted)||(flag==='최종제출'&&r.submitted)||(flag==='보완 요청'&&r.review==='보완 요청')||(flag==='승인 대기'&&r.accountStatus==='승인 대기')||(flag==='미등록'&&r.accountStatus==='미등록');return hit&&f;});
+$('studentRows').innerHTML=matches.map(r=>'<tr><td>'+el(r.group)+'</td><td>'+el(r.id)+'</td><td>'+el(r.name)+'</td><td>'+el(r.accountStatus)+'</td><td>'+(r.scan?'연결':'미연결')+'</td><td>'+(r.submitted?'최종제출':r.hasAnswer?'임시저장':'미작성')+'</td><td>'+((r.correction?'정정 ':'')+(r.research?'추가탐구':'' )||'-')+'</td><td>'+el(r.review)+'</td><td><button class="btn small" onclick="showDetail(\''+el(r.id)+'\')">상세</button></td></tr>').join('')||'<tr><td colspan="9">조건에 맞는 학생이 없습니다.</td></tr>';}
+function dl(name,head,rows){const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';const content='\uFEFF'+[head,...rows].map(row=>row.map(q).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+
+// 교사가 원문을 판단하기 쉽게 하는 규칙 기반 압축 표시. AI가 내용을 추론하지 않습니다.
+const PACKET_FIELDS = [
+ ['기존 내용 정정','correction'],['정정 후 내용','revised'],['정정 근거','correctionEvidence'],
+ ['추가 탐구 질문','question'],['교과 개념 연결','concept'],['탐구 방법','method'],
+ ['탐구 결과·해석','outcome'],['탐구 한계','limits'],['탐구 출처','sources'],
+ ['수업 활동 유형','activityType'],['구체적 수업 활동','activityDetail'],
+ ['본인 역할·시도','activityRole'],['관찰·결과 근거','activityEvidence'],
+ ['이전 생각·어려움','before'],['이후의 이해·변화','after'],
+ ['성장 근거','growthEvidence'],['관심 진로','career'],['진로 연계','careerLink'],
+ ['기타 기록','note']
+];
+function compactValue(value, full){
+ const v=String(value??'').trim();
+ if(!v || v==='없음' || v==='해당 없음')return '';
+ if(full)return v;
+ // 첫 380자까지만 표시하고 원문이 길면 생략 사실을 명시합니다.
+ const max=380;
+ return v.length>max?v.slice(0,max).trim()+' …[원문 일부 생략 · 교사 확인 필요]':v;
+}
+function packetText(r, opts={}){
+ const a=r.answer||{},full=opts.mode==='full';
+ const title='['+r.group+' / '+r.id+(opts.names?' / '+r.name:'')+']';
+ const lines=[title,'제출 상태: '+(r.submitted?'최종제출':r.hasAnswer?'임시저장':'미작성'),
+ '교사 검토: '+(r.review||'확인 전'),
+ '기존 수행평가 주제: '+(r.topic||'미확인')];
+ if(r.memo)lines.push('기존 교사용 검토 메모: '+compactValue(r.memo,full));
+ PACKET_FIELDS.forEach(([label,key])=>{
+  const v=compactValue(a[key],full);
+  if(v)lines.push(label+': '+v);
+ });
+ if(r.feedback)lines.push('학생에게 전달한 교사 피드백: '+compactValue(r.feedback,full));
+ if(!r.hasAnswer)lines.push('학생 제출 자료: 아직 없음');
+ lines.push('확인 메모: 학생 진술·기존 메모는 교사가 원본 및 실제 관찰과 대조할 것');
+ return lines.join('\n');
+}
+function formatPackets(records,opts){
+ return ['[세포와 물질대사 과세특 기초자료 / 교사 검토용]',
+  '다음은 학생이 작성한 내용과 기존 교사 메모를 정리한 자료입니다. 사실을 추가하거나 학생의 참여를 추정하지 말고, 확인 가능한 활동과 변화 중심으로 과목별 세부능력 및 특기사항 초안을 작성해 주세요. 과학적 오류 또는 확인이 필요한 주장도 별도로 표시해 주세요.',
+  '※ 개인정보·원본 문서 확인 및 최종 서술은 담당 교사의 책임하에 이루어집니다.',
+  '총 '+records.length+'명',
+  ...records.map(r=>'\n'+packetText(r,opts))].join('\n');
+}
+let cachedPackets=[];
+async function previewPackets(){
+ try{
+  const group=$('packetClass').value, submittedOnly=$('packetSubmitted').checked;
+  $('packetStatus').textContent='교사용 권한으로 기록을 가져오는 중...';
+  const result=await call('adminRecordPackets',state.token,group,submittedOnly);
+  cachedPackets=result.records||[];
+  const opts={names:$('packetNames').checked,mode:$('packetMode').value};
+  $('packetPreview').value=formatPackets(cachedPackets,opts);
+  $('packetStatus').textContent=(group||'전체')+' · '+cachedPackets.length+'명 · '+(submittedOnly?'최종 제출자만':'미작성 포함')+' / 복사할 내용을 확인해 주세요.';
+ }catch(e){$('packetStatus').textContent='가져오기 실패: '+e.message;alert(e.message);}
+}
+async function clipboardWrite(text){
+ if(!text.trim())throw Error('복사할 내용이 없습니다. 먼저 자료를 불러오세요.');
+ if(navigator.clipboard && window.isSecureContext){
+   try{await navigator.clipboard.writeText(text);return;}catch(e){}
+ }
+ const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;';document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw Error('자동 복사가 제한되어 있습니다. 미리보기 내용을 직접 선택하여 복사해 주세요.');
+}
+async function copyPackets(){try{await clipboardWrite($('packetPreview').value);$('packetStatus').textContent='복사 완료. 학교의 개인정보 처리 기준에 맞게 확인 후 ChatGPT에 붙여넣으세요.';}catch(e){alert(e.message)}}
+function downloadPackets(){
+ const content=$('packetPreview').value;
+ if(!content.trim()){alert('먼저 자료를 불러오세요.');return;}
+ const blob=new Blob(['\uFEFF'+content],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download='세포와물질대사_과세특_기초자료_'+($('packetClass').value||'전체')+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function detailSummaryHtml(d){
+ const a=d.answer||{};
+ const cells=[['탐구 주제',d.topic],['수업 활동',a.activityDetail],['본인 역할',a.activityRole],['활동 근거',a.activityEvidence],['추가 탐구',a.question],['탐구 결과',a.outcome],['배움의 변화',a.after],['기존 교사 메모',d.memo]];
+ return '<div class="compact-card"><h3>과세특 참고 핵심 요약 <span class="tag">교사 확인 전</span></h3><div class="mini-summary">'+cells.map(([label,v])=>'<div><b>'+el(label)+'</b>'+el(compactValue(v,false)||'입력 없음')+'</div>').join('')+'</div><div class="row" style="margin-top:12px"><button class="btn primary small" onclick="copySinglePacket()">이 학생 내용 복사</button></div></div>';
+}
+async function copySinglePacket(){
+ if(!state.selected){alert('학생을 선택해 주세요.');return;}
+ try{
+  const d=await call('adminDetail',state.token,state.selected);
+  const text=formatPackets([d],{names:$('packetNames').checked,mode:$('packetMode').value});
+  await clipboardWrite(text);alert('선택한 학생의 내용이 복사되었습니다.');
+ }catch(e){alert(e.message)}
+}
+
+function exportAccountList(){dl('학생인증현황_교사용.csv',['반','학번','이름','인증상태','스캔연결'],state.rows.map(r=>[r.group,r.id,r.name,r.accountStatus,r.scan?'예':'아니오']));}
+async function exportRecords(){try{const headers=['반','학번','이름','제출','교사검토','기존주제','정정·보완','정정원문','정정내용','정정근거','추가탐구','탐구질문','교과연결','탐구방법','결과·해석','한계','출처','수업활동','활동사례','역할·시도','결과근거','이전생각','달라진이해','변화근거','진로','진로연계','교사참고','첨부PDF_ID','마지막저장'];const out=[];for(const r of state.rows){if(!r.hasAnswer)continue;const d=await call('adminDetail',state.token,r.id),a=d.answer;out.push([r.group,r.id,r.name,r.submitted?'최종제출':'임시저장',r.review,r.topic,a.correction,a.original,a.revised,a.correctionEvidence,a.research,a.question,a.concept,a.method,a.outcome,a.limits,a.sources,a.activityType,a.activityDetail,a.activityRole,a.activityEvidence,a.before,a.after,a.growthEvidence,a.career,a.careerLink,a.note,a.researchFileId,a.savedAt]);}dl('탐구성장기록_전체.csv',headers,out);}catch(e){alert('내보내기 실패: '+e.message)}}
+const headings={correction:'기존 내용 정정',original:'수정 전 원문',revised:'바로잡은 내용',correctionEvidence:'수정 근거',research:'추가 탐구',question:'탐구 질문',concept:'교과 연결',method:'탐구 방법',outcome:'결과·해석',limits:'한계',sources:'출처',activityType:'수업 활동',activityDetail:'구체적 활동',activityRole:'나의 역할·시도',activityEvidence:'관찰·결과 근거',before:'이전 생각·어려움',after:'달라진 이해',growthEvidence:'변화의 근거',career:'관심 진로',careerLink:'진로 연계',note:'기타 사항'};
+async function showDetail(id){try{state.selected=id;const d=await call('adminDetail',state.token,id),a=d.answer;const fields=Object.keys(headings).filter(k=>a[k]&&a[k]!=='없음').map(k=>'<b>'+el(headings[k])+'</b><div class="detail-text">'+el(a[k])+'</div>').join('');const pdfLink=a.researchFileId?' <a target="_blank" rel="noopener" href="https://drive.google.com/file/d/'+encodeURIComponent(a.researchFileId)+'/view">추가 보고서 PDF 열기 (교사 계정)</a>':'';
+ $('adminDetailView').classList.remove('hide');$('adminDetailView').innerHTML='<div class="top-actions"><button class="btn small" onclick="closeDetail()">닫기</button></div>'+detailSummaryHtml(d)+'<h2>'+el(d.id)+' '+el(d.name)+' · '+el(d.group)+'</h2><p><span class="tag">'+el(d.review)+'</span> · '+(a.submitted?'최종제출':'미제출/임시저장')+'</p><div class="notice">기존 수행평가 주제: '+el(d.topic||'미확인')+' · 원본 '+el(d.pages||'쪽수 미입력')+'</div><h3 style="margin-top:22px">기존 교사용 개념 점검·후속탐구 메모</h3><div class="detail-text">'+el(d.memo||'없음')+'</div><h3>학생 작성 기록</h3>'+(fields||'<p class="muted">아직 학생 기록이 없습니다.</p>')+pdfLink+'<hr class="rule"><h3>학생에게 전달할 보완 요청·검토 결과</h3><div class="field"><label for="reviewStatus">상태</label><select id="reviewStatus"><option>확인 전</option><option>보완 요청</option><option>확인 완료</option><option>재검토 필요</option></select></div><div class="field"><label for="reviewFeedback">학생 피드백</label><textarea id="reviewFeedback" placeholder="구체적인 개념 오류, 검증할 근거, 보완할 질문만 적기"></textarea></div><button class="btn primary" onclick="saveReview()">검토 저장</button><hr class="rule"><h3>학생 비밀번호 · 최초 접속 승인</h3><div class="notice">현재 인증 상태: <b>'+el(d.accountStatus)+'</b> · 학생 비밀번호는 교사도 확인할 수 없습니다.</div><div class="row"><button class="btn primary small" onclick="approveStudent()">첫 접속 승인</button><button class="btn small" onclick="blockStudent()">접속 차단</button><button class="btn danger small" onclick="resetStudentPassword()">비밀번호 초기화</button></div><p class="help">비밀번호 설정 신청 학생의 신원을 확인한 뒤 승인하세요.</p><hr class="rule"><h3>학생 정보·스캔 관리</h3><div class="field"><label for="editName">학생 이름 (잘못 판독된 이름 정정)</label><div class="row"><input id="editName" style="max-width:300px" value="'+el(d.name)+'"><button class="btn" onclick="updateStudentName()">이름 수정</button></div></div><div class="field"><label>해당 학생의 수행평가 PDF 1개 연결·교체</label><input type="file" id="teacherScanFile" accept=".pdf,application/pdf"><button class="btn" style="margin-top:8px" onclick="uploadTeacherScan()">이 학생에게 스캔 PDF 연결</button></div>';
+ $('reviewStatus').value=d.review;$('reviewFeedback').value=d.feedback||'';$('adminDetailView').scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){alert(e.message)}}
+function closeDetail(){state.selected='';$('adminDetailView').classList.add('hide');}
+async function saveReview(){try{await call('adminReview',state.token,state.selected,$('reviewStatus').value,$('reviewFeedback').value);alert('검토 상태와 피드백을 저장했습니다.');await refreshAdmin();}catch(e){alert(e.message)}}
+async function updateStudentName(){try{if(!confirm('학생 이름을 수정할까요?'))return;await call('adminUpdateName',state.token,state.selected,$('editName').value);await refreshAdmin();}catch(e){alert(e.message)}}
+async function approveStudent(){try{if(!confirm(state.selected+' 학생의 신원을 직접 확인했나요? 승인하면 해당 학생의 원본 PDF 열람이 가능합니다.'))return;await call('adminSetAccountStatus',state.token,state.selected,'승인 완료');alert('승인 완료');await refreshAdmin();}catch(e){alert(e.message);}}
+async function blockStudent(){try{if(!confirm('해당 계정의 접근을 차단할까요?'))return;await call('adminSetAccountStatus',state.token,state.selected,'차단');await refreshAdmin();}catch(e){alert(e.message);}}
+async function resetStudentPassword(){try{if(!confirm('학생 비밀번호를 초기화할까요? 기존 로그인 세션도 무효화되며, 학생이 처음부터 다시 설정해야 합니다.'))return;await call('adminResetStudentPassword',state.token,state.selected);alert('비밀번호가 초기화되었습니다.');await refreshAdmin();}catch(e){alert(e.message);}}
+async function uploadTeacherScan(){try{const f=$('teacherScanFile').files[0];if(!f)throw Error('학생별 PDF를 선택하세요.');if(!confirm(state.selected+' 학생의 스캔본을 새 파일로 연결합니다. 계속할까요?'))return;const pdf=await readPdf(f);const r=await call('adminUploadScan',state.token,state.selected,pdf);alert('연결 완료: '+r.filename);await refreshAdmin();}catch(e){alert(e.message)}}
+async function linkScanFolder(){try{if(!confirm('폴더 내 5자리 학번으로 시작하는 PDF를 학생별로 연결할까요? 동일 학번의 파일이 여러 개 있으면 건너뜁니다.'))return;const r=await call('adminLinkScanFolder',state.token,$('scanFolderId').value);$('folderMsg').textContent='연결 '+r.connected+'명 · 미연결 '+r.unresolved+'명'+(r.duplicates.length?' · 중복 파일명 학번: '+r.duplicates.join(', '):'');await refreshAdmin();}catch(e){alert(e.message)}}
+window.addEventListener('load',async()=>{try{const raw=null;if(raw&&['2-1','2-2','2-3'].includes(raw.group)&&/^\d{5}$/.test(raw.id)&&raw.name)state.remembered=raw;}catch(e){}renderRemembered();document.querySelectorAll('[data-field]').forEach(x=>{x.addEventListener('change',onEdit);x.addEventListener('input',()=>{if(x.tagName==='TEXTAREA'||x.tagName==='INPUT')onEdit()})});try{const s=JSON.parse('null');if(s&&s.token){state.token=s.token;state.role=s.role;if(s.role==='admin')await refreshAdmin();else if(s.role==='student')await loadStudent();}}catch(e){sessionStorage.removeItem('cellapp_session');show('login')}});
+</script></body></html>
