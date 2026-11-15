@@ -203,6 +203,19 @@ function render(){
  '<div class="table-scroller" style="max-height:540px"><table style="min-width:1060px"><thead><tr><th>학생 (상세 보기)</th><th>진로</th><th>연구주제</th><th>실험·보고서 핵심개요</th><th>활동 근거</th><th>첨부</th><th>최종 접수</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+details;
 }
 $('list').addEventListener('click',ev=>{
+ const btn=ev.target.closest('[data-ein-delete-attachment]');
+ if(btn){
+  const studentId=btn.getAttribute('data-ein-student'),fileUrl=btn.getAttribute('data-ein-delete-attachment');
+  const name=all.find(x=>x.studentId===studentId)?.name||'';
+  if(!confirm(studentId+' '+name+' 학생의 선택한 첨부파일을 삭제하시겠습니까?\n해당 파일은 Google Drive 휴지통으로 이동하고 제출 기록에서 제거됩니다.\n다른 파일, 계정과 활동 기록 원문은 유지됩니다.'))return;
+  if(prompt('삭제 확인을 위해 학번 '+studentId+'을(를) 입력하세요.')!==studentId)return;
+  btn.disabled=true;
+  call('deleteEinsteinTeacherAttachmentV19',code,studentId,fileUrl).then(async ()=>{
+   fullRecordCache.delete(studentId);
+   all=await call('getEinsteinTeacherDashboardV10',code);render();alert('선택한 파일을 삭제했습니다.');
+  }).catch(e=>alert('파일 삭제 실패: '+e.message)).finally(()=>btn.disabled=false);
+  return;
+ }
  const t=ev.target.closest('[data-open-student]');
  if(t){
   selectedStudentId=t.dataset.openStudent;render();$('studentDetails')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -383,8 +396,43 @@ function renderPosters(){
   return '<tr><td>'+esc(p.title)+'</td><td>'+esc(p.leaderId+' '+(p.leaderName||''))+'</td><td>'+esc(p.submittedAt)+'</td><td>'+ms.filter(m=>m.status==='확인').length+'/'+ms.length+'명 확인<br>'+members+'</td><td>'+link+' <button type="button" data-ein-delete-poster="'+esc(p.posterId)+'">이 포스터 삭제</button></td></tr>';
  }).join('')+'</tbody></table></div>';
 }
+$('posterList').addEventListener('click',ev=>{
+ const btn=ev.target.closest('[data-ein-delete-poster]');if(!btn)return;
+ const posterId=btn.getAttribute('data-ein-delete-poster'),poster=posters.find(p=>p.posterId===posterId);
+ if(!poster)return;
+ if(!confirm('모둠 포스터를 삭제할까요?\n연구제목: '+poster.title+'\n대표학생: '+poster.leaderId+' '+poster.leaderName+'\n해당 파일은 휴지통으로 이동하며 모든 모둠원의 연결도 해제됩니다.'))return;
+ if(prompt('삭제 확인을 위해 대표학생 학번 '+poster.leaderId+'을(를) 입력하세요.')!==poster.leaderId)return;
+ btn.disabled=true;
+ call('deleteEinsteinTeacherPosterV19',code,posterId).then(async ()=>{
+  await loadPosters();all=await call('getEinsteinTeacherDashboardV10',code);render();
+  alert('선택한 포스터와 모든 모둠원의 연결을 삭제했습니다.');
+ }).catch(e=>alert('포스터 삭제 실패: '+e.message)).finally(()=>btn.disabled=false);
+});
 $('refreshPosters').onclick=loadPosters;
 $('posterSearch').oninput=renderPosters;
+async function loadEinCloseState(){
+ if(!code)return;
+ try{einCloseState=await call('getEinsteinTeacherCloseStateV19',code);renderEinCloseState();}
+ catch(e){$('einActivityCloseStatus').textContent='마감 상태 조회 실패: '+e.message;$('einPosterCloseStatus').textContent='마감 상태 조회 실패: '+e.message;}
+}
+function renderEinCloseState(){
+ const passed=!!einCloseState.deadlinePassed;
+ for(const [kind,textId,buttonId,label] of [['activity','einActivityCloseStatus','einActivityToggle','활동 기록'],['poster','einPosterCloseStatus','einPosterToggle','공동 포스터']]){
+  const val=!!einCloseState[kind];
+  $(textId).textContent=label+': '+(passed?'기한 종료':val?'수동 마감':'접수 중')+' · 기본 기한 12월 6일(일) 23:59';
+  $(buttonId).textContent=val?'마감 해제':'제출 마감';
+  $(buttonId).disabled=passed;
+ }
+}
+async function toggleEinClose(kind){
+ const label=kind==='activity'?'활동 기록·개인 보고서':'모둠 공동 포스터',next=!einCloseState[kind];
+ if(!confirm(label+' 접수를 '+(next?'마감':'다시 열기')+'할까요?\n다른 제출 항목은 변경되지 않습니다.'))return;
+ const btn=$(kind==='activity'?'einActivityToggle':'einPosterToggle');btn.disabled=true;
+ try{einCloseState=await call('setEinsteinTeacherCloseStateV19',code,kind,next);renderEinCloseState();}
+ catch(e){alert('마감 설정 실패: '+e.message);}finally{btn.disabled=false;}
+}
+$('einActivityToggle').onclick=()=>toggleEinClose('activity');
+$('einPosterToggle').onclick=()=>toggleEinClose('poster');
 
 $('search').oninput=render;
 if(!connected)notice('미리보기 화면입니다. 실제 데이터 열람과 코드 발급은 Apps Script 배포 주소에서만 가능합니다.');
