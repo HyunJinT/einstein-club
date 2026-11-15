@@ -4,6 +4,22 @@
 
 **새 Firebase 프로젝트: eunhaeng** — 기존 효모 가상실험 yeast-lab과 분리되어 있습니다.
 
+## 2026년 최종 제출기한 (한국 표준시)
+- **개인 최종보고서**: 2026년 **11월 30일(월) 23:59**까지, 2026년 12월 1일 00:00부터 접수 종료
+- **모둠별 발표 PPT**: 2026년 **12월 17일(목) 23:59**까지, 2026년 12월 18일 00:00부터 접수 종료
+- 두 제출기한은 **서로 독립적**입니다. 보고서가 마감되어도 PPT 기한 전이라면 PPT를 제출·수정할 수 있습니다.
+- 교사용 **제출 마감** 버튼은 두 종류에 동시에 적용되는 별도의 조기 마감 기능입니다. 버튼으로 마감을 해제해도 이미 경과한 정해진 제출기한을 연장하지는 않습니다.
+- 학생은 기한 이후 기존 제출물을 확인할 수 있지만 신규 제출·수정·교체·삭제는 할 수 없습니다.
+
+### 운영 서버에 반드시 적용해야 하는 변경
+GitHub Pages의 `index.html`은 이 저장소에 반영하면 화면에 배포됩니다. **실제 업로드와 데이터베이스 수정을 마감일 이후에 차단하려면 아래 두 작업도 필요합니다.** GitHub 파일만 수정한다고 운영 중인 Google Apps Script/Firebase Rules가 자동 변경되는 것은 아닙니다.
+
+1. [Firebase Realtime Database Rules](https://console.firebase.google.com/project/eunhaeng/database)에서 아래 최신 `firebase-database.rules.json`을 전체 게시합니다. `now`(UTC 밀리초)를 이용해 보고서와 발표자료 쓰기를 각각 차단합니다.
+2. 기존 Google Apps Script 프로젝트의 `Code.gs`를 아래 최신 코드로 교체하고 **배포 → 배포 관리 → 기존 웹앱 편집 → 새 버전 → 배포**를 수행합니다. 기존 `/exec` 주소를 유지해야 합니다.
+3. 두 작업 뒤 업로드·수정·삭제와 마감 처리가 의도대로 적용되는지 확인합니다.
+
+
+
 ## 구성
 - **Firebase Authentication (익명/Google)**: 최초 6자리 PIN, PIN 재로그인, 교사 Google 계정 인증
 - **Firebase Realtime Database (Spark 무료 요금제)**: 학생 정보, PIN 인증 세션, 제출 현황, 마감 및 PIN 초기화
@@ -18,7 +34,7 @@
 2. 이 폴더의 [firebase-database.rules.json](./firebase-database.rules.json) 전체 내용을 복사
 3. **전용 eunhaeng 프로젝트**의 Rules 편집기 내용을 전체 교체하고 **게시(Publish)**
 4. 교사 Google UID m6QiCUlxlZWuhzxVNt8SuYboIBk2가 반영된 최신 규칙입니다. 이전의 yeast-lab Rules는 편집하지 마세요.
-5. 기존 R&E Rules를 게시했다면 **최신 파일로 다시 게시**해야 합니다. Google Apps Script가 인증된 학생 PIN 세션을 조회하기 위한 sessions/$id/$uid/.read 규칙이 추가되어 있습니다.
+5. 기존 R&E Rules를 게시했다면 **최신 파일로 다시 게시**해야 합니다. 마감일 강제 적용을 위한 각 경로의 `now` 조건과 학생 인증 규칙이 포함되어 있습니다.
 
 ## 2. Google Apps Script 웹 앱 만들기
 1. 선생님 계정으로 https://script.google.com/home/projects/create 열기
@@ -43,7 +59,7 @@
 4. 다른 학번이 테스트 학생의 제출물에 접근할 수 없는지 확인
 5. 교사용 Google 로그인 → 개인 보고서/모둠 발표자료 목록 및 파일 열기 확인
 6. PIN 초기화 후 **기존 제출 기록 유지** 확인
-7. 제출 마감 → 학생 신규 제출 및 수정 차단 → 마감 해제
+7. 수동 제출 마감 → 양쪽 신규 제출 및 수정 차단 → 마감 해제 (기한 경과한 항목은 계속 차단)
 
 Drive 안에 '2026_은행고_RNE_최종결과물' 폴더가 자동 생성됩니다. 하위에 '01_개별최종보고서'와 '02_모둠발표자료' 폴더가 생성됩니다. 파일은 **비공개**이며, 학생 화면에는 파일 이름만 보이고 Drive 공유 링크는 공개하지 않습니다.
 
