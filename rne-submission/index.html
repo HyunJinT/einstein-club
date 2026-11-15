@@ -26,7 +26,7 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <button class="choice" id="reportChoice" type="button"><span class="em">▤</span><strong>최종 보고서 제출</strong><span>학생 1명당 1개 · 학번, 이름, 진로 및 보고서 파일</span></button>
 <button class="choice" id="presentationChoice" type="button"><span class="em">▣</span><strong>발표자료 제출</strong><span>모둠별 1개 · 모둠원 전체 명단 및 PPT 파일</span></button>
 </div>
-<div class="info"><strong>최종 보고서 제출 기한: 11월 22일(일) 23:59</strong><br>제출 후에도 교사가 제출을 마감하기 전까지는 수정 가능합니다. 마감 버튼은 교사용 페이지에서 관리합니다.</div>
+<div class="info"><strong>개인 최종보고서: 2026년 11월 30일(월) 23:59 마감</strong><br><strong>모둠별 발표 PPT: 2026년 12월 17일(목) 23:59 마감</strong><br>각 제출기한은 한국 시간 기준으로 자동 적용됩니다. 기한 내에는 제출물을 수정하거나 교체할 수 있습니다.</div>
 <div id="homeStatus" class="small">서버 상태를 확인하는 중입니다.</div>
 </section>
 <section id="loginView" class="card" hidden>
@@ -43,7 +43,8 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <section id="studentView" class="card" hidden>
 <div class="buttonbar" style="justify-content:space-between;margin-top:0"><h2 id="formTitle">제출하기</h2><span id="studentTag" class="status"></span></div>
 <div id="submissionStatus" class="listbox"></div>
-<div id="closedWarning" class="warning" hidden>교사가 제출을 마감했습니다. 기존 제출물은 확인할 수 있지만 신규 제출과 수정은 불가능합니다.</div>
+<div id="kindDeadline" class="info"></div>
+<div id="closedWarning" class="warning" hidden>제출이 마감되었습니다. 기존 제출물은 확인할 수 있지만 신규 제출과 수정은 불가능합니다.</div>
 <div id="reportForm" hidden>
 <div class="field"><label>희망 진로 및 관심 분야 <span class="req">*</span></label><input id="career" class="input" placeholder="예: 생명공학, 화학공학, 의학 등" maxlength="150"></div>
 <div class="field"><label for="reportFile">최종 보고서 파일 <span class="req">*</span></label>
@@ -69,7 +70,7 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <section id="teacherView" class="card" hidden>
 <div class="buttonbar" style="justify-content:space-between;margin-top:0"><h2>교사용 제출 관리</h2><button class="btn" type="button" id="teacherLogout">로그아웃</button></div>
 <div class="teacherControls"><div><strong>학생 제출 상태</strong><div id="teacherStatus" class="small"></div></div><button id="closeButton" class="btn danger" type="button">제출 마감</button></div>
-<div class="info">교사용 페이지에서는 학생이 제출한 보고서와 발표자료를 수정하거나 삭제할 수 없습니다. 학생 PIN 초기화는 제출 자료에 영향을 주지 않습니다.</div>
+<div class="info">각 제출물은 지정된 기한에 자동 마감됩니다. 위의 수동 마감 버튼은 두 제출물을 함께 조기 마감하거나 다시 열기 위한 기능입니다. 기한 경과 후에는 수동 마감을 해제해도 학생 제출이 허용되지 않습니다. 학생 PIN 초기화는 제출 자료에 영향을 주지 않습니다.</div>
 <div class="field"><label for="teacherSearch">학생 검색</label><input id="teacherSearch" class="input" placeholder="학번, 이름, 진로, 모둠원 또는 연구주제로 검색"></div>
 <h3>개인별 최종 보고서 <span id="reportCount" class="status">0건</span></h3><div id="teacherReports" class="records"></div>
 <div class="divider"></div><h3>모둠별 발표자료 <span id="pptCount" class="status">0건</span></h3><div id="teacherPpts" class="records"></div>
@@ -94,6 +95,12 @@ const ROOT='rneSubmission2026';
 // Firebase Storage가 아닌 선생님 개인 Google Drive에 업로드합니다.
 const DRIVE_UPLOAD_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwTGHrnPK9xYOgJUqUM3YrJ0TCq4JfqmrbZU2Fj26X2DbCe_H77BSkE0Qz5TiTe9qOE3w/exec';
 const MAX_FILE_BYTES=15*1024*1024;
+const DEADLINE_END_KST=Object.freeze({report:'2026-12-01T00:00:00+09:00',presentation:'2026-12-18T00:00:00+09:00'});
+const DEADLINE_LABEL=Object.freeze({report:'2026년 11월 30일(월) 23:59',presentation:'2026년 12월 17일(목) 23:59'});
+function deadlinePassed(type){return Date.now()>=Date.parse(DEADLINE_END_KST[type]);}
+function isClosed(type){return closed||deadlinePassed(type);}
+function closedMessage(type){return closed?'교사가 제출을 마감했습니다.':'제출기한('+DEADLINE_LABEL[type]+')이 지났습니다.';}
+function deadlineStatus(type){return (type==='report'?'개인 최종보고서':'모둠별 발표 PPT')+': '+(isClosed(type)?'마감':'접수 중')+' (기한 '+DEADLINE_LABEL[type]+')';}
 const $=id=>document.getElementById(id);
 let ctx=null,kind=null,student=null,credentialMode='login',accountVersion=null,closed=false,existing=null,teacherRecords=null,busy=false;
 const views=['homeView','loginView','studentView','teacherLogin','teacherView'];
@@ -118,7 +125,7 @@ async function boot(){
 }
 async function ready(){if(!ctx)await boot();return ctx;}
 async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
-async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=closed?'현재 상태: 제출 마감 (교사 확인 필요)':(!DRIVE_UPLOAD_WEBAPP_URL?'현재 상태: Google Drive 업로드 연결을 설정해야 합니다.':'현재 상태: 제출 가능 · 교사가 마감하기 전까지 수정 가능');return closed;}
+async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=!DRIVE_UPLOAD_WEBAPP_URL?'Google Drive 업로드 연결을 설정해야 합니다.':deadlineStatus('report')+' / '+deadlineStatus('presentation');return closed;}
 function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return 'Google Drive 업로드 연결 설정이 필요합니다.';return String(e?.message||e);}
 function setBusy(v){busy=v;['checkAccount','pinSubmit','saveSubmit','replaceReportFileButton','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
 async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
@@ -182,14 +189,14 @@ function membersFromForm(){
 function showExisting(){
  const area=$('submissionStatus');area.replaceChildren();
  const title=document.createElement('strong');title.textContent=existing?'✓ 이미 제출한 자료가 있습니다.':'아직 제출한 자료가 없습니다.';area.append(title);
- const d=document.createElement('div');d.className='small';d.textContent=existing?'최근 저장: '+(existing.updatedAt||'')+' · 제출 마감 전에는 정보를 수정하고 파일을 교체할 수 있습니다.':'파일을 첨부하여 처음 제출해 주세요.';area.append(d);
+ const d=document.createElement('div');d.className='small';d.textContent=existing?'최근 저장: '+(existing.updatedAt||'')+(isClosed(kind)?' · 마감 후에도 기존 파일은 열람할 수 있습니다.':' · 해당 제출기한 전에는 정보를 수정하고 파일을 교체할 수 있습니다.'):'파일을 첨부하여 처음 제출해 주세요.';area.append(d);
  if(existing?.file?.name){
   const row=document.createElement('div');row.className='submitted-file';
   const open=document.createElement('button');open.type='button';open.className='file-open';open.textContent='📄 '+existing.file.name;
   open.title='PIN 인증을 통해 기존 파일을 확인합니다. PDF는 미리보기, 다른 파일은 다운로드가 제공됩니다.';
   open.addEventListener('click',()=>openSubmittedFile());
   row.append(open);
-  if(!closed){
+  if(!isClosed(kind)){
    const remove=document.createElement('button');remove.type='button';remove.className='file-remove';remove.textContent='×';
    remove.title='제출한 파일과 제출 기록 삭제';
    remove.setAttribute('aria-label','기존 제출 파일 '+existing.file.name+' 삭제');
@@ -198,13 +205,13 @@ function showExisting(){
   }
   area.append(row);
   const hint=document.createElement('div');hint.className='small';
-  hint.textContent='파일명을 누르면 열람·다운로드합니다.'+(closed?' 제출 마감 후에는 삭제할 수 없습니다.':' ×를 누르면 해당 제출 기록과 파일을 함께 삭제합니다.');
+  hint.textContent='파일명을 누르면 열람·다운로드합니다.'+(isClosed(kind)?' 제출 마감 후에는 삭제할 수 없습니다.':' ×를 누르면 해당 제출 기록과 파일을 함께 삭제합니다.');
   area.append(hint);
  }
 }
 function displayReportFileControls(){
  const alreadySubmitted=kind==='report' && Boolean(existing?.file);
- const canEdit=!closed;
+ const canEdit=!isClosed(kind);
  $('reportExistingFileNotice').hidden=!alreadySubmitted;
  $('replaceReportFileButton').hidden=!alreadySubmitted||!canEdit;
  $('reportFileInputWrap').hidden=alreadySubmitted||!canEdit;
@@ -212,7 +219,7 @@ function displayReportFileControls(){
  $('reportReplacementStatus').textContent='';
 }
 function pickReplacementReportFile(){
- if(kind!=='report'||closed||!existing?.file)return;
+ if(kind!=='report'||isClosed(kind)||!existing?.file)return;
  $('reportFileInputWrap').hidden=false;
  $('reportFile').click();
 }
@@ -234,7 +241,9 @@ async function showStudent(){
  $('studentTag').textContent=student.id+' '+student.name;
  $('otherKind').textContent=kind==='report'?'모둠별 발표자료 제출':'개인 최종 보고서 제출';
  $('reportForm').hidden=kind!=='report';$('presentationForm').hidden=kind!=='presentation';
- $('closedWarning').hidden=!closed;$('saveSubmit').hidden=closed;
+ $('kindDeadline').textContent='제출기한: '+DEADLINE_LABEL[kind]+' (한국 시간)';
+ $('closedWarning').textContent=closedMessage(kind)+' 기존 제출물은 확인할 수 있지만 신규 제출, 수정, 교체 및 삭제는 불가능합니다.';
+ $('closedWarning').hidden=!isClosed(kind);$('saveSubmit').hidden=isClosed(kind);
  $('reportFile').value='';$('pptFile').value='';
  displayReportFileControls();
  $('career').value=kind==='report'?(existing?.career||''):'';
@@ -300,7 +309,7 @@ async function uploadToGoogleDrive(file,type,details){
  return await pollDriveRecord(type,student.id,requestId);
 }
 async function saveSubmission(){
- if(await refreshClosed())throw Error('교사가 제출을 마감하여 신규 제출 및 수정이 불가능합니다.');
+ await refreshClosed();if(isClosed(kind))throw Error(closedMessage(kind)+' 신규 제출 및 수정이 불가능합니다.');
  if(!student)throw Error('먼저 학생 로그인을 완료하세요.');
  const type=kind,id=student.id,c=await ready();
  const file=$(type==='report'?'reportFile':'pptFile').files[0];
@@ -319,7 +328,7 @@ async function saveSubmission(){
  const replaceFile=Boolean(file&&existing?.file);
  const confirmation=replaceFile
   ?'기존 제출 파일이 새 파일로 대체되며, 기존 파일은 Google Drive에서 삭제됩니다.\n다시 되돌릴 수 없습니다. 계속 진행할까요?'
-  :'이 자료를 '+(existing?'수정 저장':'최종 제출')+'할까요? 교사가 마감하기 전에는 다시 수정할 수 있습니다.';
+  :'이 자료를 '+(existing?'수정 저장':'최종 제출')+'할까요? 해당 자료의 제출기한 전에는 다시 수정할 수 있습니다.';
  if(!confirm(confirmation))return;
  $('uploadProgress').textContent='';
  if(file){
@@ -336,7 +345,7 @@ async function saveSubmission(){
  $(type==='report'?'reportFile':'pptFile').value='';
  displayReportFileControls();
  $('uploadProgress').textContent='✓ 저장 완료: '+existing.updatedAt+' (한국 시간)';
- tell('제출 자료가 정상 저장되었습니다. 마감 전에는 다시 수정할 수 있습니다.',true);
+ tell('제출 자료가 정상 저장되었습니다. 해당 제출기한 전에는 다시 수정할 수 있습니다.',true);
 }
 
 function postToDriveServer(packet,windowName){
@@ -365,7 +374,7 @@ async function openSubmittedFile(){
 }
 async function deleteSubmittedFile(){
  if(!student||!existing?.file?.driveId)throw new Error('삭제할 제출물이 없습니다.');
- if(await refreshClosed())throw new Error('교사가 제출을 마감했으므로 삭제할 수 없습니다.');
+ await refreshClosed();if(isClosed(kind))throw new Error(closedMessage(kind)+' 삭제할 수 없습니다.');
  const name=existing.file.name;
  if(!confirm('기존 제출 파일 '+name+' 및 해당 제출 기록을 삭제할까요?\n삭제하면 복구할 수 없으며, 다시 제출해야 합니다.'))return;
  const c=await anonymous(),user=c.auth.currentUser;
@@ -404,7 +413,7 @@ async function loadTeacher(){
  const c=await ready();
  const [accounts,reports,ppts]=await Promise.all(['accounts','reports','presentations'].map(p=>c.get(c.dbRef(c.db,ROOT+'/'+p))));
  teacherRecords={accounts:accounts.val()||{},reports:reports.val()||{},presentations:ppts.val()||{}};
- await refreshClosed();$('teacherStatus').textContent=closed?'마감됨 · 학생 신규 제출 및 수정 차단':'접수 중 · 학생 제출 및 수정 가능';
+ await refreshClosed();$('teacherStatus').textContent=deadlineStatus('report')+' / '+deadlineStatus('presentation')+(closed?' · 교사 수동 마감 적용':'');
  $('closeButton').textContent=closed?'제출 마감 해제':'제출 마감';$('closeButton').className=closed?'btn primary':'btn danger';
  renderTeacher();show('teacherView');
 }
@@ -440,7 +449,7 @@ async function resetPin(id,account){
 }
 async function teacherToggle(){
  const action=closed?'마감 해제':'제출 마감';
- if(!confirm('학생의 신규 제출 및 수정을 '+(closed?'다시 허용':'차단')+'할까요?'))return;
+ if(!confirm('두 제출물의 신규 제출 및 수정을 '+(closed?'다시 허용':'차단')+'할까요? (각 제출기한이 지난 자료는 마감 해제 후에도 제출할 수 없습니다.)'))return;
  const c=await ready();await c.set(c.dbRef(c.db,ROOT+'/settings/closed'),!closed);await loadTeacher();tell(action+' 처리되었습니다.',true);
 }
 async function teacherLogin(){
