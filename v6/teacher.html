@@ -109,14 +109,14 @@ header h1{font-size:25px;letter-spacing:-.025em}
 <p class="hint">펼치면 학생별 코드 조회와 비밀번호 초기화가 가능합니다.</p>
 <div class="toolbar"><button id="loadCodes">전체 코드 다시 조회</button><button id="exportXlsx">전체 코드 Excel 다운로드 (.xlsx)</button></div>
 <div class="table-scroller"><table id="codesTable"><thead><tr><th>학번</th><th>이름</th><th>역할</th><th>개별 제출코드</th><th>상태</th><th>비밀번호 관리</th></tr></thead><tbody id="codeRows"></tbody></table></div></details>
-<section class="card" id="submissionOverview"><h2>최종보고서 · 활동 기록 제출 현황</h2><p class="hint">최종 제출 학생을 학번 · 이름 · 연구주제로 검색할 수 있습니다.</p>
+<section class="card" id="submissionOverview"><h2>최종보고서 · 활동 기록 제출 현황</h2><p class="hint">최종 제출 학생을 학번 · 이름 · 연구주제로 검색할 수 있습니다.</p><div class="toolbar"><strong id="einActivityCloseStatus">마감 상태 조회 중…</strong> <button type="button" id="einActivityToggle">활동 기록 제출 마감</button></div>
 <div id="counts">-</div><input id="search" placeholder="학번 · 이름 · 연구주제 검색"><button id="refresh">제출현황 새로고침</button></section>
 <section id="list"></section>
-<section class="card" id="posterOverview"><h2>모둠별 연구포스터 제출 현황</h2><p class="hint">포스터 파일·제출일시·모둠원별 확인 여부를 조회합니다.</p>
+<section class="card" id="posterOverview"><h2>모둠별 연구포스터 제출 현황</h2><p class="hint">포스터 파일·제출일시·모둠원별 확인 여부를 조회합니다.</p><div class="toolbar"><strong id="einPosterCloseStatus">마감 상태 조회 중…</strong> <button type="button" id="einPosterToggle">공동 포스터 제출 마감</button></div>
 <div id="posterCount" class="hint">포스터 조회 중…</div><input id="posterSearch" placeholder="모둠원 학번 · 이름 · 연구제목 검색"><button id="refreshPosters">포스터 새로고침</button><div id="posterList"></div></section></div>
 </main>
 <script>
-(function(){'use strict';const $=x=>document.getElementById(x),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const connected=typeof google!=='undefined'&&!!google.script?.run;let code='',all=[],tokens=[],posters=[];
+(function(){'use strict';const $=x=>document.getElementById(x),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const connected=typeof google!=='undefined'&&!!google.script?.run;let code='',all=[],tokens=[],posters=[],einCloseState={activity:false,poster:false,deadlinePassed:false};
 function call(fn,...a){return new Promise((ok,no)=>{if(!connected){no(Error('서버 연결 전: 이 파일을 GitHub에서 직접 연 경우 미리보기만 가능합니다.'));return;}google.script.run.withSuccessHandler(ok).withFailureHandler(e=>no(Error(e.message||String(e))))[fn](...a);});}
 function notice(s){$('alert').textContent=s;}
 function snippet(label,t){return t?`<div class="excerpt"><strong>${esc(label)}</strong>${esc(t)}</div>`:'';}
@@ -194,7 +194,7 @@ function render(){
    snippet('새롭게 이해한 개념',s.growth)+snippet('탐구 태도 변화',s.change)+snippet('후속 탐구',s.followup)+
    '<details class="full-record" '+(fullRecord?'open':'')+'><summary>학생이 작성한 전체 원문 보기</summary>'+(fullRecord?fullStudentRecordHTML(fullRecord):'<p class="hint">선택한 학생의 전체 원문을 서버에서 불러오는 중입니다…</p>')+'</details>'+ 
    '<h3>최신 제출 첨부파일</h3>'+
-   (s.files.map(f=>'<div><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer">'+esc((f.kind==='poster'?'[포스터] ':'[보고서] ')+f.name)+'</a></div>').join('')||'<p class="hint">등록된 파일 없음</p>')+
+   (s.files.map(f=>'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:5px 0"><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer">'+esc((f.kind==='poster'?'[포스터] ':'[보고서] ')+f.name)+'</a>'+((f.kind==='poster'&&posters.some(p=>p.fileUrl===f.url))?'<span class="hint">공동 포스터 목록에서 삭제</span>':'<button type="button" data-ein-delete-attachment="'+esc(f.url)+'" data-ein-student="'+esc(s.studentId)+'">이 파일 삭제</button>')+'</div>').join('')||'<p class="hint">등록된 파일 없음</p>')+
    '<p class="hint">보고서 핵심개요는 학생이 직접 작성한 연구기록의 제목·결과·해석을 발췌한 것입니다. 첨부된 PDF·HWP·Word 본문 전체를 자동으로 읽어 요약한 것은 아닙니다.</p>'+
    '<details><summary>이전 제출 이력 보기</summary>'+((s.history||[]).map((h,i)=>'<div>'+(i+1)+'차 · '+esc(h.submittedAt)+' · <a href="'+esc(h.folderUrl)+'" target="_blank" rel="noopener noreferrer">이전 제출 폴더</a></div>').join(''))+'</details></article>';
  }
@@ -241,6 +241,7 @@ async function authenticate(k,resuming){
   $('privateArea').hidden=false;$('authForm').hidden=true;$('teacherCode').value='';notice('');
   showTokens(initialTokens);
   loadPosters();
+  loadEinCloseState();
   $('counts').textContent='제출현황 불러오는 중…';
   $('list').innerHTML='';
   // Drive에서 제출 보고서를 읽는 느린 요청은 별도로 실행합니다.
@@ -379,7 +380,7 @@ function renderPosters(){
  $('posterList').innerHTML='<div class="table-scroller"><table style="min-width:950px"><thead><tr><th>연구제목</th><th>대표학생</th><th>제출일시</th><th>모둠원 확인</th><th>포스터 파일</th></tr></thead><tbody>'+found.map(p=>{
   const ms=p.memberStatuses||[],members=ms.map(m=>esc(m.studentId+' '+m.name+' ('+m.status+')')).join('<br>');
   const link=/^https:\/\//.test(p.fileUrl||'')?'<a href="'+esc(p.fileUrl)+'" target="_blank" rel="noopener noreferrer">포스터 열기</a>':'-';
-  return '<tr><td>'+esc(p.title)+'</td><td>'+esc(p.leaderId+' '+(p.leaderName||''))+'</td><td>'+esc(p.submittedAt)+'</td><td>'+ms.filter(m=>m.status==='확인').length+'/'+ms.length+'명 확인<br>'+members+'</td><td>'+link+'</td></tr>';
+  return '<tr><td>'+esc(p.title)+'</td><td>'+esc(p.leaderId+' '+(p.leaderName||''))+'</td><td>'+esc(p.submittedAt)+'</td><td>'+ms.filter(m=>m.status==='확인').length+'/'+ms.length+'명 확인<br>'+members+'</td><td>'+link+' <button type="button" data-ein-delete-poster="'+esc(p.posterId)+'">이 포스터 삭제</button></td></tr>';
  }).join('')+'</tbody></table></div>';
 }
 $('refreshPosters').onclick=loadPosters;
