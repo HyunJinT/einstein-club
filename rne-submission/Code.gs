@@ -38,6 +38,10 @@ function doPost(e) {
       processDeletion_(body);
       return jsonResult_({ok: true, action: 'delete'});
     }
+    if (body.action === 'teacherDelete') {
+      processTeacherDeletion_(body);
+      return jsonResult_({ok: true, action: 'teacherDelete'});
+    }
     const result = processSubmission_(body);
     return jsonResult_({ok: true, requestId: result.requestId});
   } catch (err) {
@@ -49,7 +53,8 @@ function doPost(e) {
 }
 
 function ensureSubmissionOpen_(type) {
-  if (firebaseRead_('settings/closed', null) === true) throw new Error('교사가 제출을 마감했습니다.');
+  const closeKey = type === 'report' ? 'closedReport' : 'closedPresentation';
+  if (firebaseRead_('settings/' + closeKey, null) === true) throw new Error('교사가 해당 제출 항목을 마감했습니다.');
   if (Date.now() >= SETTINGS.deadlinesUtcMs[type]) {
     throw new Error(type === 'report' ? '개인 최종보고서 제출기한(11월 30일 23:59)이 지났습니다.' : '모둠별 발표 PPT 제출기한(12월 17일 23:59)이 지났습니다.');
   }
@@ -205,6 +210,48 @@ function isSubmissionFile_(file, account) {
     if (parents.next().getId() === folder.getId()) inFolder = true;
   }
   return inFolder && file.getName().indexOf('RNE_' + account.type + '_' + account.id + '_') === 0;
+}
+
+/**
+ * 교사용 개별 삭제: Firebase 교사 Google 로그인 ID 토큰을 DB 규칙으로 검증.
+ * 익명 PIN 세션, 학생 제출코드, 임의 파일 ID만으로는 삭제 불가.
+ * 보고서/발표자료 중 요청된 경로 한 곳만 삭제하며 학생 계정은 유지.
+ */
+function processTeacherDeletion_(body) {
+  const type = String(body && body.type || '');
+  const id = String(body && body.studentId || '');
+  const driveId = String(body && body.driveId || '');
+  const token = String(body && body.idToken || '');
+  if (type !== 'report' && type !== 'presentation') throw new Error('제출 종류 오류');
+  if (!/^[0-9]{5}$/.test(id) || !/^[A-Za-z0-9_-]{15,}$/.test(driveId)) throw new Error('삭제 대상 정보 오류');
+  if (!token || token.length > 6000) throw new Error('교사 로그인 인증 토큰 오류');
+
+  // accounts 컬렉션 전체 읽기는 등록된 교사 Google 계정에만 허용됨.
+  // Firebase Rules에서 토큰 서명, UID, Google 로그인 제공자를 모두 검사.
+  firebaseRead_('accounts', token);
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const area = type === 'report' ? 'reports' : 'presentations';
+    const path = area + '/' + id;
+    const old = firebaseRead_(path, token);
+    if (!old || !old.file || String(old.file.driveId || '') !== driveId ||
+        String(old.studentId || '') !== id) {
+      throw new Error('제출물이 이미 변경되었거나 존재하지 않습니다. 새로고침해 주세요.');
+    }
+    const file = DriveApp.getFileById(driveId);
+    if (!isSubmissionFile_(file, {type:type,id:id})) throw new Error('해당 학생/모둠의 제출 파일이 아닙니다.');
+    file.setTrashed(true);
+    try {
+      firebaseRequest_('delete', path, token, undefined);
+    } catch (error) {
+      try { file.setTrashed(false); } catch (restoreErr) { console.error('Drive 원본 복원 실패:', restoreErr); }
+      throw error;
+    }
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function processDeletion_(body) {
