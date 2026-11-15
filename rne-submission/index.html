@@ -69,8 +69,9 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 </section>
 <section id="teacherView" class="card" hidden>
 <div class="buttonbar" style="justify-content:space-between;margin-top:0"><h2>교사용 제출 관리</h2><button class="btn" type="button" id="teacherLogout">로그아웃</button></div>
-<div class="teacherControls"><div><strong>학생 제출 상태</strong><div id="teacherStatus" class="small"></div></div><button id="closeButton" class="btn danger" type="button">제출 마감</button></div>
-<div class="info">각 제출물은 지정된 기한에 자동 마감됩니다. 위의 수동 마감 버튼은 두 제출물을 함께 조기 마감하거나 다시 열기 위한 기능입니다. 기한 경과 후에는 수동 마감을 해제해도 학생 제출이 허용되지 않습니다. 학생 PIN 초기화는 제출 자료에 영향을 주지 않습니다.</div>
+<div class="teacherControls"><div><strong>개인 최종보고서</strong><div id="teacherReportStatus" class="small"></div></div><button id="closeReportButton" class="btn danger" type="button">보고서 제출 마감</button></div>
+<div class="teacherControls" style="margin-top:10px"><div><strong>모둠별 발표자료</strong><div id="teacherPresentationStatus" class="small"></div></div><button id="closePresentationButton" class="btn danger" type="button">발표자료 제출 마감</button></div>
+<div class="info">각 항목은 개별 마감하며, 정해진 제출기한이 지나면 수동 마감 해제 후에도 새 제출은 불가능합니다. 자료의 삭제 버튼은 선택한 제출 기록과 해당 Google Drive 파일만 삭제하며 학생 PIN이나 다른 제출물은 유지합니다.</div>
 <div class="field"><label for="teacherSearch">학생 검색</label><input id="teacherSearch" class="input" placeholder="학번, 이름, 진로, 모둠원 또는 연구주제로 검색"></div>
 <h3>개인별 최종 보고서 <span id="reportCount" class="status">0건</span></h3><div id="teacherReports" class="records"></div>
 <div class="divider"></div><h3>모둠별 발표자료 <span id="pptCount" class="status">0건</span></h3><div id="teacherPpts" class="records"></div>
@@ -98,11 +99,12 @@ const MAX_FILE_BYTES=15*1024*1024;
 const DEADLINE_END_KST=Object.freeze({report:'2026-12-01T00:00:00+09:00',presentation:'2026-12-18T00:00:00+09:00'});
 const DEADLINE_LABEL=Object.freeze({report:'2026년 11월 30일(월) 23:59',presentation:'2026년 12월 17일(목) 23:59'});
 function deadlinePassed(type){return Date.now()>=Date.parse(DEADLINE_END_KST[type]);}
-function isClosed(type){return closed||deadlinePassed(type);}
-function closedMessage(type){return closed?'교사가 제출을 마감했습니다.':'제출기한('+DEADLINE_LABEL[type]+')이 지났습니다.';}
+const manualClosed={report:false,presentation:false};
+function isClosed(type){return manualClosed[type]||deadlinePassed(type);}
+function closedMessage(type){return manualClosed[type]?'교사가 해당 제출 항목을 마감했습니다.':'제출기한('+DEADLINE_LABEL[type]+')이 지났습니다.';}
 function deadlineStatus(type){return (type==='report'?'개인 최종보고서':'모둠별 발표 PPT')+': '+(isClosed(type)?'마감':'접수 중')+' (기한 '+DEADLINE_LABEL[type]+')';}
 const $=id=>document.getElementById(id);
-let ctx=null,kind=null,student=null,credentialMode='login',accountVersion=null,closed=false,existing=null,teacherRecords=null,busy=false;
+let ctx=null,kind=null,student=null,credentialMode='login',accountVersion=null,existing=null,teacherRecords=null,busy=false;
 const views=['homeView','loginView','studentView','teacherLogin','teacherView'];
 function show(id){views.forEach(x=>$(x).hidden=x!==id);$('message').innerHTML='';window.scrollTo({top:0,behavior:'smooth'});}
 function tell(msg,ok){const box=document.createElement('div');box.className='notice'+(ok?' ok':'');box.textContent=msg;$('message').replaceChildren(box);window.scrollTo({top:0,behavior:'smooth'});}
@@ -125,9 +127,16 @@ async function boot(){
 }
 async function ready(){if(!ctx)await boot();return ctx;}
 async function anonymous(){const c=await ready();if(!c.auth.currentUser?.isAnonymous){if(c.auth.currentUser)await c.signOut(c.auth);await c.signInAnonymously(c.auth);}return c;}
-async function refreshClosed(){const c=await ready();closed=(await c.get(c.dbRef(c.db,ROOT+'/settings/closed'))).val()===true;const home=$('homeStatus');home.textContent=!DRIVE_UPLOAD_WEBAPP_URL?'Google Drive 업로드 연결을 설정해야 합니다.':deadlineStatus('report')+' / '+deadlineStatus('presentation');return closed;}
+async function refreshClosed(){
+ const c=await ready();const d=(await c.get(c.dbRef(c.db,ROOT+'/settings'))).val()||{};
+ manualClosed.report=d.closedReport===true;
+ manualClosed.presentation=d.closedPresentation===true;
+ const home=$('homeStatus');
+ home.textContent=!DRIVE_UPLOAD_WEBAPP_URL?'Google Drive 업로드 연결을 설정해야 합니다.':deadlineStatus('report')+' / '+deadlineStatus('presentation');
+ return manualClosed;
+}
 function errorMessage(e){const s=String(e?.code||'')+' '+String(e?.message||e);if(/permission.denied/i.test(s))return 'Firebase 보안 규칙이 요청을 거부했습니다. 계정 또는 제출 마감 상태를 확인하세요. 최초 설치 시 관리자에게 규칙 설정을 요청해야 합니다.';if(/storage\/unauthorized/i.test(s))return 'Google Drive 업로드 연결 설정이 필요합니다.';return String(e?.message||e);}
-function setBusy(v){busy=v;['checkAccount','pinSubmit','saveSubmit','replaceReportFileButton','googleLogin','closeButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
+function setBusy(v){busy=v;['checkAccount','pinSubmit','saveSubmit','replaceReportFileButton','googleLogin','closeReportButton','closePresentationButton','otherKind','studentLogout','homeButton','teacherButton'].forEach(id=>{if($(id))$(id).disabled=v;});}
 async function run(fn){if(busy)return;setBusy(true);try{await fn();}catch(e){tell(errorMessage(e));}finally{setBusy(false);}}
 function openKind(x){kind=x;if(student){void run(showStudent);return;}$('loginTitle').textContent=x==='report'?'최종 보고서 제출 · 학생 로그인':'발표자료 제출 · 대표학생 로그인';$('pinArea').hidden=true;$('studentId').value='';$('studentName').value='';show('loginView');}
 function pinMode(mode){credentialMode=mode;$('pinArea').hidden=false;$('pinConfirmWrap').hidden=mode==='login';$('pinSubmit').textContent=mode==='login'?'PIN 로그인':'PIN 설정하고 시작하기';$('pinTitle').textContent=mode==='login'?'PIN 입력':'새 PIN 설정';$('pinHint').textContent=mode==='login'?'기존에 설정한 숫자 6자리 PIN을 입력하세요.':'본인만 아는 숫자 6자리 PIN을 새로 설정하고 다시 입력하세요.';$('pinInput').value='';$('pinConfirm').value='';$('pinInput').focus();}
@@ -403,18 +412,50 @@ function fileLink(record){
  if(record.file?.url){a.href=record.file.url;a.target='_blank';a.rel='noopener noreferrer';a.title='비공개 Google Drive 파일 · 교사 계정으로 열기';}
  return a;
 }
-function recordCard(title,subtitle,rec){
+function recordCard(title,subtitle,rec,type,recordId){
  const div=document.createElement('div');div.className='record';
  const top=document.createElement('strong');top.textContent=title;
  const sub=document.createElement('div');sub.className='sub';sub.textContent=subtitle;
- div.append(top,sub,fileLink(rec));return div;
+ const actions=document.createElement('div');actions.className='actions';
+ const del=document.createElement('button');del.type='button';del.className='btn danger';del.textContent='이 제출물 삭제';
+ del.addEventListener('click',()=>run(()=>teacherDeleteRecord(type,recordId,rec)));
+ actions.append(del);div.append(top,sub,fileLink(rec),actions);return div;
+}
+async function teacherDeleteRecord(type,id,rec){
+ if(!['report','presentation'].includes(type)||!/^[0-9]{5}$/.test(id))throw Error('제출 종류 또는 학번을 확인하세요.');
+ const category=type==='report'?'개인 최종보고서':'모둠 발표자료';
+ const filename=rec.file?.name||'(첨부 없음)';
+ const first=confirm('선택한 '+category+'만 삭제합니다.\n학생: '+id+' '+rec.studentName+'\n파일: '+filename+'\n학생의 다른 제출물과 PIN은 유지됩니다.\n계속할까요?');
+ if(!first)return;
+ const answer=prompt('삭제 확인을 위해 대상 학번 '+id+'을(를) 입력하세요.');
+ if(answer===null)return;
+ if(answer.trim()!==id)throw Error('학번이 일치하지 않아 삭제하지 않았습니다.');
+ const c=await ready();const user=c.auth.currentUser;
+ if(!user||user.isAnonymous)throw Error('교사용 Google 계정으로 다시 로그인해 주세요.');
+ const token=await user.getIdToken(true);
+ const previousId=String(rec.file?.driveId||'');
+ const packet={action:'teacherDelete',type,studentId:id,driveId:previousId,idToken:token};
+ await fetch(DRIVE_UPLOAD_WEBAPP_URL,{method:'POST',mode:'no-cors',credentials:'omit',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(packet),redirect:'follow'});
+ const path=ROOT+'/'+(type==='report'?'reports':'presentations')+'/'+id;
+ const timeout=Date.now()+45000;
+ while(Date.now()<timeout){
+  const current=(await c.get(c.dbRef(c.db,path))).val();
+  if(!current){await loadTeacher();tell(id+' '+rec.studentName+'의 '+category+' 제출 자료를 삭제했습니다.',true);return;}
+  if(String(current.file?.driveId||'')!==previousId)throw Error('삭제 중 새 제출물이 등록되었습니다. 제출 현황을 확인하세요.');
+  await new Promise(resolve=>setTimeout(resolve,1800));
+ }
+ throw Error('서버에서 삭제 완료를 확인하지 못했습니다. 실행 로그를 확인한 뒤 새로고침해 주세요.');
 }
 async function loadTeacher(){
  const c=await ready();
  const [accounts,reports,ppts]=await Promise.all(['accounts','reports','presentations'].map(p=>c.get(c.dbRef(c.db,ROOT+'/'+p))));
  teacherRecords={accounts:accounts.val()||{},reports:reports.val()||{},presentations:ppts.val()||{}};
- await refreshClosed();$('teacherStatus').textContent=deadlineStatus('report')+' / '+deadlineStatus('presentation')+(closed?' · 교사 수동 마감 적용':'');
- $('closeButton').textContent=closed?'제출 마감 해제':'제출 마감';$('closeButton').className=closed?'btn primary':'btn danger';
+ await refreshClosed();
+ for(const [type,statusId,buttonId] of [['report','teacherReportStatus','closeReportButton'],['presentation','teacherPresentationStatus','closePresentationButton']]){
+  $(statusId).textContent=deadlineStatus(type);
+  $(buttonId).textContent=manualClosed[type]?'마감 해제':'제출 마감';
+  $(buttonId).className=manualClosed[type]?'btn primary':'btn danger';
+ }
  renderTeacher();show('teacherView');
 }
 function renderTeacher(){
@@ -425,8 +466,8 @@ function renderTeacher(){
  const accounts=Object.entries(teacherRecords.accounts).filter(([id,r])=>filtered([id,r.name].join(' ')));
  $('reportCount').textContent=Object.keys(teacherRecords.reports).length+'건';
  $('pptCount').textContent=Object.keys(teacherRecords.presentations).length+'건';
- $('teacherReports').replaceChildren(...reports.map(([id,r])=>recordCard(id+' '+r.studentName,r.career+' · '+(r.updatedAt||''),r)));
- $('teacherPpts').replaceChildren(...ppts.map(([id,r])=>recordCard(r.teamTitle,id+' '+r.studentName+' · 모둠원: '+(Array.isArray(r.members)?r.members:Object.values(r.members||{})).map(m=>m.id+' '+m.name).join(', ')+' · '+(r.updatedAt||''),r)));
+ $('teacherReports').replaceChildren(...reports.map(([id,r])=>recordCard(id+' '+r.studentName,r.career+' · '+(r.updatedAt||''),r,'report',id)));
+ $('teacherPpts').replaceChildren(...ppts.map(([id,r])=>recordCard(r.teamTitle,id+' '+r.studentName+' · 모둠원: '+(Array.isArray(r.members)?r.members:Object.values(r.members||{})).map(m=>m.id+' '+m.name).join(', ')+' · '+(r.updatedAt||''),r,'presentation',id)));
  if(!reports.length)$('teacherReports').textContent='조회된 제출물이 없습니다.';
  if(!ppts.length)$('teacherPpts').textContent='조회된 발표자료가 없습니다.';
  $('teacherAccounts').replaceChildren(...accounts.map(([id,account])=>{
@@ -447,10 +488,13 @@ async function resetPin(id,account){
  await c.set(c.dbRef(c.db,ROOT+'/accounts/'+id),next);
  teacherRecords.accounts[id]=next;renderTeacher();tell(id+' '+account.name+' 학생의 PIN만 초기화했습니다. 제출 자료는 변경되지 않았습니다.',true);
 }
-async function teacherToggle(){
- const action=closed?'마감 해제':'제출 마감';
- if(!confirm('두 제출물의 신규 제출 및 수정을 '+(closed?'다시 허용':'차단')+'할까요? (각 제출기한이 지난 자료는 마감 해제 후에도 제출할 수 없습니다.)'))return;
- const c=await ready();await c.set(c.dbRef(c.db,ROOT+'/settings/closed'),!closed);await loadTeacher();tell(action+' 처리되었습니다.',true);
+async function teacherToggle(type){
+ if(!['report','presentation'].includes(type))throw Error('제출 종류 오류');
+ const isNowClosed=manualClosed[type],kindName=type==='report'?'개인 최종보고서':'모둠별 발표자료';
+ const action=isNowClosed?'마감 해제':'제출 마감';
+ if(!confirm(kindName+'의 신규 제출 및 수정을 '+(isNowClosed?'다시 허용':'차단')+'할까요?\n다른 제출 항목에는 영향을 주지 않습니다.\n지정 기한이 지나면 해제해도 제출할 수 없습니다.'))return;
+ const c=await ready();await c.set(c.dbRef(c.db,ROOT+'/settings/'+(type==='report'?'closedReport':'closedPresentation')),!isNowClosed);
+ await loadTeacher();tell(kindName+' '+action+' 처리되었습니다.',true);
 }
 async function teacherLogin(){
  const c=await ready();const provider=new c.GoogleAuthProvider();
@@ -474,7 +518,8 @@ $('otherKind').addEventListener('click',()=>{kind=kind==='report'?'presentation'
 $('studentLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);goHome();}));
 $('googleLogin').addEventListener('click',()=>run(teacherLogin));
 $('teacherSearch').addEventListener('input',renderTeacher);
-$('closeButton').addEventListener('click',()=>run(teacherToggle));
+$('closeReportButton').addEventListener('click',()=>run(()=>teacherToggle('report')));
+$('closePresentationButton').addEventListener('click',()=>run(()=>teacherToggle('presentation')));
 $('teacherLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);teacherRecords=null;goHome();}));
 if(!FIREBASE_CONFIG.databaseURL){
  $('homeStatus').textContent='R&E 전용 Firebase 웹앱 등록 완료 · Realtime Database 주소 및 보안 규칙 설정 전이므로 제출을 잠시 비활성화했습니다.';
