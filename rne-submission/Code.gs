@@ -11,7 +11,9 @@ const SETTINGS = Object.freeze({
   databaseUrl: 'https://eunhaeng-default-rtdb.asia-southeast1.firebasedatabase.app',
   root: 'rneSubmission2026',
   maxBytes: 15 * 1024 * 1024,
-  rootFolderName: '2026_은행고_RNE_최종결과물'
+  rootFolderName: '2026_은행고_RNE_최종결과물',
+  // 한국시간 2026-12-01 00:00 및 2026-12-18 00:00부터 각 제출 접수 중단
+  deadlinesUtcMs: {report: 1796050800000, presentation: 1797519600000}
 });
 
 function doGet() {
@@ -46,6 +48,13 @@ function doPost(e) {
   }
 }
 
+function ensureSubmissionOpen_(type) {
+  if (firebaseRead_('settings/closed', null) === true) throw new Error('교사가 제출을 마감했습니다.');
+  if (Date.now() >= SETTINGS.deadlinesUtcMs[type]) {
+    throw new Error(type === 'report' ? '개인 최종보고서 제출기한(11월 30일 23:59)이 지났습니다.' : '모둠별 발표 PPT 제출기한(12월 17일 23:59)이 지났습니다.');
+  }
+}
+
 function processSubmission_(data) {
   if (!data || typeof data !== 'object') throw new Error('요청 형식 오류');
   const id = String(data.studentId || '');
@@ -64,7 +73,7 @@ function processSubmission_(data) {
   if (!/^[a-zA-Z0-9_-]{12,130}$/.test(sessionUid)) throw new Error('Firebase UID 오류');
   const session = firebaseRead_('sessions/' + id + '/' + sessionUid, token);
   if (!session || session.name !== name) throw new Error('PIN 인증 세션이 만료되었습니다. 다시 로그인하세요.');
-  if (firebaseRead_('settings/closed', null) === true) throw new Error('교사가 제출을 마감했습니다.');
+  ensureSubmissionOpen_(type);
 
   const recordsType = type === 'report' ? 'reports' : 'presentations';
   const old = firebaseRead_(recordsType + '/' + id, token);
@@ -181,7 +190,7 @@ function verifyStudent_(body, requireOpen) {
   if (!/^[A-Za-z0-9_-]{12,130}$/.test(authUid) || !token || token.length > 5000) throw new Error('로그인 정보 오류');
   const session = firebaseRead_('sessions/' + id + '/' + authUid, token);
   if (!session || session.name !== name) throw new Error('PIN 인증 세션이 유효하지 않습니다.');
-  if (requireOpen && firebaseRead_('settings/closed', null) === true) throw new Error('제출 마감 후에는 삭제할 수 없습니다.');
+  if (requireOpen) ensureSubmissionOpen_(type);
   const path = (type === 'report' ? 'reports/' : 'presentations/') + id;
   const record = firebaseRead_(path, token);
   if (record && record.studentId !== id) throw new Error('제출자 정보 오류');
