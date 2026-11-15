@@ -381,7 +381,7 @@ $('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('issued').
 async function loadPosters(){
  if(!code)return;
  $('posterCount').textContent='포스터 현황 불러오는 중…';
- try{const a=await call('getEinsteinTeacherPosterDashboardV18',code);if(!Array.isArray(a))throw Error('결과 형식 오류');posters=a;renderPosters();}
+ try{const a=await call('getEinsteinTeacherPosterDashboardV18',code);if(!Array.isArray(a))throw Error('결과 형식 오류');posters=a;renderPosters();if(all.length)render();}
  catch(e){$('posterCount').textContent='포스터 조회 실패: '+e.message+' (Apps Script 서버 기능 배포 여부 확인)';$('posterList').innerHTML='';}
 }
 function renderPosters(){
