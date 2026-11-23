@@ -108,7 +108,7 @@ for(const [kind,id,,listId] of imageInputs){
  const input=$(id);if(!input)continue;
  input.multiple=true;input.accept='image/png,image/jpeg,image/webp';
  let list=$(listId);if(!list){list=document.createElement('div');list.className='photo-editor-list';list.id=listId;input.after(list);}
- const title=input.closest('.field')?.querySelector('label');if(title)title.textContent=(kind==='method'?'실험 과정 사진':'실험 결과 사진')+' (최대 3장)';
+ const title=input.closest('.field')?.querySelector('label');if(title)title.textContent=(kind==='method'?'실험 과정 사진':'실험 결과 사진')+' (선택 · 최대 3장)';
  const hint=document.createElement('p');hint.className='hint';hint.textContent='사진은 원본 비율을 고려해 1px 간격으로 꽉 차게 배치됩니다. 비율은 유지하며 가장자리 일부가 잘릴 수 있습니다. 사진 1장당 최대 3MB.';list.before(hint);
  input.addEventListener('change',async e=>{
   e.preventDefault();e.stopImmediatePropagation();
