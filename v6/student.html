@@ -42,8 +42,8 @@
       <div id="studentPasswordSetup" class="student-password-setup" hidden>
         <strong id="studentVerifiedName"></strong>
         <p class="hint">처음 사용할 비밀번호를 설정하세요. 이후 학교·집·휴대폰 어디서나 학번과 비밀번호로 로그인합니다.</p>
-        <label for="studentNewPassword">새 비밀번호 (8자 이상, 문자 + 숫자)</label>
-        <div class="password-entry"><input type="password" id="studentNewPassword" autocomplete="new-password" placeholder="8자 이상 문자와 숫자"/><button type="button" id="studentShowNewPassword" class="password-view-button">보기</button></div>
+        <label for="studentNewPassword">새 비밀번호 (8자 이상 · 문자·숫자 조합 제한 없음)</label>
+        <div class="password-entry"><input type="password" id="studentNewPassword" autocomplete="new-password" minlength="8" placeholder="원하는 비밀번호 8자 이상"/><button type="button" id="studentShowNewPassword" class="password-view-button">보기</button></div>
         <label for="studentConfirmPassword">비밀번호 다시 입력</label>
         <input type="password" id="studentConfirmPassword" autocomplete="new-password" placeholder="동일한 비밀번호 재입력"/>
         <button type="button" id="studentSetPasswordBtn" class="student-primary-auth">비밀번호 설정하고 시작하기</button>
@@ -76,7 +76,7 @@
 </div>
 <div id="printRoot" class="print-root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-password-auth-v14.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
+<script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-password-auth-v14.js?v=8plus-free-20261123" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-diagnostics.js" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-main-v12.js?v=shared-poster-v27-workflow" onerror="document.getElementById('studentLoginFeedback').textContent='학생용 프로그램 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'"></script>
 <script src="https://hyunjint.github.io/einstein-club/v6/assets/20261028/student-screen-mode-v16.js"></script>
