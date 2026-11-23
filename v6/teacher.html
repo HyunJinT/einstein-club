@@ -159,13 +159,41 @@ function evidenceSummary(s){
 }
 function downloadSummaryExcel(){
  if(!all.length){alert('완료된 제출 기록을 불러온 뒤 다운로드하세요.');return;}
- const head=['학번','이름','진로 분야','큰 연구주제','핵심 연구질문','실험 제목과 주요 결과 (학생 입력)','과학적 해석','실제 수행 역할','문제해결·협력 등 구체적 사례','새롭게 이해한 과학 개념','탐구 태도의 변화','후속 질문','첨부 보고서·포스터 파일명','제출 횟수','최신 접수번호','최신 제출시각','근거 구분'];
- const rows=[head,...all.sort((a,b)=>String(a.studentId).localeCompare(String(b.studentId))).map(s=>{
+ const students=all.slice().sort((a,b)=>String(a.studentId).localeCompare(String(b.studentId),'ko'));
+ const sourceHeaders=['학번','이름','진로 분야','큰 연구주제','핵심 연구질문','실험 제목과 주요 결과 (학생 입력)','과학적 해석','실제 수행 역할','문제해결·협력 등 구체적 사례','새롭게 이해한 과학 개념','탐구 태도의 변화','후속 질문','첨부 보고서·포스터 파일명','제출 횟수','최신 접수번호','최신 제출시각','근거 구분'];
+ const summaries=[],experiments=[],evidenceRows=[],attachments=[],source=[];
+ for(const s of students){
   const e=evidenceSummary(s);
-  return [s.studentId,s.name,s.career,s.theme,s.question,e.experiments,(s.experiments||[]).map(x=>x.analysis).filter(Boolean).join('\n'),e.roles,e.evidence,s.growth,s.change,s.followup,e.attachments,s.revisionCount||1,s.receipt,s.receivedAt,'학생이 작성한 활동기록을 발췌함. 첨부 보고서 본문은 자동 분석하지 않음'];
- })];
- const blob=buildWorkbook(rows,'학생별_생기부_근거요약'),url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download='아인슈타인_학생별_생기부근거_요약_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  const exp=Array.isArray(s.experiments)?s.experiments:[];
+  const ev=Array.isArray(s.evidence)?s.evidence:[];
+  const files=Array.isArray(s.files)?s.files:[];
+  const notes=exp.flatMap(x=>(x.roleNotes||[]).filter(r=>r.note).map(r=>(x.title?x.title+' / ':'')+r.role+': '+r.note));
+  summaries.push([s.studentId,s.name,s.career,s.theme,s.question,exp.length,notes.length,ev.length,s.receivedAt]);
+  exp.forEach((p,i)=>experiments.push([
+   s.studentId,s.name,i+1,p.title,p.result,p.analysis,p.challenge,
+   (p.roleNotes||[]).map(r=>r.role+': '+(r.note||'')).join('\n')
+  ]));
+  ev.forEach(x=>evidenceRows.push([s.studentId,s.name,'활동 근거: '+x.key,x.note,s.theme]));
+  [['새롭게 이해한 개념',s.growth],['탐구 태도 변화',s.change],['후속 질문',s.followup]].forEach(pair=>{
+   if(String(pair[1]||'').trim())evidenceRows.push([s.studentId,s.name,pair[0],pair[1],s.theme]);
+  });
+  if(!files.length)attachments.push([s.studentId,s.name,'첨부 없음','',s.receipt,s.receivedAt]);
+  else files.forEach(f=>attachments.push([s.studentId,s.name,f.kind==='poster'?'포스터':'보고서',f.name,s.receipt,s.receivedAt]));
+  source.push([s.studentId,s.name,s.career,s.theme,s.question,e.experiments,
+   exp.map(x=>x.analysis).filter(Boolean).join('\n'),e.roles,e.evidence,
+   s.growth,s.change,s.followup,e.attachments,s.revisionCount||1,
+   s.receipt,s.receivedAt,'학생이 작성한 활동기록을 발췌함. 첨부 보고서 본문은 자동 분석하지 않음']);
+ }
+ const book=[
+  {name:'학생별 요약',desc:'한 학생당 1행 · 항목별로 다른 시트에서 자세히 확인',headers:['학번','이름','진로 분야','큰 연구주제','핵심 연구질문','실험 수','역할 수','근거 수','최신 제출시각'],widths:[13,15,18,42,44,11,11,11,22],rows:summaries},
+  {name:'실험과 역할',desc:'학생별 실험 결과·해석·역할을 한눈에 비교',headers:['학번','이름','실험','실험 제목','핵심 결과','과학적 해석','한계·개선','실제 수행 역할'],widths:[13,15,10,34,48,45,38,48],rows:experiments},
+  {name:'활동 근거와 성찰',desc:'학생이 직접 작성한 사례와 성찰 · 원문 발췌',headers:['학번','이름','기록 분류','학생 작성 내용','큰 연구주제'],widths:[13,15,26,74,43],rows:evidenceRows},
+  {name:'첨부와 접수',desc:'파일명과 접수 현황 · 교사용 확인',headers:['학번','이름','첨부 유형','파일명','최신 접수번호','최신 제출시각'],widths:[13,15,15,66,38,22],rows:attachments},
+  {name:'원본 통합자료',desc:'이전 다운로드의 17개 항목을 그대로 보존',headers:sourceHeaders,widths:[13,15,18,42,44,46,44,48,50,44,44,38,44,12,38,22,55],rows:source}
+ ];
+ const blob=buildFormattedResearchWorkbook(book);
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='아인슈타인_학생별_생기부_근거정리_'+new Date().toISOString().slice(0,10)+'.xlsx';
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 function render(){
@@ -342,6 +370,53 @@ function buildWorkbook(rows,sheetName='학생별 제출코드'){
  'xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
  'xl/worksheets/sheet1.xml':sheet});
 }
+
+/* Rich teacher workbook; keep the legacy buildWorkbook for private access-code export. */
+function buildFormattedResearchWorkbook(tabs){
+ const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+ function font(sz,color,bold){return '<font>'+(bold?'<b/>':'')+'<sz val="'+sz+'"/><color rgb="'+color+'"/><name val="맑은 고딕"/><family val="2"/></font>';}
+ function fill(rgb){return '<fill><patternFill patternType="solid"><fgColor rgb="'+rgb+'"/><bgColor indexed="64"/></patternFill></fill>';}
+ const fonts='<fonts count="4">'+font(10,'FF24384C',false)+font(17,'FFFFFFFF',true)+font(10,'FF315A6D',false)+font(10,'FFFFFFFF',true)+'</fonts>';
+ const fills='<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'+fill('FF173F58')+fill('FFE8F1F5')+fill('FFF2F7FA')+'</fills>';
+ const borders='<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top/><bottom style="hair"><color rgb="FFD9E4EA"/></bottom><diagonal/></border></borders>';
+ function xf(f,fi,b,wrap){return '<xf numFmtId="0" fontId="'+f+'" fillId="'+fi+'" borderId="'+b+'" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="'+(wrap?'1':'0')+'"/></xf>';}
+ const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="'+ns+'">'+fonts+fills+borders+'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6">'+xf(0,0,1,true)+xf(1,2,0,true)+xf(2,3,0,true)+xf(3,2,1,true)+xf(0,4,1,true)+xf(0,0,1,true)+'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+ function cell(ci,ri,val,style){
+  return '<c r="'+colName(ci)+ri+'" s="'+style+'" t="inlineStr"><is><t xml:space="preserve">'+xmlEscape(val==null?'':val)+'</t></is></c>';
+ }
+ function rowHeight(row,widths){
+  let estimate=1;
+  row.forEach((v,i)=>{
+   const value=String(v==null?'':v).replace(/\r/g,'');
+   const width=Math.max(8,Number(widths[i]||26)-4);
+   const lines=value.split('\n').reduce((sum,line)=>sum+Math.max(1,Math.ceil(line.length/width)),0);
+   estimate=Math.max(estimate,lines);
+  });
+  return Math.min(205,Math.max(36,estimate*16+12));
+ }
+ function sheetXml(tab){
+  const count=tab.headers.length,headers=tab.headers;
+  const last=colName(count-1),endRow=4+tab.rows.length;
+  const columns='<cols>'+tab.widths.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols>';
+  const title='<row r="1" ht="36" customHeight="1">'+cell(0,1,'2026 아인슈타인 동아리 | '+tab.name,1)+'</row>';
+  const subtitle='<row r="2" ht="29" customHeight="1">'+cell(0,2,tab.desc+' · 기록된 학생 수: '+studentsDistinct(tab.rows)+'명',2)+'</row>';
+  const headersXml='<row r="4" ht="38" customHeight="1">'+headers.map((h,i)=>cell(i,4,h,3)).join('')+'</row>';
+  const records=tab.rows.map((row,i)=>'<row r="'+(i+5)+'" ht="'+rowHeight(row,tab.widths)+'" customHeight="1">'+row.map((v,ci)=>cell(ci,i+5,v,i%2?5:4)).join('')+'</row>').join('');
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+ns+'"><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A5" sqref="A5"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/>'+columns+'<sheetData>'+title+subtitle+headersXml+records+'</sheetData><mergeCells count="2"><mergeCell ref="A1:'+last+'1"/><mergeCell ref="A2:'+last+'2"/></mergeCells><autoFilter ref="A4:'+last+Math.max(4,endRow)+'"/><pageMargins left="0.25" right="0.25" top="0.45" bottom="0.45" header="0.2" footer="0.2"/></worksheet>';
+ }
+ function studentsDistinct(rows){return new Set(rows.map(r=>String(r[0]||'')).filter(Boolean)).size;}
+ const contentTypes='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+tabs.map((t,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'</Types>';
+ const workbook='<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="'+ns+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>'+tabs.map((t,i)=>'<sheet name="'+xmlEscape(t.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>';
+ const rels='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+tabs.map((t,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'<Relationship Id="rId'+(tabs.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+ const files={
+  '[Content_Types].xml':contentTypes,
+  '_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+  'xl/workbook.xml':workbook,'xl/_rels/workbook.xml.rels':rels,'xl/styles.xml':styles
+ };
+ tabs.forEach((t,i)=>{files['xl/worksheets/sheet'+(i+1)+'.xml']=sheetXml(t);});
+ return zipUncompressed(files);
+}
+
 $('exportXlsx').onclick=async()=>{
  const b=$('exportXlsx');if(b.disabled)return;
  try{setBusy(b,true);
