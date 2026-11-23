@@ -6,7 +6,7 @@ if(!pdfButton||!serverButton||!poster)return;
 const ENDPOINT='https://script.google.com/macros/s/AKfycbwcgV5NXm75aETWnzJpGCtLfihfb4i4mQGfB_0Ext5s4Zq2quWzHoRl8TqIv38LVGMWuA/exec';
 const MAX_FILE=15*1024*1024;
 const V16_CHUNK_CHARS=360000;
-let working=false;
+let working=false,loginDialogOpen=false;
 function safeName(s){return String(s||'아인슈타인_연구포스터').trim().replace(/[\\/:*?"<>|]/g,'_').slice(0,52)||'연구포스터';}
 function value(k){return document.querySelector('[data-key="'+k+'"]')?.value?.trim()||'';}
 function pause(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -135,7 +135,7 @@ pdfButton.addEventListener('click',async e=>{
 },true);
 serverButton.addEventListener('click',async e=>{
  e.preventDefault();e.stopImmediatePropagation();
- if(working)return;
+ if(working||loginDialogOpen)return;
  const api=window.__einsteinPosterV3;if(!api||!api.exportReady())return;
  let team;
  try{team=getScientists();}catch(err){alert(err.message);return;}
@@ -154,7 +154,10 @@ serverButton.addEventListener('click',async e=>{
  } finally {
   loading(false);
  }
- const login=await getLogin();if(!login)return;
+ loginDialogOpen=true;
+ let login;
+ try{login=await getLogin();}finally{loginDialogOpen=false;}
+ if(!login)return;
  if(!team.some(x=>x.studentId===login.studentId)){login.password='';alert('로그인할 대표 학생의 학번이 포스터 연구자 명단에 없습니다.');return;}
  loading(true,'고화질 PDF 생성 중…');
  try{
