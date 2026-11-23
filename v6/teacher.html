@@ -227,7 +227,7 @@ function render(){
    '<details><summary>이전 제출 이력 보기</summary>'+((s.history||[]).map((h,i)=>'<div>'+(i+1)+'차 · '+esc(h.submittedAt)+' · <a href="'+esc(h.folderUrl)+'" target="_blank" rel="noopener noreferrer">이전 제출 폴더</a></div>').join(''))+'</details></article>';
  }
  $('list').innerHTML='<section class="card"><h2>학생별 생기부 참고 근거 요약</h2><p class="hint">학번·이름을 클릭하면 제출한 실제 내용과 첨부파일을 펼쳐 볼 수 있습니다. 아래 표는 학생이 직접 작성한 탐구 기록을 근거로 요약한 것이며, 첨부된 보고서 본문 자동 분석 결과는 아닙니다.</p>'+
- '<button type="button" id="evidenceXlsx">전체 학생 생기부 근거요약 Excel 다운로드 (.xlsx)</button>'+
+ '<button type="button" id="evidenceXlsx">정리된 Excel 다운로드 · 요약·실험·근거·첨부 5개 시트 (.xlsx)</button>'+
  '<div class="table-scroller" style="max-height:540px"><table style="min-width:1060px"><thead><tr><th>학생 (상세 보기)</th><th>진로</th><th>연구주제</th><th>실험·보고서 핵심개요</th><th>활동 근거</th><th>첨부</th><th>최종 접수</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+details;
 }
 $('list').addEventListener('click',ev=>{
