@@ -557,15 +557,26 @@ function signIn(){
  if(!/^\d{6,12}$/.test(v)){msg.textContent='숫자 PIN을 입력하세요.';return;}
  if(typeof google==='undefined'||!google.script?.run){msg.textContent='Apps Script 교사용 주소에서 접속하세요.';return;}
  b.disabled=true;msg.textContent='PIN 인증 중…';
- google.script.run.withSuccessHandler(function(r){
-  b.disabled=false;if(!r||!r.session){msg.textContent='인증 세션이 없습니다.';return;}
-  document.getElementById('teacherCode').value=r.session;
-  document.getElementById('rememberSession').checked=false;
-  pin.value='';msg.textContent='인증 완료. 자료를 불러오는 중…';
-  document.getElementById('login').click();
- }).withFailureHandler(function(e){
-  b.disabled=false;msg.textContent='PIN 로그인 실패: '+(e&&e.message?e.message:String(e))+' (서버 업데이트 여부 확인)';
- }).loginEinsteinTeacherPinV18(v);
+ let finished=false;
+ const timer=setTimeout(function(){
+  if(finished)return;
+  finished=true;b.disabled=false;
+  msg.textContent='서버에서 30초 동안 응답이 없습니다. PIN 오류로 단정할 수 없습니다. Apps Script의 TeacherV18.gs 설치·기존 웹 앱 재배포를 확인하세요. 아래 기존 교사코드 로그인도 사용할 수 있습니다.';
+ },30000);
+ function complete(){if(finished)return false;finished=true;clearTimeout(timer);b.disabled=false;return true;}
+ try{
+  google.script.run.withSuccessHandler(function(r){
+   if(!complete())return;
+   if(!r||!r.session){msg.textContent='인증 세션이 없습니다. 서버 PIN 로그인 함수를 확인하세요.';return;}
+   document.getElementById('teacherCode').value=r.session;
+   document.getElementById('rememberSession').checked=false;
+   pin.value='';msg.textContent='인증 완료. 교사용 자료를 불러오는 중…';
+   document.getElementById('login').click();
+  }).withFailureHandler(function(e){
+   if(!complete())return;
+   msg.textContent='PIN 로그인 실패: '+(e&&e.message?e.message:String(e))+' · TeacherV18.gs 설치와 기존 배포 업데이트를 확인하세요.';
+  }).loginEinsteinTeacherPinV18(v);
+ }catch(e){if(complete())msg.textContent='PIN 인증 요청 실패: '+(e?.message||String(e));}
 }
 b.onclick=signIn;
 pin.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();signIn();}});
