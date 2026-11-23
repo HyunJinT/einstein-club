@@ -139,12 +139,25 @@ serverButton.addEventListener('click',async e=>{
  const api=window.__einsteinPosterV3;if(!api||!api.exportReady())return;
  let team;
  try{team=getScientists();}catch(err){alert(err.message);return;}
- const login=await getLogin();if(!login)return;
- if(!team.some(x=>x.studentId===login.studentId)){alert('로그인할 대표 학생의 학번이 포스터 연구자 명단에 없습니다.');return;}
+ // Check school server *before* asking for a student's login credentials.
+ // A failed ping is a server connection problem, never a wrong password.
  loading(true,'학교 서버 연결 확인 중…');
- try{
-  progress('학교 서버의 포스터 업로드 기능을 확인 중입니다…');
+ try {
+  progress('학교 서버의 연결 상태를 확인 중입니다. 이 단계에서는 비밀번호를 요청하지 않습니다…');
   await postToGas({},'pingEinsteinPosterV16');
+  progress('✅ 학교 서버 연결 정상 · 이제 모둠 대표 학생 인증을 진행합니다.');
+ } catch(err) {
+  const reason=String(err?.message||err);
+  progress('학교 서버 연결 실패: '+reason,true);
+  alert('학교 포스터 업로드 서버가 응답하지 않습니다. 학생 비밀번호 문제는 아닙니다.\n'+reason+'\n담당 교사에게 오류 문구를 알려주세요.');
+  return;
+ } finally {
+  loading(false);
+ }
+ const login=await getLogin();if(!login)return;
+ if(!team.some(x=>x.studentId===login.studentId)){login.password='';alert('로그인할 대표 학생의 학번이 포스터 연구자 명단에 없습니다.');return;}
+ loading(true,'고화질 PDF 생성 중…');
+ try{
   serverButton.textContent='고화질 PDF 생성 중…';
   progress('A1 세로형 포스터를 PDF로 제작 중입니다…');
   const blob=await makePdf();if(!blob)return;
