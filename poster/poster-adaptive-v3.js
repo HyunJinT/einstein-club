@@ -70,7 +70,7 @@ if(editor){const n=document.createElement('div');n.className='poster-fit-message
 const cards=poster.querySelectorAll('.poster-column');
 function setHeight(el,n){if(!el)return;const h=n+'px',f='0 0 '+n+'px';if(el.style.getPropertyValue('height')!==h||el.style.getPropertyPriority('height')!=='important')el.style.setProperty('height',h,'important');if(el.style.getPropertyValue('flex')!==f||el.style.getPropertyPriority('flex')!=='important')el.style.setProperty('flex',f,'important');}
 if(cards.length===3){[[112,165,180],[150,226],[]].forEach((a,i)=>a.forEach((v,j)=>setHeight(cards[i].children[j],v)));}
-const css=document.createElement('style');css.textContent='.poster-title{white-space:normal!important;max-height:64px;line-height:1.12;overflow:hidden}.poster-researchers{white-space:normal;max-height:38px;overflow:hidden}.poster-section .body{line-height:1.48;overflow:hidden}.poster-photo-grid{padding:3px}.poster-photo-item small{font-size:9px}.photo-box{overflow:hidden}.poster-fit-message strong{font-weight:850}';document.head.appendChild(css);
+const css=document.createElement('style');css.textContent='.poster-title{white-space:normal!important;max-height:64px;line-height:1.12;overflow:hidden}.poster-researchers{white-space:normal;max-height:38px;overflow:hidden}.poster-section .body{line-height:1.48;overflow:hidden}.poster-photo-grid{padding:3px}.poster-photo-item small{font-size:9px}.photo-box{overflow:hidden}.poster-fit-message strong{font-weight:850}#pMethods .poster-method-part[data-item-key="method"]>span{display:block;white-space:pre-wrap}';document.head.appendChild(css);
 for(const el of document.querySelectorAll('[data-key]')){
  const cap=limits[el.dataset.key];if(!cap)continue;
  el.maxLength=Math.max(cap,el.value.length);
@@ -203,7 +203,7 @@ function setGridRows(node,visible,cssClass){
   const frag=document.createDocumentFragment();
   for(const x of visible){
    const part=document.createElement('div');part.className=cssClass;part.dataset.itemKey=x.key;
-   const strong=document.createElement('strong');strong.textContent=x.label+' · ';
+   const strong=document.createElement('strong');strong.textContent=x.label+(x.key==='method'?'':' · ');
    const value=document.createElement('span');value.textContent=x.value;part.append(strong,value);frag.appendChild(part);
   }
   node.replaceChildren(frag);
