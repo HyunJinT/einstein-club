@@ -125,8 +125,17 @@ function deleteEinsteinTeacherPosterV19(adminKey, posterId) {
     if (found < 0) throw Error('이미 삭제되었거나 찾을 수 없는 포스터입니다.');
     var driveId = String(data[found][2] || '');
     var file = DriveApp.getFileById(driveId);
-    var folder = einsPosterFolderV15_();
-    if (!einsV19ParentsContain_(file, new Set([folder.getId()]))) throw Error('공동 포스터 폴더의 파일이 아닙니다.');
+    // The old helper einsPosterFolderV15_ may not exist in the live project.
+    // Verify the existing Drive file's actual parent folder instead of creating
+    // a new folder or assuming an uninstalled V15 function.
+    var parentFolders = file.getParents(), verifiedPosterFolder = false;
+    while (parentFolders.hasNext()) {
+      if (parentFolders.next().getName() === '아인슈타인_공동연구포스터_비공개') {
+        verifiedPosterFolder = true;
+        break;
+      }
+    }
+    if (!verifiedPosterFolder) throw Error('공동 포스터 전용 보관 폴더의 파일이 아닙니다.');
     var sheet = sheet_('제출현황'), rows = sheet.getDataRange().getValues(), changes = [];
     for (var j = 1; j < rows.length; j++) {
       var files = einsV19ReadFiles_(rows[j]);
