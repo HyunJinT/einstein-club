@@ -208,7 +208,7 @@ function render(){
   return '<tr><td><button type="button" class="student-detail-open" data-open-student="'+esc(s.studentId)+'">'+esc(s.studentId)+' · '+esc(s.name)+'</button></td>'+
    '<td>'+esc(s.career||'-')+'</td><td>'+esc(trimEvidence(s.theme,85))+'</td>'+
    '<td>'+esc(trimEvidence(ev.experiments,165))+'</td><td>'+esc(trimEvidence(ev.evidence,130))+'</td>'+
-   '<td>'+esc(s.files.filter(x=>x.kind==='report').length+' 보고서 / '+s.files.filter(x=>x.kind==='poster').length+' 포스터')+'</td><td>'+esc(s.receivedAt||'')+'</td></tr>';
+   '<td>'+esc(s.files.filter(x=>x.kind==='report').length+' 보고서 / '+s.files.filter(x=>x.kind==='poster').length+' 포스터')+'</td><td>'+esc(s.receivedAt||'')+'</td><td><button type="button" data-ein-delete-student="'+esc(s.studentId)+'" style="background:#fff1f1;color:#902c36;border:1px solid #e9bcc2;padding:8px 10px;white-space:nowrap">이 학생 기록 삭제</button></td></tr>';
  }).join('');
  let details='';
  if(selected){
@@ -227,10 +227,43 @@ function render(){
    '<details><summary>이전 제출 이력 보기</summary>'+((s.history||[]).map((h,i)=>'<div>'+(i+1)+'차 · '+esc(h.submittedAt)+' · <a href="'+esc(h.folderUrl)+'" target="_blank" rel="noopener noreferrer">이전 제출 폴더</a></div>').join(''))+'</details></article>';
  }
  $('list').innerHTML='<section class="card"><h2>학생별 생기부 참고 근거 요약</h2><p class="hint">학번·이름을 클릭하면 제출한 실제 내용과 첨부파일을 펼쳐 볼 수 있습니다. 아래 표는 학생이 직접 작성한 탐구 기록을 근거로 요약한 것이며, 첨부된 보고서 본문 자동 분석 결과는 아닙니다.</p>'+
- '<button type="button" id="evidenceXlsx">정리된 Excel 다운로드 · 요약·실험·근거·첨부 5개 시트 (.xlsx)</button>'+
- '<div class="table-scroller" style="max-height:540px"><table style="min-width:1060px"><thead><tr><th>학생 (상세 보기)</th><th>진로</th><th>연구주제</th><th>실험·보고서 핵심개요</th><th>활동 근거</th><th>첨부</th><th>최종 접수</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+details;
+ '<button type="button" id="evidenceXlsx">정리된 Excel 다운로드 · 요약·실험·근거·첨부 5개 시트 (.xlsx)</button> <button type="button" id="einRestoreStudent" style="background:#ecf3fa;color:#244c70;border:1px solid #ccdbea">삭제 기록 복구</button><p class="hint">학생별 삭제는 완료된 제출을 목록과 엑셀에서 제외합니다. 원본 자료·계정·비밀번호는 보관되며 복구할 수 있습니다.</p>'+ 
+ '<div class="table-scroller" style="max-height:540px"><table style="min-width:1060px"><thead><tr><th>학생 (상세 보기)</th><th>진로</th><th>연구주제</th><th>실험·보고서 핵심개요</th><th>활동 근거</th><th>첨부</th><th>최종 접수</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+details;
 }
-$('list').addEventListener('click',ev=>{
+$('list').addEventListener('click',async ev=>{
+ const del=ev.target.closest('[data-ein-delete-student]');
+ if(del){
+  if(del.disabled)return;
+  const studentId=del.getAttribute('data-ein-delete-student');
+  const record=all.find(x=>x.studentId===studentId);
+  if(!record)return alert('선택한 학생을 현재 목록에서 찾을 수 없습니다.');
+  if(!confirm(studentId+' '+record.name+' 학생의 완료된 제출 내역을 개별 삭제할까요?\n이 학생의 완료된 접수가 목록과 Excel에서 제외됩니다.\n원본 Google Drive 파일과 계정은 유지되어 복구할 수 있습니다.'))return;
+  if(prompt('삭제 확인을 위해 학번 '+studentId+'을(를) 입력하세요.')!==studentId)return;
+  del.disabled=true;del.textContent='처리 중…';
+  try{
+   const result=await call('deleteEinsteinTeacherStudentRecordsV20',code,studentId);
+   if(!result?.ok)throw Error('서버 응답 오류');
+   if(selectedStudentId===studentId)selectedStudentId='';
+   fullRecordCache.delete(studentId);
+   all=await call('getEinsteinTeacherDashboardV10',code);
+   render();
+   alert(studentId+' 학생의 제출 기록 '+result.removed+'건을 목록에서 제외했습니다. 필요하면 삭제 기록 복구를 사용하세요.');
+  }catch(err){alert('학생 기록 삭제 실패: '+err.message+'\n서버에 EinsteinTeacherSubmissionDeleteV20.gs 파일이 설치되고 재배포되었는지 확인해 주세요.');}
+  finally{del.disabled=false;}
+  return;
+ }
+ if(ev.target.closest('#einRestoreStudent')){
+  const id=String(prompt('복구할 학생의 학번 5자리를 입력하세요.')||'').trim();
+  if(!id)return;
+  if(!/^\d{5}$/.test(id))return alert('학번 5자리를 입력하세요.');
+  if(!confirm(id+' 학생의 삭제 기록을 제출 현황에 복구하시겠습니까?'))return;
+  try{
+   const restored=await call('restoreEinsteinTeacherStudentRecordsV20',code,id);
+   all=await call('getEinsteinTeacherDashboardV10',code);
+   render();alert(id+' 학생의 제출 기록 '+restored.restored+'건을 복구했습니다.');
+  }catch(err){alert('복구 실패: '+err.message);}
+  return;
+ }
  const btn=ev.target.closest('[data-ein-delete-attachment]');
  if(btn){
   const studentId=btn.getAttribute('data-ein-student'),fileUrl=btn.getAttribute('data-ein-delete-attachment');
