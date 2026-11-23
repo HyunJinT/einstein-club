@@ -122,6 +122,26 @@ function posterAiHtmlResponse_(payload) {
   const serial = JSON.stringify(payload).replace(/</g,'\\u003c')
     .replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
   const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
-    '<script>window.top.postMessage(' + serial + ', "*");</script></body></html>';
-  return HtmlService.createHtmlOutput(html).setTitle('포스터 AI 피드백');
+    '<script>(function(){var data=' + serial + ';' +
+    'try{window.parent.postMessage(data,"*");}catch(e){}' +
+    'try{if(window.top!==window.parent)window.top.postMessage(data,"*");}catch(e){}' +
+    '})();</script></body></html>';
+  // Embedded form POSTs from GitHub Pages must be allowed to return a message.
+  return HtmlService.createHtmlOutput(html)
+    .setTitle('포스터 AI 피드백')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Apps Script 편집기에서만 수동 실행하는 비파괴 설치점검.
+ * API 키 값은 출력하지 않으며, Gemini 호출/사용량 차감도 없습니다.
+ */
+function checkEinsteinPosterAISetupV2() {
+  const props = PropertiesService.getScriptProperties();
+  const keyExists = !!props.getProperty('GEMINI_API_KEY');
+  Logger.log('포스터 AI 서버 코드 설치: OK');
+  Logger.log('GEMINI_API_KEY 설정: ' + (keyExists ? '있음' : '없음'));
+  Logger.log('모델 이름: ' + POSTER_AI_MODEL);
+  Logger.log('웹 앱 배포 유형: 나로 실행 / 모든 사용자 접근인지 직접 확인 필요');
+  return { ok: keyExists, model: POSTER_AI_MODEL, configured: keyExists };
 }
