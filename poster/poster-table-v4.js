@@ -25,7 +25,7 @@ function make(tag,props,children){
  return el;
 }
 const container=make('section',{class:'poster-graph-table','aria-label':'표로 그래프 작성하기'});
-container.innerHTML="<div class=\"poster-graph-head\"><strong>📊 조작 변인(X축)과 종속 변인(Y축)을 표에 입력하세요</strong><label>그래프 종류 <select id=\"posterGraphType\"><option value=\"bar\">막대그래프 · 범주별 비교</option><option value=\"line\">꺾은선그래프 · 연속된 변화</option></select></label></div><div class=\"poster-graph-help\">① 위 입력칸에서 <b>조작 변인·종속 변인의 이름과 단위</b>를 각각 입력하세요.<br>② 왼쪽 칸에는 <b>조작 변인의 값(X)</b>, 오른쪽 칸에는 <b>종속 변인의 측정값(Y)</b>을 입력하세요. 단위는 각 축에 한 번만 입력하면 됩니다.</div><table><thead><tr><th scope=\"col\" style=\"width:48%\">조작 변인(X축) 값</th><th scope=\"col\">종속 변인(Y축) 측정값</th><th scope=\"col\" style=\"width:43px\">삭제</th></tr></thead><tbody id=\"posterGraphRows\"></tbody></table><button type=\"button\" class=\"add-graph-row\" id=\"posterAddGraphRow\">+ 실험 조건 추가</button><details style=\"margin-top:12px\"><summary style=\"font-size:12px;font-weight:700;cursor:pointer\">표 입력 예시 · 가상 데이터</summary><div class=\"mini-table-example\">X축: 과산화수소 농도 / 단위: %<br>Y축: 효모 생존율 / 단위: %<br><b>조작 변인 값</b> 0 → <b>종속 변인 값</b> 95<br><b>조작 변인 값</b> 0.5 → <b>종속 변인 값</b> 72<br><b>조작 변인 값</b> 1.0 → <b>종속 변인 값</b> 38<br>수치는 입력법을 보여주는 가상의 예시이며 실제 실험 결과가 아닙니다.</div></details><p class=\"poster-graph-help\">꺾은선그래프는 연속적으로 변하는 조작 변인에 사용하세요. 수치 조건은 작은 값부터 큰 값 순서로 입력하세요.</p>";
+container.innerHTML="<div class=\"poster-graph-head\"><strong>📊 조작 변인(X축)과 종속 변인(Y축)을 표에 입력하세요</strong><label>그래프 종류 (선택) <select id=\"posterGraphType\"><option value=\"bar\">막대그래프 · 범주별 비교</option><option value=\"line\">꺾은선그래프 · 연속된 변화</option></select></label></div><div class=\"poster-graph-help\">① 위 입력칸에서 <b>조작 변인·종속 변인의 이름과 단위</b>를 각각 입력하세요.<br>② 왼쪽 칸에는 <b>조작 변인의 값(X)</b>, 오른쪽 칸에는 <b>종속 변인의 측정값(Y)</b>을 입력하세요. 단위는 각 축에 한 번만 입력하면 됩니다.</div><table><thead><tr><th scope=\"col\" style=\"width:48%\">조작 변인(X축) 값</th><th scope=\"col\">종속 변인(Y축) 측정값</th><th scope=\"col\" style=\"width:43px\">삭제</th></tr></thead><tbody id=\"posterGraphRows\"></tbody></table><button type=\"button\" class=\"add-graph-row\" id=\"posterAddGraphRow\">+ 실험 조건 추가</button><details style=\"margin-top:12px\"><summary style=\"font-size:12px;font-weight:700;cursor:pointer\">표 입력 예시 · 가상 데이터</summary><div class=\"mini-table-example\">X축: 과산화수소 농도 / 단위: %<br>Y축: 효모 생존율 / 단위: %<br><b>조작 변인 값</b> 0 → <b>종속 변인 값</b> 95<br><b>조작 변인 값</b> 0.5 → <b>종속 변인 값</b> 72<br><b>조작 변인 값</b> 1.0 → <b>종속 변인 값</b> 38<br>수치는 입력법을 보여주는 가상의 예시이며 실제 실험 결과가 아닙니다.</div></details><p class=\"poster-graph-help\">꺾은선그래프는 연속적으로 변하는 조작 변인에 사용하세요. 수치 조건은 작은 값부터 큰 값 순서로 입력하세요.</p>";
 const field=original.closest('.field');if(field){field.appendChild(container);field.style.position='relative';original.style.display='none';}
 $('posterGraphType').dataset.key='graphType';
 $('posterGraphType').value=options.type==='line'?'line':'bar';
@@ -138,7 +138,7 @@ if(observedChart){
 }
 const graphField=original.closest('.field');
 if(graphField){
- const label=graphField.querySelector('label');if(label)label.textContent='조작 변인(X) · 종속 변인(Y) 데이터';
+ const label=graphField.querySelector('label');if(label)label.textContent='조작 변인(X) · 종속 변인(Y) 데이터 (선택)';
  const note=graphField.querySelector('.hint');if(note)note.textContent='조작 변인(X축) 값과 종속 변인(Y축) 측정값을 표에 입력하세요.';
 }
 const introText=document.querySelector('.intro p');
