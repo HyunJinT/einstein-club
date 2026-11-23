@@ -113,7 +113,7 @@ byId('studentLoginCode').addEventListener('keydown',function(e){if(e.key==='Ente
 byId('studentSetPasswordBtn').addEventListener('click',function(){
  var p=byId('studentNewPassword').value,q=byId('studentConfirmPassword').value;
  if(!verifiedAccessCode){feedback('먼저 학생 개별 제출코드로 본인 확인을 해주세요.');return;}
- if(p.length<8||p.length>64||!/[0-9]/.test(p)||!/[A-Za-z가-힣]/.test(p)||/\s/.test(p)){feedback('비밀번호는 공백 없이 문자와 숫자를 포함해 8~64자로 설정하세요.');return;}
+ if(p.length<8){feedback('비밀번호는 원하는 문자로 8자 이상 입력하세요. 문자·숫자 조합 제한은 없습니다.');return;}
  if(p!==q){feedback('두 비밀번호가 일치하지 않습니다.');return;}
  request('setEinsteinStudentPasswordV14',[verifiedAccessCode,p],function(result){
   verifiedAccessCode='';
