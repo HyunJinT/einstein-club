@@ -223,9 +223,16 @@
         form.appendChild(input);
       });
       let settled = false;
+      const progressTimer = setTimeout(() => {
+        if (!settled) {
+          status.hidden = false;
+          status.textContent = 'AI 서버에서 분석 결과를 기다리고 있습니다. 응답이 없으면 기본 검사 결과를 유지하고 서버 설정을 확인합니다.';
+        }
+      }, 18000);
       function cleanup() {
         window.removeEventListener('message', onMessage);
         clearTimeout(timeout);
+        clearTimeout(progressTimer);
         form.remove();
         frame.remove();
       }
@@ -242,8 +249,8 @@
         if (settled) return;
         settled = true;
         cleanup();
-        reject(Error('AI 서버 응답이 지연됩니다. 서버 배포 상태와 API 사용 한도를 확인하세요.'));
-      }, 90000);
+        reject(Error('별도 포스터 AI 서버의 응답이 없습니다. AI 서버의 웹 앱 배포(나로 실행/모든 사용자), API 키, iframe 허용 설정을 확인하세요.'));
+      }, 60000);
       window.addEventListener('message', onMessage);
       document.body.append(frame, form);
       form.submit();
