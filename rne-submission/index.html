@@ -50,15 +50,15 @@ main{max-width:960px;margin:0 auto;padding:26px 18px 65px}.hero{border-radius:22
 <div class="field"><label for="reportFile">최종 보고서 파일 <span class="req">*</span></label>
  <div id="reportExistingFileNotice" class="info" hidden><strong>1인당 1개의 파일만 제출 가능합니다.</strong><div>이미 제출한 파일이 있습니다. 새 파일은 '파일 교체하기'로 선택하세요.</div></div>
  <button class="btn" type="button" id="replaceReportFileButton" hidden>↻ 파일 교체하기</button>
- <div id="reportFileInputWrap"><input class="input" type="file" id="reportFile" accept=".pdf,.hwpx,.hwp,.docx"></div>
+ <div id="reportFileInputWrap"><input class="input" type="file" id="reportFile" aria-describedby="reportReplacementStatus"></div>
  <div id="reportReplacementStatus" class="small" role="status" aria-live="polite" hidden></div>
- <div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 15MB · 비공개 Google Drive 저장</div>
+ <div class="small">PDF, HWPX, HWP, DOCX · 파일 1개 · 최대 15MB · 비공개 Google Drive 저장<br>모바일 호환성을 위해 모든 파일이 표시될 수 있으며, 선택 후 형식과 용량을 확인합니다.</div>
 </div>
 </div>
 <div id="presentationForm" hidden>
 <div class="field"><label for="teamTitle">연구주제 <span class="req">*</span></label><input id="teamTitle" class="input" maxlength="150" placeholder="연구주제를 입력하세요"></div>
 <div class="field"><label>발표 모둠원 전체 명단 <span class="req">*</span></label><p class="small">발표자 포함 전원의 학번과 이름을 등록하세요. 발표자료는 대표학생 1명이 제출하고 수정합니다.</p><div id="memberList"></div><button class="btn" type="button" id="addMember">＋ 모둠원 추가</button></div>
-<div class="field"><label>발표자료 파일 <span class="req">*</span></label><input class="input" type="file" id="pptFile" accept=".pptx,.ppt,.pdf"><div class="small">PPTX, PPT 또는 PDF · 파일 1개 · 최대 15MB · Google Drive 비공개 저장.</div></div>
+<div class="field"><label>발표자료 파일 <span class="req">*</span></label><input class="input" type="file" id="pptFile" aria-describedby="pptFileStatus"><div id="pptFileStatus" class="small" role="status" aria-live="polite" hidden></div><div class="small">PPTX, PPT 또는 PDF · 파일 1개 · 최대 15MB · Google Drive 비공개 저장.<br>모바일 호환성을 위해 모든 파일이 표시될 수 있으며, 선택 후 형식과 용량을 확인합니다.</div></div>
 </div>
 <div class="buttonbar"><button class="btn primary" type="button" id="saveSubmit">☁ 최종 제출 / 수정 저장</button><button class="btn" type="button" id="otherKind">모둠별 발표자료 제출</button><button class="btn" type="button" id="studentLogout">로그아웃</button></div>
 <div id="uploadProgress" class="small" aria-live="polite"></div>
@@ -111,7 +111,13 @@ function tell(msg,ok){const box=document.createElement('div');box.className='not
 function isPin(v){return /^\d{6}$/.test(v);}
 function isId(v){return /^\d{5}$/.test(v);}
 function kst(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date());}
-function allowedFile(file,type){if(!file)return false;if(file.size<=0||file.size>MAX_FILE_BYTES)return false;return (type==='report'?/\.(pdf|hwpx|hwp|docx)$/i:/\.(pptx|ppt|pdf)$/i).test(file.name);}
+function fileProblem(file,type){
+ if(!file)return '제출할 파일을 선택하세요.';
+ if(!(type==='report'?/\.(pdf|hwpx|hwp|docx)$/i:/\.(pptx|ppt|pdf)$/i).test(file.name))return '지원하지 않는 파일 형식입니다. '+(type==='report'?'PDF, HWPX, HWP, DOCX':'PPTX, PPT, PDF')+' 파일을 선택하세요.';
+ if(file.size<=0)return '빈 파일이거나 파일을 읽을 수 없습니다. 기기에 다운로드한 파일을 다시 선택하세요.';
+ if(file.size>MAX_FILE_BYTES)return '파일 용량이 15MB를 초과합니다. 15MB 이하의 파일을 선택하세요.';
+ return '';
+}
 async function sha(id,pin){const buff=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('rne2026:'+id+':'+pin));return Array.from(new Uint8Array(buff)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 async function boot(){
  const [app,auth,db]=await Promise.all([
@@ -226,21 +232,23 @@ function displayReportFileControls(){
  $('reportFileInputWrap').hidden=alreadySubmitted||!canEdit;
  $('reportReplacementStatus').hidden=true;
  $('reportReplacementStatus').textContent='';
+ $('reportReplacementStatus').className='small';
+ $('pptFileStatus').hidden=true;$('pptFileStatus').textContent='';$('pptFileStatus').className='small';
 }
 function pickReplacementReportFile(){
  if(kind!=='report'||isClosed(kind)||!existing?.file)return;
  $('reportFileInputWrap').hidden=false;
  $('reportFile').click();
 }
-function reportFileChanged(){
- const f=$('reportFile').files[0];
- const status=$('reportReplacementStatus');
- if(kind==='report'&&existing?.file&&f){
-  status.hidden=false;
-  status.textContent='교체할 파일: '+f.name+' · 아래의 “최종 제출 / 수정 저장”을 눌러야 기존 파일이 실제로 대체됩니다.';
- }else{
-  status.hidden=true;status.textContent='';
- }
+function selectedFileChanged(type){
+ const f=$(type==='report'?'reportFile':'pptFile').files[0];
+ const status=$(type==='report'?'reportReplacementStatus':'pptFileStatus');
+ if(!f){status.hidden=true;status.textContent='';status.className='small';return;}
+ const problem=fileProblem(f,type);
+ status.hidden=false;
+ status.className=problem?'warning':'small';
+ status.textContent=problem||((existing?.file?'교체할 파일: ':'선택한 파일: ')+f.name+' · '+(f.size/1048576).toFixed(2)+' MB · 아래의 “최종 제출 / 수정 저장”을 눌러야 저장됩니다.');
+ // 잘못된 선택은 그대로 표시해 최종 제출 단계에서도 차단합니다. 기존 제출 파일은 건드리지 않습니다.
 }
 async function showStudent(){
  await refreshClosed();const c=await ready();
@@ -322,7 +330,7 @@ async function saveSubmission(){
  if(!student)throw Error('먼저 학생 로그인을 완료하세요.');
  const type=kind,id=student.id,c=await ready();
  const file=$(type==='report'?'reportFile':'pptFile').files[0];
- if(file&&!allowedFile(file,type))throw Error('허용된 파일 형식인지, 파일 크기가 15MB 이내인지 확인하세요.');
+ if(file){const problem=fileProblem(file,type);if(problem)throw Error(problem);}
  if(!file&&!existing?.file)throw Error('제출할 파일을 선택하세요.');
  const next={studentId:id,studentName:student.name,createdAt:existing?.createdAt||kst(),updatedAt:kst()};
  if(type==='report'){
@@ -512,7 +520,8 @@ $('pinSubmit').addEventListener('click',()=>run(submitPin));
 
 $('saveSubmit').addEventListener('click',()=>run(saveSubmission));
 $('replaceReportFileButton').addEventListener('click',pickReplacementReportFile);
-$('reportFile').addEventListener('change',reportFileChanged);
+$('reportFile').addEventListener('change',()=>selectedFileChanged('report'));
+$('pptFile').addEventListener('change',()=>selectedFileChanged('presentation'));
 $('addMember').addEventListener('click',()=>addMember());
 $('otherKind').addEventListener('click',()=>{kind=kind==='report'?'presentation':'report';void run(showStudent);});
 $('studentLogout').addEventListener('click',()=>run(async()=>{const c=await ready();await c.signOut(c.auth);goHome();}));
